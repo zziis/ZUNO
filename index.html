@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050816">
+  <meta name="description" content="Zuno community platform">
+  <title>Zuno</title>
+  <link rel="stylesheet" href="css/style.css?v=1.0.0">
+</head>
+<body>
+  <section id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <div class="brand">Zuno</div>
+      <div class="tabs">
+        <button id="tab-login" class="tab active">تسجيل الدخول</button>
+        <button id="tab-register" class="tab">إنشاء حساب</button>
+      </div>
+      <form id="login-form" class="form">
+        <input id="login-id" class="field" placeholder="ID أو البريد الإلكتروني" autocomplete="username" required>
+        <div class="field-wrap"><input id="login-pass" class="field" type="password" placeholder="كلمة المرور" autocomplete="current-password" required><button class="eye" type="button" data-eye="login-pass">👁</button></div>
+        <button class="btn" type="submit">تسجيل الدخول</button>
+      </form>
+      <form id="register-form" class="form hidden">
+        <input id="reg-name" class="field" placeholder="الاسم" maxlength="40" required>
+        <input id="reg-email" class="field" type="email" placeholder="البريد الإلكتروني" required>
+        <div class="field-wrap"><input id="reg-pass" class="field" type="password" placeholder="كلمة المرور" minlength="6" required><button class="eye" type="button" data-eye="reg-pass">👁</button></div>
+        <div class="field-wrap"><input id="reg-confirm" class="field" type="password" placeholder="تأكيد كلمة المرور" minlength="6" required><button class="eye" type="button" data-eye="reg-confirm">👁</button></div>
+        <input id="reg-invite" class="field" inputmode="numeric" placeholder="ID الدعوة (اختياري)">
+        <button class="btn" type="submit">إنشاء حساب</button>
+      </form>
+      <div id="auth-msg" class="msg"></div>
+      <div id="setup-note" class="note hidden" style="margin-top:12px;text-align:center">يجب إضافة بيانات Supabase في <b>js/config.js</b> قبل التشغيل.</div>
+    </div>
+  </section>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px"><button id="menu-btn" class="menu-btn">☰</button><div class="logo-small">Zuno</div></div>
+      <div class="wallet"><span class="wallet-pill">⭐ <b id="points">0</b> نقطة</span><span class="wallet-pill">💎 <b id="gems">0</b> مجوهرة</span></div>
+    </header>
+    <div id="overlay" class="overlay hidden"></div>
+    <aside id="sidebar" class="sidebar">
+      <div id="side-user" class="card" style="margin-bottom:12px"></div>
+      <div class="nav-title">القائمة</div>
+      <button class="nav-btn active" data-page="settings">⚙️ الإعدادات</button>
+      <button class="nav-btn" data-page="private">💬 الخاص</button>
+      <button class="nav-btn" data-page="rooms">🎙️ الرومات</button>
+      <button class="nav-btn" data-page="counter">⌛ العداد</button>
+      <button class="nav-btn" data-page="store">🛍️ المتجر</button>
+      <button class="nav-btn" data-page="wheel">🎡 العجلة</button>
+      <div class="divider"></div>
+      <button id="logout-btn" class="nav-btn" style="color:#ff91a6">🚪 تسجيل الخروج</button>
+    </aside>
+    <main id="main" class="main"></main>
+    <button id="bot-fab" class="bot-fab" title="بوت الأسئلة الشائعة">🤖</button>
+  </div>
+
+  <div id="modal" class="modal hidden"><div id="modal-card" class="modal-card"></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=1.0.0"></script>
+  <script src="js/supabase.js?v=1.0.0"></script>
+  <script src="js/auth.js?v=1.0.0"></script>
+  <script src="js/app.js?v=1.0.0"></script>
+</body>
+</html>
