@@ -1172,24 +1172,45 @@ class ZonoApp {
     }
 
     async loadNotifications(primeOnly = false) {
-        if (!window.zunoBackend?.client || !this.currentUser) return;
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client || !this.currentUser?.id) return;
+
         try {
-            const { data, error } = await window.zunoBackend.client.rpc('zono_my_notifications');
+            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+            // Read the receiver's notifications directly from the table.
+            // RLS in Supabase guarantees that each user can only read their own rows.
+            const { data, error } = await client
+                .from('zono_notifications')
+                .select('id,user_id,kind,title,body,sender_public_id,amount,is_read,created_at')
+                .eq('user_id', this.currentUser.id)
+                .gte('created_at', sevenDaysAgo)
+                .order('created_at', { ascending: false })
+                .limit(100);
+
             if (error) throw error;
 
-            const allowedKinds = new Set(['seed_transfer','support','developer_message','company_message']);
-            const rows = (Array.isArray(data) ? data : [])
-                .filter(n => {
-                    const kind = String(n.kind || '');
-                    const looksLikeSeedTransfer =
-                        Number(n.amount || 0) > 0 &&
-                        Number(n.sender_public_id || 0) > 0;
-                    return allowedKinds.has(kind) || looksLikeSeedTransfer;
-                });
+            const allowedKinds = new Set([
+                'seed_transfer',
+                'support',
+                'developer_message',
+                'company_message'
+            ]);
+
+            const rows = (Array.isArray(data) ? data : []).filter(n => {
+                const kind = String(n.kind || '');
+                const looksLikeSeedTransfer =
+                    Number(n.amount || 0) > 0 &&
+                    Number(n.sender_public_id || 0) > 0;
+                return allowedKinds.has(kind) || looksLikeSeedTransfer;
+            });
+
             this.notificationRows = rows;
 
             const unread = rows.filter(x => !x.is_read).length;
-            const newestId = rows.length ? Math.max(...rows.map(x => Number(x.id || 0))) : 0;
+            const newestId = rows.length
+                ? Math.max(...rows.map(x => Number(x.id || 0)))
+                : 0;
 
             ['header-profile-notification-count', 'profile-notification-count'].forEach(id => {
                 const badge = document.getElementById(id);
@@ -1200,15 +1221,20 @@ class ZonoApp {
             });
 
             const list = document.getElementById('zono-notifications-list');
+
             if (list) {
                 list.innerHTML = rows.length ? rows.map(n => {
                     const looksLikeSeedTransfer =
                         n.kind === 'seed_transfer' ||
                         (Number(n.amount || 0) > 0 && Number(n.sender_public_id || 0) > 0);
+
                     const icon =
                         looksLikeSeedTransfer ? '🌾' :
                         n.kind === 'support' ? '🛟' :
                         n.kind === 'developer_message' ? '👑' : '🏢';
+
+                    const title = n.title ||
+                        (looksLikeSeedTransfer ? 'استلام بذور' : 'إشعار');
 
                     return `
                         <button type="button"
@@ -1218,7 +1244,7 @@ class ZonoApp {
                                 <div class="zono-n-icon shrink-0 bg-stone-950/80 border border-stone-800 flex items-center justify-center text-base">${icon}</div>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center justify-between gap-2">
-                                        <strong class="zono-n-title text-stone-100">${this.escapeHtml(n.title || 'إشعار')}</strong>
+                                        <strong class="zono-n-title text-stone-100">${this.escapeHtml(title)}</strong>
                                         ${n.is_read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>'}
                                     </div>
                                     <p class="zono-n-preview text-stone-400">${this.escapeHtml(n.body || '')}</p>
@@ -1235,7 +1261,11 @@ class ZonoApp {
             if (!this.notificationsPrimed) {
                 this.notificationsPrimed = true;
                 this.lastNotificationId = storedId;
-                const newestUnread = rows.find(n => !n.is_read && Number(n.id || 0) > storedId);
+
+                const newestUnread = rows.find(
+                    n => !n.is_read && Number(n.id || 0) > storedId
+                );
+
                 if (newestUnread) this.showIncomingNotification(newestUnread);
 
                 if (newestId > storedId) {
@@ -1247,15 +1277,19 @@ class ZonoApp {
 
             const newRows = rows
                 .filter(n => !n.is_read && Number(n.id || 0) > this.lastNotificationId)
-                .sort((a,b) => Number(a.id || 0) - Number(b.id || 0));
+                .sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
 
-            for (const n of newRows) this.showIncomingNotification(n);
+            for (const n of newRows) {
+                this.showIncomingNotification(n);
+            }
 
             if (newestId > this.lastNotificationId) {
                 this.lastNotificationId = newestId;
                 localStorage.setItem(storageKey, String(newestId));
             }
-        } catch (_) {}
+        } catch (e) {
+            console.error('ZONO notifications:', e);
+        }
     }
 
     openAccountCenter(mode = 'notifications') {
@@ -1295,11 +1329,8 @@ class ZonoApp {
         const n = (this.notificationRows || []).find(x => Number(x.id || 0) === Number(notificationId));
         if (!n) return;
 
-        const looksLikeSeedTransfer =
-            n.kind === 'seed_transfer' ||
-            (Number(n.amount || 0) > 0 && Number(n.sender_public_id || 0) > 0);
         const icon =
-            looksLikeSeedTransfer ? '🌾' :
+            n.kind === 'seed_transfer' ? '🌾' :
             n.kind === 'support' ? '🛟' :
             n.kind === 'developer_message' ? '👑' : '🏢';
 
@@ -1321,9 +1352,13 @@ class ZonoApp {
 
         if (!n.is_read) {
             try {
-                const { error } = await window.zunoBackend.client.rpc('zono_mark_notification_read', {
-                    p_notification_id: Number(n.id)
-                });
+                const client = window.zunoBackend?.client || window.zunoAuth?.client;
+                const { error } = await client
+                    .from('zono_notifications')
+                    .update({ is_read: true })
+                    .eq('id', Number(n.id))
+                    .eq('user_id', this.currentUser.id);
+
                 if (!error) {
                     n.is_read = true;
                     await this.loadNotifications(false);
@@ -1451,8 +1486,16 @@ class ZonoApp {
     }
 
     async markNotificationsRead() {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client || !this.currentUser?.id) return;
+
         try {
-            const { error } = await window.zunoBackend.client.rpc('zono_mark_notifications_read');
+            const { error } = await client
+                .from('zono_notifications')
+                .update({ is_read: true })
+                .eq('user_id', this.currentUser.id)
+                .eq('is_read', false);
+
             if (error) throw error;
             await this.loadNotifications(false);
         } catch (e) {
@@ -1460,7 +1503,6 @@ class ZonoApp {
         }
     }
 
-    // --- Toast Notifications ---
     showToast(message, type = 'info') {
         const toastEl = document.getElementById('zono-toast');
         if (!toastEl) return;
