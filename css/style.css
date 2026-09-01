@@ -720,164 +720,196 @@ nav.fixed.bottom-0::before {
     justify-content: center;
 }
 
-/* ===== ZONO UPDATE 09 — FIXED RESPONSIVE HEADER ===== */
+/* =========================================================
+   ZONO V1 — UPDATE 10
+   Stable mobile header: no overlap even with huge balances
+   ========================================================= */
 
-/* Header layout must never expand because of large balances */
-header > div {
-    width: 100%;
+.zono-header-inner,
+.zono-brand,
+.zono-header-actions,
+#zono-currency-pill {
+    box-sizing: border-box;
+}
+
+.zono-header-inner {
     min-width: 0;
 }
 
-header > div > div:first-child {
+.zono-brand {
     flex: 0 0 auto;
     min-width: 0;
 }
 
-header > div > div:last-child {
-    flex: 0 1 auto;
+.zono-header-actions {
     min-width: 0;
 }
 
-/* Fixed-size dual currency capsule */
-header [onclick*="switchTab('store')"] {
-    width: 13.5rem;
-    min-width: 13.5rem;
-    max-width: 13.5rem;
+#zono-currency-pill {
     overflow: hidden;
-    flex-shrink: 0;
+    flex: 0 0 auto;
 }
 
-/* Only the two resource groups can flex.
-   IMPORTANT: do not flex the center separator. */
-header [onclick*="switchTab('store')"] > span.flex {
+#zono-currency-pill > span.flex {
+    min-width: 0;
     flex: 1 1 0;
-    min-width: 0;
-    overflow: hidden;
     justify-content: center;
+    overflow: hidden;
 }
 
-header [onclick*="switchTab('store')"] > span.h-5 {
+#zono-currency-pill > span.h-5 {
     flex: 0 0 1px !important;
     width: 1px !important;
     min-width: 1px !important;
     max-width: 1px !important;
 }
 
-/* Large numbers stay inside their own half of the capsule */
 #header-feathers-count,
 #header-seeds-count {
     display: inline-block;
     min-width: 0 !important;
-    max-width: 4.6rem !important;
-    overflow: hidden;
-    white-space: nowrap;
+    overflow: hidden !important;
+    white-space: nowrap !important;
     text-align: center;
     font-variant-numeric: tabular-nums;
     line-height: 1;
 }
 
-/* Controls may shrink never, so bell/theme/avatar stay visible */
-#theme-toggle-btn,
-header button[onclick*="toggleSound"],
-header [onclick*="switchTab('profile')"] {
-    flex: 0 0 auto !important;
-}
-
-/* ---------------- MOBILE ---------------- */
-@media (max-width: 640px) {
-    header {
-        padding: .5rem .55rem !important;
-    }
-
-    header > div {
-        gap: .35rem !important;
-    }
-
-    /* Compact Zono brand */
-    header > div > div:first-child {
-        width: 6.2rem;
-        min-width: 6.2rem;
-        max-width: 6.2rem;
-        gap: .35rem !important;
-        overflow: hidden;
-    }
-
-    header > div > div:first-child .w-10.h-10 {
-        width: 2rem !important;
-        height: 2rem !important;
-        min-width: 2rem !important;
-    }
-
-    header > div > div:first-child .text-xl {
-        font-size: .95rem !important;
-    }
-
-    /* Hide secondary branding on phones; keep main name clean */
-    header > div > div:first-child .text-\[10px\].font-mono,
-    header > div > div:first-child p {
-        display: none !important;
-    }
-
-    header > div > div:last-child {
-        flex: 1 1 auto;
-        gap: .22rem !important;
-        justify-content: flex-start;
-        overflow: hidden;
-    }
-
-    /* Currency capsule: fixed and compact */
-    header [onclick*="switchTab('store')"] {
-        width: 8.9rem;
-        min-width: 8.9rem;
-        max-width: 8.9rem;
-        height: 2.15rem;
-        padding: .25rem .35rem !important;
-        gap: .18rem !important;
-    }
-
-    header [onclick*="switchTab('store')"] > span.flex {
-        gap: .12rem !important;
-    }
-
-    /* Keep icons, hide resource words to save space */
-    header [onclick*="switchTab('store')"] > span.flex > span.text-\[10px\] {
-        display: none !important;
-    }
-
-    header [onclick*="switchTab('store')"] .text-sm {
-        font-size: .68rem !important;
-        flex: 0 0 auto;
+/* Desktop / tablet */
+@media (min-width: 641px) {
+    #zono-currency-pill {
+        width: 15rem;
+        min-width: 15rem;
+        max-width: 15rem;
     }
 
     #header-feathers-count,
     #header-seeds-count {
-        max-width: 2.75rem !important;
+        max-width: 5rem !important;
+    }
+}
+
+/* Phone:
+   Row 1 = Zono brand + avatar/bell/theme
+   Row 2 = currency capsule centered by itself
+   This completely prevents the balance from covering the logo/icons.
+*/
+@media (max-width: 640px) {
+    header {
+        padding: .45rem .55rem .5rem !important;
     }
 
-    /* Theme, bell and avatar all remain visible */
+    .zono-header-inner {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "brand controls"
+            "currency currency";
+        align-items: center;
+        gap: .35rem .45rem !important;
+        width: 100%;
+    }
+
+    .zono-brand {
+        grid-area: brand;
+        width: auto !important;
+        max-width: 8.2rem;
+        overflow: hidden;
+        gap: .35rem !important;
+    }
+
+    .zono-brand .w-10.h-10 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem !important;
+        flex: 0 0 2rem !important;
+    }
+
+    .zono-brand .text-xl {
+        font-size: .98rem !important;
+        white-space: nowrap;
+    }
+
+    .zono-brand .text-\[10px\].font-mono,
+    .zono-brand p {
+        display: none !important;
+    }
+
+    .zono-header-actions {
+        grid-area: controls;
+        display: flex !important;
+        align-items: center;
+        justify-content: flex-end;
+        gap: .3rem !important;
+        overflow: visible !important;
+    }
+
+    /* Move only the currency pill to row 2 */
+    #zono-currency-pill {
+        grid-area: currency;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: calc(100% - 2.62rem);
+        width: min(84vw, 19rem) !important;
+        min-width: 0 !important;
+        max-width: 19rem !important;
+        height: 2.15rem;
+        padding: .28rem .5rem !important;
+        gap: .32rem !important;
+        z-index: 2;
+    }
+
+    /* Give header room for the absolute currency row */
+    .zono-header-inner {
+        padding-bottom: 2.45rem;
+        position: relative;
+    }
+
+    #zono-currency-pill > span.flex {
+        gap: .18rem !important;
+    }
+
+    #zono-currency-pill .text-sm {
+        font-size: .72rem !important;
+        flex: 0 0 auto;
+    }
+
+    #zono-currency-pill .text-\[10px\] {
+        font-size: .55rem !important;
+    }
+
+    #header-feathers-count,
+    #header-seeds-count {
+        max-width: 6.3rem !important;
+    }
+
+    /* Buttons always visible */
     #theme-toggle-btn,
     header button[onclick*="toggleSound"] {
-        width: 1.82rem !important;
-        height: 1.82rem !important;
-        min-width: 1.82rem !important;
-        max-width: 1.82rem !important;
+        width: 1.95rem !important;
+        height: 1.95rem !important;
+        min-width: 1.95rem !important;
+        max-width: 1.95rem !important;
         padding: 0 !important;
-        font-size: .72rem !important;
+        flex: 0 0 1.95rem !important;
     }
 
     header [onclick*="switchTab('profile')"] {
-        width: 2rem !important;
-        min-width: 2rem !important;
-        max-width: 2rem !important;
+        width: 2.05rem !important;
+        min-width: 2.05rem !important;
+        max-width: 2.05rem !important;
+        height: 2.05rem !important;
         padding: .08rem !important;
         border-radius: 999px !important;
         overflow: hidden;
+        flex: 0 0 2.05rem !important;
     }
 
     #header-user-avatar {
-        width: 1.75rem !important;
-        height: 1.75rem !important;
-        min-width: 1.75rem !important;
+        width: 1.78rem !important;
+        height: 1.78rem !important;
+        min-width: 1.78rem !important;
     }
 
     #header-user-name {
@@ -885,31 +917,17 @@ header [onclick*="switchTab('profile')"] {
     }
 }
 
-/* Very narrow phones: shrink the currency capsule a little more */
 @media (max-width: 380px) {
-    header > div > div:first-child {
-        width: 5.3rem;
-        min-width: 5.3rem;
-        max-width: 5.3rem;
+    .zono-brand {
+        max-width: 6.8rem;
     }
 
-    header [onclick*="switchTab('store')"] {
-        width: 7.85rem;
-        min-width: 7.85rem;
-        max-width: 7.85rem;
+    #zono-currency-pill {
+        width: min(90vw, 18rem) !important;
     }
 
-    #header-feathers-count,
-    #header-seeds-count {
-        max-width: 2.3rem !important;
-    }
-
-    #theme-toggle-btn,
-    header button[onclick*="toggleSound"] {
-        width: 1.7rem !important;
-        height: 1.7rem !important;
-        min-width: 1.7rem !important;
-        max-width: 1.7rem !important;
+    #zono-currency-pill .text-\[10px\] {
+        display: none !important;
     }
 }
 
