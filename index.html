@@ -40,15 +40,15 @@
 
     <!-- Top Header -->
     <header class="sticky top-0 z-40 glass-panel border-b border-amber-500/20 px-4 py-3 sm:px-8">
-        <div class="zono-header-inner max-w-6xl mx-auto flex items-center justify-between">
+        <div class="zono-header-inner max-w-6xl mx-auto">
             <!-- Brand Logo -->
-            <div class="zono-brand flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="window.zonoApp.switchTab('rooms')">
-                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 flex items-center justify-center">
+            <div class="zono-brand cursor-pointer" onclick="window.zonoApp.switchTab('rooms')">
+                <div class="zono-logo-box w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 flex items-center justify-center">
                     <div class="w-full h-full bg-stone-950 rounded-[14px] flex items-center justify-center text-xl">
                         🕊️
                     </div>
                 </div>
-                <div>
+                <div class="zono-brand-copy">
                     <div class="flex items-center space-x-1.5 space-x-reverse">
                         <span class="text-xl font-black tracking-wide gold-gradient-text">زونو</span>
                         <span class="text-[10px] font-mono tracking-widest text-amber-400/80 uppercase font-bold">ZONO</span>
@@ -57,35 +57,32 @@
                 </div>
             </div>
 
-            <!-- Top Actions & User Stats -->
-            <div class="zono-header-actions flex items-center space-x-3 space-x-reverse">
-                <!-- Feathers + Seeds / Dual Currency Pill -->
-                <div id="zono-currency-pill" onclick="window.zonoApp.switchTab('store')" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-900/90 border border-amber-500/30 text-xs font-bold text-amber-300 hover:border-amber-400 cursor-pointer transition-all shadow-inner whitespace-nowrap">
-                    <span class="flex items-center gap-1">
-                        <span class="text-sm">🪶</span>
-                        <span id="header-feathers-count" class="font-mono">0</span>
-                        <span class="text-[10px] text-stone-400">ريشة</span>
-                    </span>
-                    <span class="h-5 w-px bg-amber-500/25"></span>
-                    <span class="flex items-center gap-1">
-                        <span class="text-sm">🌾</span>
-                        <span id="header-seeds-count" class="font-mono">0</span>
-                        <span class="text-[10px] text-stone-400">بذرة</span>
-                    </span>
-                </div>
+            <!-- Feathers + Seeds -->
+            <div id="zono-currency-pill" onclick="window.zonoApp.switchTab('store')" class="bg-stone-900/90 border border-amber-500/30 text-xs font-bold text-amber-300 hover:border-amber-400 cursor-pointer transition-all shadow-inner">
+                <span class="zono-resource">
+                    <span class="text-sm">🪶</span>
+                    <span id="header-feathers-count" class="font-mono">0</span>
+                    <span class="zono-resource-label text-[10px] text-stone-400">ريشة</span>
+                </span>
+                <span class="zono-resource-divider"></span>
+                <span class="zono-resource">
+                    <span class="text-sm">🌾</span>
+                    <span id="header-seeds-count" class="font-mono">0</span>
+                    <span class="zono-resource-label text-[10px] text-stone-400">بذرة</span>
+                </span>
+            </div>
 
-                <!-- Theme Switcher -->
+            <!-- Controls -->
+            <div class="zono-header-controls">
                 <button id="theme-toggle-btn" onclick="window.zonoApp.toggleTheme()" class="w-9 h-9 rounded-full bg-stone-900/90 border border-stone-700/80 hover:border-amber-500 flex items-center justify-center text-sm transition-all text-amber-300" title="تبديل المظهر">
                     📜
                 </button>
 
-                <!-- Sound Switcher -->
                 <button onclick="window.zonoApp.toggleSound()" class="w-9 h-9 rounded-full bg-stone-900/90 border border-stone-700/80 hover:border-amber-500 flex items-center justify-center text-sm transition-all text-amber-300" title="المؤثرات الصوتية">
                     🔔
                 </button>
 
-                <!-- User Avatar / Profile Quick Access -->
-                <div onclick="window.zonoApp.switchTab('profile')" class="flex items-center space-x-2 space-x-reverse cursor-pointer pl-1 pr-2 py-1 rounded-full bg-stone-900/60 border border-stone-800 hover:border-amber-500/50 transition-all">
+                <div onclick="window.zonoApp.switchTab('profile')" class="zono-profile-quick flex items-center space-x-2 space-x-reverse cursor-pointer pl-1 pr-2 py-1 rounded-full bg-stone-900/60 border border-stone-800 hover:border-amber-500/50 transition-all">
                     <img id="header-user-avatar" src="https://api.dicebear.com/7.x/micah/svg?seed=zono_guest" alt="User" class="w-7 h-7 rounded-full bg-stone-800 border border-amber-500/40 object-cover">
                     <span id="header-user-name" class="text-xs font-bold text-stone-200 hidden sm:inline-block max-w-[90px] truncate">ضيف_زونو</span>
                 </div>
