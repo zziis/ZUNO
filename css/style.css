@@ -1652,3 +1652,58 @@ body:not(.zono-counter-mode) #zono-seed-value-pill.counter-only-hidden {
 }
 
 #zono-verification-panel{scroll-margin-top:4.5rem}.zono-verification-lock-card{text-align:center;padding:1.1rem;border-radius:1.1rem;border:1px solid rgba(56,189,248,.24);background:rgba(8,47,73,.16);margin-bottom:.8rem}.zono-verification-doc{padding:1rem;border-radius:1.15rem;border:1px solid rgba(56,189,248,.32);background:linear-gradient(145deg,rgba(12,22,29,.95),rgba(20,24,27,.95))}.zono-verification-field{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.7rem 0;border-bottom:1px solid rgba(120,113,108,.20);font-size:.72rem}.zono-verification-field span{color:#a8a29e}.zono-verification-field strong{color:#f5f5f4;text-align:left;direction:ltr;overflow-wrap:anywhere}.zono-verified-chip{padding:.3rem .55rem;border-radius:999px;color:#7dd3fc;border:1px solid rgba(56,189,248,.40);background:rgba(3,105,161,.18);font-size:.6rem;font-weight:950}.zono-withdraw-verify-hint{margin:-.1rem 0 .4rem;color:#fbbf24;font-size:.58rem;font-weight:700}
+
+
+/* ===== ZONO THEMES SETTINGS ===== */
+.zono-theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem}
+.zono-theme-card{overflow:hidden;border-radius:1rem;border:1px solid rgba(120,113,108,.38);background:rgba(28,25,23,.72);transition:.16s}
+.zono-theme-card.is-active{border-color:rgba(245,158,11,.7);box-shadow:0 0 0 1px rgba(245,158,11,.18),0 10px 24px rgba(0,0,0,.18)}
+.zono-theme-preview{height:4.4rem;display:flex;align-items:center;justify-content:center;font-size:1.55rem;position:relative;overflow:hidden}
+.zono-theme-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 25%,rgba(255,255,255,.12) 50%,transparent 75%);transform:translateX(-100%)}
+.zono-theme-card:hover .zono-theme-preview::after{animation:zonoThemeShine 1s ease}
+@keyframes zonoThemeShine{to{transform:translateX(100%)}}
+.theme-preview-night{background:linear-gradient(135deg,#07111d,#182433 58%,#8b5a10)}
+.theme-preview-daylight{background:linear-gradient(135deg,#fffaf0,#e8dcc4 60%,#c99a36)}
+.theme-preview-lunar{background:radial-gradient(circle at 30% 25%,#5d7198,#101827 46%,#05070e)}
+.theme-preview-solar{background:radial-gradient(circle at 70% 35%,#ffd76a,#a84a13 36%,#27140b 70%)}
+.theme-preview-bird{background:radial-gradient(circle at center,#17324a,#08121f 58%,#b17a1f)}
+.zono-theme-card-body{padding:.7rem}
+.zono-theme-price{flex:0 0 auto;border-radius:999px;padding:.22rem .42rem;background:rgba(120,53,15,.45);border:1px solid rgba(245,158,11,.30);color:#fde68a;font-size:.56rem;font-weight:900}
+.zono-theme-price.free{color:#6ee7b7;background:rgba(6,78,59,.34);border-color:rgba(16,185,129,.28)}
+.zono-theme-action{width:100%;margin-top:.55rem;min-height:2.35rem;border-radius:.7rem;font-size:.65rem;font-weight:950}
+.zono-theme-buy-btn{color:#201104;background:linear-gradient(90deg,#f59e0b,#fbbf24)}
+.zono-theme-apply-btn{color:#d1fae5;background:rgba(6,95,70,.65);border:1px solid rgba(16,185,129,.28)}
+.zono-theme-active-btn{color:#fde68a;background:rgba(120,53,15,.48);border:1px solid rgba(245,158,11,.35)}
+#profile-badge-pill.is-verified-account{color:#86efac!important;background:rgba(22,101,52,.22)!important;border-color:rgba(34,197,94,.42)!important}
+
+/* Classic Night */
+html[data-theme="classic_night"] body{background:radial-gradient(circle at 50% -10%,#152334 0%,#070a0e 46%,#030507 100%)!important}
+
+/* Daylight */
+html[data-theme="daylight"] body{background:linear-gradient(180deg,#fffaf0 0%,#efe5d4 48%,#e2d4bd 100%)!important;color:#30281f!important}
+html[data-theme="daylight"] .glass-panel,
+html[data-theme="daylight"] [class*="bg-stone-950"],
+html[data-theme="daylight"] [class*="bg-stone-900"]{background:rgba(250,244,232,.92)!important;border-color:rgba(133,99,47,.28)!important}
+html[data-theme="daylight"] [class*="text-stone-100"],
+html[data-theme="daylight"] [class*="text-stone-200"],
+html[data-theme="daylight"] [class*="text-stone-300"]{color:#342a20!important}
+html[data-theme="daylight"] [class*="text-stone-400"],
+html[data-theme="daylight"] [class*="text-stone-500"]{color:#766653!important}
+
+/* Lunar */
+html[data-theme="lunar"] body{background:radial-gradient(circle at 75% 5%,rgba(130,153,195,.28),transparent 24%),radial-gradient(circle at 20% 65%,rgba(55,83,132,.18),transparent 30%),linear-gradient(180deg,#0b1220,#05070d 72%)!important}
+html[data-theme="lunar"] .glass-panel{background:rgba(11,19,33,.86)!important;border-color:rgba(148,163,184,.28)!important}
+html[data-theme="lunar"] .text-amber-300,html[data-theme="lunar"] .text-amber-400{color:#cbd5e1!important}
+
+/* Solar */
+html[data-theme="solar"] body{background:radial-gradient(circle at 50% -8%,rgba(251,191,36,.34),transparent 30%),linear-gradient(180deg,#29160b,#100a08 66%,#060505)!important}
+html[data-theme="solar"] .glass-panel{background:rgba(39,22,12,.84)!important;border-color:rgba(251,146,60,.30)!important}
+html[data-theme="solar"] .text-amber-300,html[data-theme="solar"] .text-amber-400{color:#fdba74!important}
+
+/* Royal Bird */
+html[data-theme="royal_bird"] body{background:radial-gradient(circle at 50% 8%,rgba(36,99,135,.26),transparent 28%),linear-gradient(180deg,#071523,#030811 76%)!important}
+html[data-theme="royal_bird"] body::before{content:"🕊️";position:fixed;left:50%;top:22%;transform:translate(-50%,-50%);font-size:min(34vw,13rem);opacity:.035;pointer-events:none;z-index:0}
+html[data-theme="royal_bird"] .glass-panel{background:rgba(6,20,32,.88)!important;border-color:rgba(212,168,69,.32)!important}
+html[data-theme="royal_bird"] .text-amber-300,html[data-theme="royal_bird"] .text-amber-400{color:#f6d778!important}
+
+@media(max-width:460px){.zono-theme-grid{grid-template-columns:1fr}}

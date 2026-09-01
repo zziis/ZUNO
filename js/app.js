@@ -10,7 +10,9 @@ class ZonoApp {
         this.activeRoom = null;
         this.activeDirectChat = null;
         this.birdEngine = null;
-        this.theme = localStorage.getItem('zono_theme') || 'dark';
+        this.theme = localStorage.getItem('zono_theme') || 'classic_night';
+        this.ownedThemes = new Set(['classic_night','daylight']);
+        this.readReceiptsEnabled = true;
         this.soundEnabled = localStorage.getItem('zono_sound') !== 'false';
         this.init();
     }
@@ -28,6 +30,7 @@ class ZonoApp {
             const logged = await window.zonoAuth.init();
             if (logged) {
                 await this.syncUserFromSupabase();
+                await this.loadThemeState();
                 this.showMainApp();
                 await this.loadNotifications(true);
                 this.startNotificationWatcher();
@@ -101,6 +104,8 @@ class ZonoApp {
             dailyFeathersTotal,
             bio: p.bio || 'عضو في مجتمع Zono 🕊️',
             role: p.role || 'user',
+            readReceiptsEnabled: p.read_receipts_enabled !== false,
+            activeTheme: p.active_theme || 'classic_night',
             badge: p.role === 'developer' ? '✓ 👑 المطور' : (p.role === 'agent' ? '✓ 🛡️ الوكيل' : 'عضو Zono 🕊️'),
             frame: 'vintage-avatar-frame',
             joinedDate: joined,
@@ -125,24 +130,139 @@ class ZonoApp {
         this.updateProfileUI();
     }
 
+    getThemeCatalog() {
+        return [
+            { key:'classic_night', name:'الأساسي الليلي', icon:'🌙', price:0, desc:'أسود وكحلي مع اللمسة الذهبية الكلاسيكية.', preview:'theme-preview-night' },
+            { key:'daylight', name:'النهاري', icon:'☀️', price:0, desc:'عاجي هادئ مع ذهبي ونصوص داكنة واضحة.', preview:'theme-preview-daylight' },
+            { key:'lunar', name:'القمري', icon:'🌑', price:400, desc:'كحلي عميق، فضي ولمعة قمرية باردة.', preview:'theme-preview-lunar' },
+            { key:'solar', name:'الشمسي', icon:'🌅', price:600, desc:'ذهبي دافئ مع وهج شمسي برتقالي أنيق.', preview:'theme-preview-solar' },
+            { key:'royal_bird', name:'الطائر الملكي', icon:'🕊️', price:800, desc:'كحلي فاخر وذهبي مع روح عصفور Zono الأبيض.', preview:'theme-preview-bird' }
+        ];
+    }
+
     applyTheme(theme) {
-        this.theme = theme;
-        if (theme === 'parchment') {
-            document.documentElement.setAttribute('data-theme', 'parchment');
-        } else {
-            document.documentElement.removeAttribute('data-theme');
+        const valid = new Set(this.getThemeCatalog().map(x => x.key));
+        const safeTheme = valid.has(theme) ? theme : 'classic_night';
+        this.theme = safeTheme;
+        document.documentElement.setAttribute('data-theme', safeTheme);
+        localStorage.setItem('zono_theme', safeTheme);
+        this.renderThemeGallery();
+    }
+
+    async loadThemeState() {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client || !this.currentUser) {
+            this.applyTheme(this.theme);
+            return;
         }
-        localStorage.setItem('zono_theme', theme);
-        const toggleBtn = document.getElementById('theme-toggle-btn');
-        if (toggleBtn) {
-            toggleBtn.innerHTML = theme === 'parchment' ? '🌙' : '📜';
+
+        try {
+            const { data, error } = await client.rpc('zono_theme_state');
+            if (error) throw error;
+
+            const owned = Array.isArray(data?.owned_themes) ? data.owned_themes : [];
+            this.ownedThemes = new Set(['classic_night','daylight', ...owned]);
+            this.readReceiptsEnabled = data?.read_receipts_enabled !== false;
+            this.applyTheme(data?.active_theme || this.currentUser.activeTheme || this.theme);
+        } catch (_) {
+            this.ownedThemes = new Set(['classic_night','daylight']);
+            this.readReceiptsEnabled = this.currentUser?.readReceiptsEnabled !== false;
+            this.applyTheme(this.currentUser?.activeTheme || this.theme);
+        }
+    }
+
+    toggleThemeGallery() {
+        const gallery = document.getElementById('zono-theme-gallery');
+        if (!gallery) return;
+        gallery.classList.toggle('hidden');
+        this.renderThemeGallery();
+    }
+
+    renderThemeGallery() {
+        const grid = document.getElementById('zono-theme-grid');
+        if (!grid) return;
+
+        grid.innerHTML = this.getThemeCatalog().map(t => {
+            const owned = t.price === 0 || this.ownedThemes?.has(t.key);
+            const active = this.theme === t.key;
+            const actionText = active ? '✓ مفعّل' : (owned ? 'تطبيق' : `شراء ${t.price} ريشة`);
+            const actionClass = active ? 'zono-theme-active-btn' : (owned ? 'zono-theme-apply-btn' : 'zono-theme-buy-btn');
+
+            return `
+                <div class="zono-theme-card ${active ? 'is-active' : ''}">
+                    <div class="zono-theme-preview ${t.preview}"><span>${t.icon}</span></div>
+                    <div class="zono-theme-card-body">
+                        <div class="flex items-center justify-between gap-2">
+                            <strong class="text-xs text-stone-100">${t.icon} ${t.name}</strong>
+                            <span class="zono-theme-price ${t.price === 0 ? 'free' : ''}">${t.price === 0 ? 'مجاني' : `${t.price} 🪶`}</span>
+                        </div>
+                        <p class="text-[10px] text-stone-400 mt-1 leading-5">${t.desc}</p>
+                        <button ${active ? 'disabled' : ''} onclick="window.zonoApp.handleThemeAction('${t.key}')" class="zono-theme-action ${actionClass}">
+                            ${actionText}
+                        </button>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    async handleThemeAction(themeKey) {
+        if (!this.currentUser) return this.showAuthModal();
+
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        const theme = this.getThemeCatalog().find(x => x.key === themeKey);
+        if (!client || !theme) return;
+
+        try {
+            if (theme.price > 0 && !this.ownedThemes.has(themeKey)) {
+                if (Number(this.currentUser.feathers || 0) < theme.price) {
+                    return this.showToast(`تحتاج ${theme.price} ريشة لشراء هذا الثيم`, 'error');
+                }
+
+                const { error: buyError } = await client.rpc('zono_buy_theme', { p_theme_key: themeKey });
+                if (buyError) throw buyError;
+
+                this.ownedThemes.add(themeKey);
+                await window.zonoAuth.loadProfile(window.zonoAuth.user);
+                await this.syncUserFromSupabase();
+                this.showToast(`تم شراء ثيم ${theme.name} بنجاح`, 'success');
+            }
+
+            const { error } = await client.rpc('zono_apply_theme', { p_theme_key: themeKey });
+            if (error) throw error;
+
+            this.applyTheme(themeKey);
+            if (this.currentUser) this.currentUser.activeTheme = themeKey;
+            this.showToast(`تم تطبيق ثيم ${theme.name}`, 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تطبيق الثيم', 'error');
         }
     }
 
     toggleTheme() {
-        this.applyTheme(this.theme === 'parchment' ? 'dark' : 'parchment');
-        if (window.zonoAudio) window.zonoAudio.playTap();
-        this.showToast(`تم التبديل إلى ${this.theme === 'parchment' ? 'وضع الورق العاجي 📜' : 'وضع فخامة الليل 🌙'}`);
+        this.toggleThemeGallery();
+    }
+
+    async toggleReadReceipts() {
+        const el = document.getElementById('setting-read-receipts-toggle');
+        const enabled = !!el?.checked;
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+
+        if (!client || !this.currentUser) {
+            this.readReceiptsEnabled = enabled;
+            return;
+        }
+
+        try {
+            const { error } = await client.rpc('zono_set_read_receipts', { p_enabled: enabled });
+            if (error) throw error;
+
+            this.readReceiptsEnabled = enabled;
+            this.currentUser.readReceiptsEnabled = enabled;
+            this.showToast(enabled ? 'تم إظهار إشعارات القراءة' : 'تم إخفاء إشعارات القراءة', 'success');
+        } catch (e) {
+            if (el) el.checked = !enabled;
+            this.showToast(e.message || 'تعذر تحديث إعداد القراءة', 'error');
+        }
     }
 
     toggleSound() {
@@ -166,11 +286,18 @@ class ZonoApp {
 
     showMainApp() {
         this.hideAuthModal();
+
         const soundSetting = document.getElementById('setting-sound-toggle');
         if (soundSetting) soundSetting.checked = this.soundEnabled;
+
+        const receiptsSetting = document.getElementById('setting-read-receipts-toggle');
+        if (receiptsSetting) receiptsSetting.checked = this.readReceiptsEnabled !== false;
+
         this.updateHeaderUI();
         this.updateProfileUI();
         this.renderStore();
+        this.renderThemeGallery();
+        this.refreshVerificationBadge();
     }
 
     authTab(mode) {
@@ -207,6 +334,7 @@ class ZonoApp {
                 document.getElementById('auth-login-pass').value
             );
             await this.syncUserFromSupabase();
+            await this.loadThemeState();
             this.showMainApp();
             await this.loadNotifications(true);
             this.startNotificationWatcher();
@@ -413,9 +541,8 @@ class ZonoApp {
         if (profileBio) profileBio.textContent = this.currentUser.bio;
         if (profileAvatar) profileAvatar.src = this.currentUser.avatar;
         if (profileBadge) {
-            profileBadge.textContent = this.currentUser.badge;
-            profileBadge.classList.toggle('zono-agent-badge', this.currentUser.role === 'agent');
-            profileBadge.classList.toggle('zono-developer-badge', this.currentUser.role === 'developer');
+            profileBadge.textContent = '🛡️ توثيق الحساب';
+            profileBadge.classList.remove('zono-agent-badge', 'zono-developer-badge');
         }
         const transferCard = document.getElementById('seed-transfer-card');
         if (transferCard) transferCard.classList.toggle('hidden', !['developer','agent'].includes(this.currentUser.role));
@@ -501,9 +628,14 @@ class ZonoApp {
     }
 
     async refreshVerificationBadge() {
-        const status=await this.getVerificationStatus();
-        const icon=document.getElementById('zono-verification-badge-icon');
-        if(icon) icon.textContent=status.verified?'✓':'🛡️';
+        const status = await this.getVerificationStatus();
+        const badge = document.getElementById('profile-badge-pill');
+
+        if (badge) {
+            badge.textContent = status.verified ? '✓ حساب موثّق' : '🛡️ توثيق الحساب';
+            badge.classList.toggle('is-verified-account', !!status.verified);
+        }
+
         return !!status.verified;
     }
 
