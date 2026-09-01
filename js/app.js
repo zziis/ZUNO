@@ -248,6 +248,13 @@ class ZonoApp {
         if (window.zonoAudio) window.zonoAudio.playTap();
         this.currentTab = tabId;
 
+        // Balances are visible only on the Counter tab.
+        // visibility is used instead of display:none so the header height never changes.
+        const currencyPill = document.getElementById('zono-currency-pill');
+        if (currencyPill) {
+            currencyPill.classList.toggle('counter-only-hidden', tabId !== 'counter');
+        }
+
         // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
