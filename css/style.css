@@ -571,3 +571,72 @@ nav.fixed.bottom-0 {
     }
 }
 
+/* =========================================================
+   ZONO — EDITABLE ANNOUNCEMENT TICKER
+   عدّل النص مستقبلاً من index.html داخل #zono-announcement-text
+   ========================================================= */
+.zono-announcement-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    z-index: 39;
+    height: 2.1rem;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, rgba(8,10,15,.96), rgba(18,20,26,.96), rgba(8,10,15,.96));
+    border-top: 1px solid rgba(245, 158, 11, .22);
+    border-bottom: 1px solid rgba(245, 158, 11, .22);
+    backdrop-filter: blur(10px);
+}
+
+.zono-announcement-track {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+#zono-announcement-text {
+    display: inline-block;
+    width: max-content;
+    white-space: nowrap;
+    color: #f3c65c;
+    font-size: .76rem;
+    font-weight: 800;
+    letter-spacing: .01em;
+    padding-inline: 1rem;
+    text-shadow: 0 0 10px rgba(245,158,11,.18);
+    animation: zonoAnnouncementLeftToRight 12s linear infinite;
+    will-change: transform;
+}
+
+.zono-announcement-bar:hover #zono-announcement-text,
+.zono-announcement-bar:active #zono-announcement-text {
+    animation-play-state: paused;
+}
+
+@keyframes zonoAnnouncementLeftToRight {
+    0%   { transform: translateX(-115%); }
+    100% { transform: translateX(115vw); }
+}
+
+@media (max-width: 640px) {
+    .zono-announcement-bar {
+        bottom: calc(4.55rem + env(safe-area-inset-bottom, 0px));
+        height: 1.9rem;
+    }
+
+    #zono-announcement-text {
+        font-size: .68rem;
+        animation-duration: 10s;
+    }
+
+    main {
+        padding-bottom: calc(7.6rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+}
+
