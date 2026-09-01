@@ -268,3 +268,44 @@ body {
 #auth-message.error { color:#fda4af; }
 #auth-message.success { color:#6ee7b7; }
 #auth-message.info { color:#fde68a; }
+
+
+/* ZONO phone screen-size fix */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+}
+body {
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.vintage-overlay { width: 100%; height: 100dvh; }
+body, header, main, nav, section, .glass-panel { max-width: 100vw; }
+img, canvas, svg, video { max-width: 100%; }
+main { padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px)) !important; }
+nav.fixed.bottom-0 { padding-bottom: calc(.5rem + env(safe-area-inset-bottom, 0px)); }
+
+@media (max-width: 640px) {
+  header { padding: .55rem .65rem !important; }
+  header > div { gap: .45rem; }
+  header .w-10.h-10 { width: 2.15rem !important; height: 2.15rem !important; flex: 0 0 auto; }
+  header .text-xl { font-size: 1rem !important; }
+  header .space-x-3 { gap: .35rem !important; }
+  header button.w-9, header button.h-9 { width: 2rem !important; height: 2rem !important; }
+  main { padding: .7rem !important; padding-bottom: calc(6.2rem + env(safe-area-inset-bottom, 0px)) !important; }
+  #tab-counter { gap: .7rem !important; }
+  #tab-counter > .glass-panel { padding: 1rem .75rem !important; border-radius: 1.5rem !important; }
+  #tab-counter h2 { font-size: clamp(1.55rem, 7vw, 2rem) !important; line-height: 1.25 !important; }
+  #bird-status-badge { font-size: .7rem !important; padding: .35rem .7rem !important; }
+  #bird-canvas { width: min(78vw, 350px) !important; height: min(78vw, 350px) !important; }
+  #bird-timer-display { font-size: clamp(2.15rem, 11vw, 3rem) !important; line-height: 1.05 !important; }
+  nav.fixed.bottom-0 { padding-left: .25rem !important; padding-right: .25rem !important; padding-top: .35rem !important; }
+  nav .nav-btn { min-width: 0 !important; padding: .35rem .15rem !important; flex: 1 1 0 !important; }
+  nav .nav-btn svg { width: 1.2rem !important; height: 1.2rem !important; }
+}
+@media (max-width: 380px) {
+  #bird-canvas { width: min(74vw, 300px) !important; height: min(74vw, 300px) !important; }
+}
