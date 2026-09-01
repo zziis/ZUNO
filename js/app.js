@@ -136,7 +136,18 @@ class ZonoApp {
             { key:'daylight', name:'النهاري', icon:'☀️', price:0, desc:'عاجي هادئ مع ذهبي ونصوص داكنة واضحة.', preview:'theme-preview-daylight' },
             { key:'lunar', name:'القمري', icon:'🌑', price:400, desc:'كحلي عميق، فضي ولمعة قمرية باردة.', preview:'theme-preview-lunar' },
             { key:'solar', name:'الشمسي', icon:'🌅', price:600, desc:'ذهبي دافئ مع وهج شمسي برتقالي أنيق.', preview:'theme-preview-solar' },
-            { key:'royal_bird', name:'الطائر الملكي', icon:'🕊️', price:800, desc:'كحلي فاخر وذهبي مع روح عصفور Zono الأبيض.', preview:'theme-preview-bird' }
+            { key:'royal_bird', name:'الطائر الملكي', icon:'🕊️', price:800, desc:'كحلي فاخر وذهبي مع روح عصفور Zono الأبيض.', preview:'theme-preview-bird' },
+
+            { key:'electric', name:'الإلكتروني', icon:'⚡', price:900, desc:'نيون أزرق وبنفسجي، شبكة رقمية وحواف إلكترونية متوهجة.', preview:'theme-preview-electric' },
+            { key:'cyber', name:'السايبر', icon:'🧬', price:1000, desc:'واجهة مستقبلية داكنة بخطوط رقمية ولمسات تركواز.', preview:'theme-preview-cyber' },
+            { key:'aurora', name:'الشفق', icon:'🌌', price:1100, desc:'ألوان شفق متدرجة بين الأخضر والبنفسجي فوق ليل داكن.', preview:'theme-preview-aurora' },
+            { key:'emerald', name:'الزمردي', icon:'🌿', price:1200, desc:'أخضر زمردي فاخر مع خلفية غابة ضبابية.', preview:'theme-preview-emerald' },
+            { key:'ocean', name:'أعماق المحيط', icon:'🌊', price:1300, desc:'أزرق محيطي عميق مع موج وإضاءة مائية.', preview:'theme-preview-ocean' },
+            { key:'ruby', name:'الياقوت', icon:'💎', price:1400, desc:'أحمر ياقوتي وأسود مخملي ولمعة فاخرة.', preview:'theme-preview-ruby' },
+            { key:'desert_gold', name:'رمال الذهب', icon:'🏜️', price:1500, desc:'رمال ذهبية، نحاسي وبني دافئ بطابع صحراوي.', preview:'theme-preview-desert' },
+            { key:'ice', name:'الجليدي', icon:'❄️', price:1600, desc:'أبيض جليدي وأزرق بارد بزجاج شفاف.', preview:'theme-preview-ice' },
+            { key:'galaxy', name:'المجرة', icon:'🪐', price:1800, desc:'فضاء داكن ونجوم بنفسجية ولمعات كونية.', preview:'theme-preview-galaxy' },
+            { key:'imperial', name:'الإمبراطوري', icon:'👑', price:2000, desc:'أسود ملكي، ذهبي عميق وإطار فاخر لأعلى فئة.', preview:'theme-preview-imperial' }
         ];
     }
 
