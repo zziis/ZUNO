@@ -40,9 +40,9 @@
 
     <!-- Top Header -->
     <header class="sticky top-0 z-40 glass-panel border-b border-amber-500/20 px-4 py-3 sm:px-8">
-        <div class="max-w-6xl mx-auto flex items-center justify-between">
+        <div class="zono-header-inner max-w-6xl mx-auto flex items-center justify-between">
             <!-- Brand Logo -->
-            <div class="flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="window.zonoApp.switchTab('rooms')">
+            <div class="zono-brand flex items-center space-x-3 space-x-reverse cursor-pointer" onclick="window.zonoApp.switchTab('rooms')">
                 <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 flex items-center justify-center">
                     <div class="w-full h-full bg-stone-950 rounded-[14px] flex items-center justify-center text-xl">
                         🕊️
@@ -58,9 +58,9 @@
             </div>
 
             <!-- Top Actions & User Stats -->
-            <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="zono-header-actions flex items-center space-x-3 space-x-reverse">
                 <!-- Feathers + Seeds / Dual Currency Pill -->
-                <div onclick="window.zonoApp.switchTab('store')" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-900/90 border border-amber-500/30 text-xs font-bold text-amber-300 hover:border-amber-400 cursor-pointer transition-all shadow-inner whitespace-nowrap">
+                <div id="zono-currency-pill" onclick="window.zonoApp.switchTab('store')" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-900/90 border border-amber-500/30 text-xs font-bold text-amber-300 hover:border-amber-400 cursor-pointer transition-all shadow-inner whitespace-nowrap">
                     <span class="flex items-center gap-1">
                         <span class="text-sm">🪶</span>
                         <span id="header-feathers-count" class="font-mono">0</span>
