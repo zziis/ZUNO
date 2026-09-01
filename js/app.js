@@ -438,6 +438,75 @@ class ZonoApp {
         }
     }
 
+    async getVerificationStatus() {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client || !this.currentUser) return { verified: false };
+        try {
+            const { data, error } = await client.rpc('zono_verification_status');
+            if (error) throw error;
+            return data || { verified: false };
+        } catch (_) { return { verified: false }; }
+    }
+
+    async openVerification() {
+        if (!this.currentUser) return this.showAuthModal();
+        this.switchTab('profile');
+        const panel=document.getElementById('zono-verification-panel'), setup=document.getElementById('zono-verification-setup'), lock=document.getElementById('zono-verification-lock'), view=document.getElementById('zono-verification-view');
+        if (!panel || !setup || !lock || !view) return;
+        panel.classList.remove('hidden'); setup.classList.add('hidden'); lock.classList.add('hidden'); view.classList.add('hidden');
+        const status=await this.getVerificationStatus();
+        (status.verified ? lock : setup).classList.remove('hidden');
+        setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}),80);
+    }
+
+    closeVerification() {
+        ['zono-verification-panel','zono-verification-setup','zono-verification-lock','zono-verification-view'].forEach(id=>document.getElementById(id)?.classList.add('hidden'));
+        const el=document.getElementById('verify-unlock-code'); if(el) el.value='';
+    }
+
+    async saveAccountVerification() {
+        const client=window.zunoBackend?.client || window.zunoAuth?.client;
+        const fullName=String(document.getElementById('verify-full-name')?.value||'').trim();
+        const birthDate=String(document.getElementById('verify-birth-date')?.value||'').trim();
+        const phone=String(document.getElementById('verify-phone')?.value||'').replace(/\D/g,'');
+        const code=String(document.getElementById('verify-code')?.value||'').replace(/\D/g,'');
+        const confirmCode=String(document.getElementById('verify-code-confirm')?.value||'').replace(/\D/g,'');
+        if(fullName.length<3) return this.showToast('أدخل الاسم الكامل','error');
+        if(!birthDate) return this.showToast('أدخل تاريخ الميلاد','error');
+        if(phone.length<10||phone.length>15) return this.showToast('رقم الهاتف غير صحيح','error');
+        if(!/^\d{4,8}$/.test(code)) return this.showToast('رمز التوثيق يجب أن يكون من 4 إلى 8 أرقام','error');
+        if(code!==confirmCode) return this.showToast('رمزا التوثيق غير متطابقين','error');
+        try {
+            const {error}=await client.rpc('zono_create_account_verification',{p_full_name:fullName,p_birth_date:birthDate,p_phone:phone,p_verification_code:code});
+            if(error) throw error;
+            this.showToast('تم حفظ وثيقة الحساب وتفعيل التوثيق','success');
+            await this.refreshVerificationBadge(); this.closeVerification();
+        } catch(e){ this.showToast(e.message||'تعذر حفظ التوثيق','error'); }
+    }
+
+    async unlockAccountVerification() {
+        const client=window.zunoBackend?.client || window.zunoAuth?.client;
+        const code=String(document.getElementById('verify-unlock-code')?.value||'').replace(/\D/g,'');
+        if(!/^\d{4,8}$/.test(code)) return this.showToast('أدخل رمز التوثيق الصحيح','error');
+        try {
+            const {data,error}=await client.rpc('zono_unlock_account_verification',{p_verification_code:code});
+            if(error) throw error;
+            document.getElementById('verify-view-name').textContent=data.full_name||'—';
+            document.getElementById('verify-view-birth').textContent=data.birth_date||'—';
+            document.getElementById('verify-view-phone').textContent=data.phone||'—';
+            document.getElementById('zono-verification-lock')?.classList.add('hidden');
+            document.getElementById('zono-verification-view')?.classList.remove('hidden');
+            const el=document.getElementById('verify-unlock-code'); if(el) el.value='';
+        } catch(e){ this.showToast(e.message||'رمز التوثيق غير صحيح','error'); }
+    }
+
+    async refreshVerificationBadge() {
+        const status=await this.getVerificationStatus();
+        const icon=document.getElementById('zono-verification-badge-icon');
+        if(icon) icon.textContent=status.verified?'✓':'🛡️';
+        return !!status.verified;
+    }
+
     async openWallet() {
         if (!this.currentUser) return this.showAuthModal();
 
@@ -506,6 +575,9 @@ class ZonoApp {
 
         const client = window.zonoBackend?.client || window.zonoAuth?.client;
         if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+
+        const isVerified = await this.refreshVerificationBadge();
+        if (!isVerified) return this.showToast('يجب توثيق الحساب أولاً قبل سحب البذور', 'error');
 
         const isFib = method === 'fib';
         const accountName = String(document.getElementById(isFib ? 'fib-account-name' : 'qi-account-name')?.value || '').trim();

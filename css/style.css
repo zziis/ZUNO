@@ -1650,3 +1650,5 @@ body:not(.zono-counter-mode) #zono-seed-value-pill.counter-only-hidden {
     background: rgba(153,27,27,.88);
     border: 1px solid rgba(239,68,68,.45);
 }
+
+#zono-verification-panel{scroll-margin-top:4.5rem}.zono-verification-lock-card{text-align:center;padding:1.1rem;border-radius:1.1rem;border:1px solid rgba(56,189,248,.24);background:rgba(8,47,73,.16);margin-bottom:.8rem}.zono-verification-doc{padding:1rem;border-radius:1.15rem;border:1px solid rgba(56,189,248,.32);background:linear-gradient(145deg,rgba(12,22,29,.95),rgba(20,24,27,.95))}.zono-verification-field{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:.7rem 0;border-bottom:1px solid rgba(120,113,108,.20);font-size:.72rem}.zono-verification-field span{color:#a8a29e}.zono-verification-field strong{color:#f5f5f4;text-align:left;direction:ltr;overflow-wrap:anywhere}.zono-verified-chip{padding:.3rem .55rem;border-radius:999px;color:#7dd3fc;border:1px solid rgba(56,189,248,.40);background:rgba(3,105,161,.18);font-size:.6rem;font-weight:950}.zono-withdraw-verify-hint{margin:-.1rem 0 .4rem;color:#fbbf24;font-size:.58rem;font-weight:700}

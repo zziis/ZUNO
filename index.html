@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260901-wallet2">
+    <link rel="stylesheet" href="css/style.css?v=20260902-verify1">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -376,9 +376,43 @@
                                 <span>💳</span>
                                 <span>المحفظة</span>
                             </button>
+                            <button onclick="window.zonoApp.openVerification()" class="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-xs font-bold text-sky-300 border border-sky-700/40 transition-all flex items-center space-x-1.5 space-x-reverse">
+                                <span id="zono-verification-badge-icon">🛡️</span>
+                                <span>التوثيق</span>
+                            </button>
                             <button onclick="window.zonoApp.logout()" class="px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 text-xs font-bold text-red-300 border border-red-800/40 transition-all">
                                 تسجيل الخروج
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Private Account Verification -->
+                <div id="zono-verification-panel" class="hidden mt-5 rounded-3xl border border-sky-500/30 bg-stone-950/50 p-4 sm:p-5">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div><h4 class="text-base font-black text-sky-300">🛡️ توثيق الحساب</h4><p class="text-[10px] text-stone-400 mt-1">وثيقة خاصة وثابتة مرتبطة بهذا الحساب</p></div>
+                        <button onclick="window.zonoApp.closeVerification()" class="w-8 h-8 rounded-full bg-stone-900 border border-stone-800 text-stone-400">✕</button>
+                    </div>
+                    <div id="zono-verification-setup" class="hidden">
+                        <label class="zono-wallet-label">الاسم الكامل</label><input id="verify-full-name" class="zono-wallet-input" type="text" maxlength="120" placeholder="الاسم الكامل">
+                        <label class="zono-wallet-label">التولد / تاريخ الميلاد</label><input id="verify-birth-date" class="zono-wallet-input" type="date">
+                        <label class="zono-wallet-label">رقم الهاتف</label><input id="verify-phone" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="15" placeholder="07xxxxxxxxx">
+                        <label class="zono-wallet-label">رمز التوثيق</label><input id="verify-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="من 4 إلى 8 أرقام">
+                        <label class="zono-wallet-label">إعادة رمز التوثيق</label><input id="verify-code-confirm" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="أعد كتابة الرمز">
+                        <button onclick="window.zonoApp.saveAccountVerification()" class="zono-wallet-submit-btn">حفظ التغييرات</button>
+                    </div>
+                    <div id="zono-verification-lock" class="hidden">
+                        <div class="zono-verification-lock-card"><div class="text-3xl mb-2">🔐</div><div class="font-black text-stone-100 text-sm">قسم التوثيق مقفل</div><div class="text-[10px] text-stone-500 mt-1">أدخل رمز التوثيق الخاص بالحساب لفتح الوثيقة.</div></div>
+                        <label class="zono-wallet-label">رمز التوثيق</label><input id="verify-unlock-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
+                        <button onclick="window.zonoApp.unlockAccountVerification()" class="zono-wallet-submit-btn">فتح التوثيق</button>
+                    </div>
+                    <div id="zono-verification-view" class="hidden">
+                        <div class="zono-verification-doc">
+                            <div class="flex items-center justify-between gap-3 mb-3"><div class="font-black text-sky-300">✓ وثيقة الحساب</div><span class="zono-verified-chip">موثّق</span></div>
+                            <div class="zono-verification-field"><span>الاسم الكامل</span><strong id="verify-view-name">—</strong></div>
+                            <div class="zono-verification-field"><span>التولد</span><strong id="verify-view-birth">—</strong></div>
+                            <div class="zono-verification-field"><span>رقم الهاتف</span><strong id="verify-view-phone">—</strong></div>
+                            <div class="text-[10px] text-stone-500 mt-3">رمز التوثيق لا يُعرض ولا يُخزن كنص صريح.</div>
                         </div>
                     </div>
                 </div>
@@ -427,7 +461,8 @@
                             <input id="fib-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('fib')">
                             <div id="fib-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
 
-                            <label class="zono-wallet-label">رمز التوثيق</label>
+                            <label class="zono-wallet-label">رمز توثيق الحساب</label>
+                            <div class="zono-withdraw-verify-hint">يجب توثيق الحساب أولاً ثم إدخال رمز التوثيق نفسه.</div>
                             <input id="fib-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
 
                             <button onclick="window.zonoApp.submitWithdrawal('fib')" class="zono-wallet-submit-btn">إتمام الطلب</button>
@@ -458,7 +493,8 @@
                             <input id="qi-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('qi')">
                             <div id="qi-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
 
-                            <label class="zono-wallet-label">رمز التوثيق</label>
+                            <label class="zono-wallet-label">رمز توثيق الحساب</label>
+                            <div class="zono-withdraw-verify-hint">يجب توثيق الحساب أولاً ثم إدخال رمز التوثيق نفسه.</div>
                             <input id="qi-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
 
                             <button onclick="window.zonoApp.submitWithdrawal('qi')" class="zono-wallet-submit-btn">إتمام الطلب</button>
@@ -850,7 +886,7 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/app.js?v=20260901-wallet2"></script>
+    <script src="js/app.js?v=20260902-verify1"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
