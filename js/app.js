@@ -288,9 +288,32 @@ class ZonoApp {
         const seedsEl = document.getElementById('header-seeds-count');
         const avatarEl = document.getElementById('header-user-avatar');
 
+        const fitCurrencyNumber = (el, value) => {
+            if (!el) return;
+            const text = String(Math.max(0, Number(value || 0)));
+            el.textContent = text;
+
+            // Keep very large balances inside the fixed currency pill.
+            const digits = text.length;
+            let size = '0.78rem';
+            if (digits >= 7) size = '0.69rem';
+            if (digits >= 9) size = '0.60rem';
+            if (digits >= 11) size = '0.52rem';
+            if (digits >= 13) size = '0.46rem';
+
+            el.style.fontSize = size;
+            el.style.lineHeight = '1';
+            el.style.maxWidth = '5.8rem';
+            el.style.minWidth = '0';
+            el.style.overflow = 'hidden';
+            el.style.whiteSpace = 'nowrap';
+            el.style.textAlign = 'center';
+            el.style.fontVariantNumeric = 'tabular-nums';
+        };
+
         if (nameEl) nameEl.textContent = this.currentUser.displayName;
-        if (feathersEl) feathersEl.textContent = this.currentUser.feathers;
-        if (seedsEl) seedsEl.textContent = this.currentUser.seeds;
+        fitCurrencyNumber(feathersEl, this.currentUser.feathers);
+        fitCurrencyNumber(seedsEl, this.currentUser.seeds);
         if (avatarEl) avatarEl.src = this.currentUser.avatar;
     }
 
