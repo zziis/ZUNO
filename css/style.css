@@ -720,141 +720,196 @@ nav.fixed.bottom-0::before {
     justify-content: center;
 }
 
-/* ===== Header currency protection ===== */
+/* ===== ZONO UPDATE 09 — FIXED RESPONSIVE HEADER ===== */
+
+/* Header layout must never expand because of large balances */
 header > div {
+    width: 100%;
+    min-width: 0;
+}
+
+header > div > div:first-child {
+    flex: 0 0 auto;
     min-width: 0;
 }
 
 header > div > div:last-child {
+    flex: 0 1 auto;
     min-width: 0;
-    flex-shrink: 1;
 }
 
-/* The dual-currency pill must never grow with the balance. */
+/* Fixed-size dual currency capsule */
 header [onclick*="switchTab('store')"] {
-    width: 15.2rem;
-    max-width: 15.2rem;
-    min-width: 15.2rem;
+    width: 13.5rem;
+    min-width: 13.5rem;
+    max-width: 13.5rem;
     overflow: hidden;
     flex-shrink: 0;
 }
 
-header [onclick*="switchTab('store')"] > span {
-    min-width: 0;
+/* Only the two resource groups can flex.
+   IMPORTANT: do not flex the center separator. */
+header [onclick*="switchTab('store')"] > span.flex {
     flex: 1 1 0;
-    justify-content: center;
+    min-width: 0;
     overflow: hidden;
+    justify-content: center;
 }
 
+header [onclick*="switchTab('store')"] > span.h-5 {
+    flex: 0 0 1px !important;
+    width: 1px !important;
+    min-width: 1px !important;
+    max-width: 1px !important;
+}
+
+/* Large numbers stay inside their own half of the capsule */
 #header-feathers-count,
 #header-seeds-count {
     display: inline-block;
-    min-width: 0;
-    max-width: 5.8rem;
+    min-width: 0 !important;
+    max-width: 4.6rem !important;
     overflow: hidden;
     white-space: nowrap;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    line-height: 1;
 }
 
-/* Keep theme, sound and avatar visible no matter how large balances get. */
+/* Controls may shrink never, so bell/theme/avatar stay visible */
 #theme-toggle-btn,
 header button[onclick*="toggleSound"],
 header [onclick*="switchTab('profile')"] {
-    flex-shrink: 0 !important;
+    flex: 0 0 auto !important;
 }
 
-/* Mobile header: compact currencies, preserve all controls. */
+/* ---------------- MOBILE ---------------- */
 @media (max-width: 640px) {
     header {
-        overflow: visible !important;
+        padding: .5rem .55rem !important;
     }
 
     header > div {
-        gap: .28rem !important;
+        gap: .35rem !important;
+    }
+
+    /* Compact Zono brand */
+    header > div > div:first-child {
+        width: 6.2rem;
+        min-width: 6.2rem;
+        max-width: 6.2rem;
+        gap: .35rem !important;
+        overflow: hidden;
+    }
+
+    header > div > div:first-child .w-10.h-10 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem !important;
+    }
+
+    header > div > div:first-child .text-xl {
+        font-size: .95rem !important;
+    }
+
+    /* Hide secondary branding on phones; keep main name clean */
+    header > div > div:first-child .text-\[10px\].font-mono,
+    header > div > div:first-child p {
+        display: none !important;
     }
 
     header > div > div:last-child {
-        gap: .24rem !important;
         flex: 1 1 auto;
-        justify-content: flex-end;
+        gap: .22rem !important;
+        justify-content: flex-start;
+        overflow: hidden;
     }
 
+    /* Currency capsule: fixed and compact */
     header [onclick*="switchTab('store')"] {
-        width: 10.9rem;
-        min-width: 10.9rem;
-        max-width: 10.9rem;
-        padding: .32rem .42rem !important;
-        gap: .28rem !important;
-    }
-
-    header [onclick*="switchTab('store')"] > span {
+        width: 8.9rem;
+        min-width: 8.9rem;
+        max-width: 8.9rem;
+        height: 2.15rem;
+        padding: .25rem .35rem !important;
         gap: .18rem !important;
     }
 
-    header [onclick*="switchTab('store')"] .text-sm {
-        font-size: .72rem !important;
+    header [onclick*="switchTab('store')"] > span.flex {
+        gap: .12rem !important;
     }
 
-    header [onclick*="switchTab('store')"] .text-\[10px\] {
-        font-size: .52rem !important;
+    /* Keep icons, hide resource words to save space */
+    header [onclick*="switchTab('store')"] > span.flex > span.text-\[10px\] {
+        display: none !important;
+    }
+
+    header [onclick*="switchTab('store')"] .text-sm {
+        font-size: .68rem !important;
+        flex: 0 0 auto;
     }
 
     #header-feathers-count,
     #header-seeds-count {
-        max-width: 3.85rem;
+        max-width: 2.75rem !important;
     }
 
+    /* Theme, bell and avatar all remain visible */
     #theme-toggle-btn,
     header button[onclick*="toggleSound"] {
-        width: 1.85rem !important;
-        height: 1.85rem !important;
-        min-width: 1.85rem !important;
+        width: 1.82rem !important;
+        height: 1.82rem !important;
+        min-width: 1.82rem !important;
+        max-width: 1.82rem !important;
+        padding: 0 !important;
         font-size: .72rem !important;
     }
 
     header [onclick*="switchTab('profile')"] {
-        padding-left: .12rem !important;
-        padding-right: .12rem !important;
-        border: none !important;
-        background: transparent !important;
+        width: 2rem !important;
+        min-width: 2rem !important;
+        max-width: 2rem !important;
+        padding: .08rem !important;
+        border-radius: 999px !important;
+        overflow: hidden;
     }
 
     #header-user-avatar {
-        width: 1.9rem !important;
-        height: 1.9rem !important;
-        min-width: 1.9rem !important;
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        min-width: 1.75rem !important;
     }
 
-    /* Stable timer card on phones */
-    #tab-counter .max-w-md.mx-auto.my-6 {
-        min-height: 7.4rem !important;
-        height: 7.4rem !important;
-        margin-top: .38rem !important;
-        margin-bottom: .38rem !important;
-    }
-
-    #bird-quote-text {
-        height: 1.9rem !important;
-        min-height: 1.9rem !important;
-        max-height: 1.9rem !important;
+    #header-user-name {
+        display: none !important;
     }
 }
 
-/* Narrow phones: hide only the currency words, never the buttons/icons. */
-@media (max-width: 390px) {
-    header [onclick*="switchTab('store')"] {
-        width: 9.6rem;
-        min-width: 9.6rem;
-        max-width: 9.6rem;
+/* Very narrow phones: shrink the currency capsule a little more */
+@media (max-width: 380px) {
+    header > div > div:first-child {
+        width: 5.3rem;
+        min-width: 5.3rem;
+        max-width: 5.3rem;
     }
 
-    header [onclick*="switchTab('store')"] .text-\[10px\] {
-        display: none !important;
+    header [onclick*="switchTab('store')"] {
+        width: 7.85rem;
+        min-width: 7.85rem;
+        max-width: 7.85rem;
     }
 
     #header-feathers-count,
     #header-seeds-count {
-        max-width: 3.35rem;
+        max-width: 2.3rem !important;
+    }
+
+    #theme-toggle-btn,
+    header button[onclick*="toggleSound"] {
+        width: 1.7rem !important;
+        height: 1.7rem !important;
+        min-width: 1.7rem !important;
+        max-width: 1.7rem !important;
     }
 }
+
