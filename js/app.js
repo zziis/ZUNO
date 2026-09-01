@@ -1154,15 +1154,22 @@ class ZonoApp {
     }
 
 
+    escapeHtml(value = '') {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     async loadNotifications(primeOnly = false) {
         if (!window.zunoBackend?.client || !this.currentUser) return;
         try {
             const { data, error } = await window.zunoBackend.client.rpc('zono_my_notifications');
             if (error) throw error;
 
-            const rows = Array.isArray(data)
-                ? data
-                : (data && typeof data === 'object' ? [data] : []);
+            const rows = Array.isArray(data) ? data : [];
             const unread = rows.filter(x => !x.is_read).length;
             const newestId = rows.length ? Math.max(...rows.map(x => Number(x.id || 0))) : 0;
 
@@ -1194,9 +1201,7 @@ class ZonoApp {
                 this.notificationsPrimed = true;
                 this.lastNotificationId = storedId;
 
-                const newestUnread = rows
-                    .filter(n => !n.is_read && Number(n.id || 0) > storedId)
-                    .sort((a,b) => Number(b.id || 0) - Number(a.id || 0))[0];
+                const newestUnread = rows.find(n => !n.is_read && Number(n.id || 0) > storedId);
                 if (!primeOnly && newestUnread) {
                     this.showIncomingNotification(newestUnread);
                 } else if (primeOnly && newestUnread) {
