@@ -57,6 +57,9 @@ class ZonoApp {
             isGuest: false,
             avatar: p.avatar_url || `https://api.dicebear.com/7.x/micah/svg?seed=${encodeURIComponent(p.public_id || u.id)}`,
             feathers: Number(p.feathers || 0),
+            seeds: Number(p.seeds || 0),
+            activeBirdRank: Number(p.active_bird_rank || 0),
+            birdPlanEndsAt: p.bird_plan_ends_at || null,
             bio: p.bio || 'عضو في مجتمع Zono 🕊️',
             badge: p.role === 'developer' ? 'المطور 👑' : 'عضو Zono 🕊️',
             frame: 'vintage-avatar-frame',
@@ -250,10 +253,12 @@ class ZonoApp {
         if (!this.currentUser) return;
         const nameEl = document.getElementById('header-user-name');
         const feathersEl = document.getElementById('header-feathers-count');
+        const seedsEl = document.getElementById('header-seeds-count');
         const avatarEl = document.getElementById('header-user-avatar');
 
         if (nameEl) nameEl.textContent = this.currentUser.displayName;
         if (feathersEl) feathersEl.textContent = this.currentUser.feathers;
+        if (seedsEl) seedsEl.textContent = this.currentUser.seeds;
         if (avatarEl) avatarEl.src = this.currentUser.avatar;
     }
 
@@ -268,6 +273,8 @@ class ZonoApp {
         const profileRooms = document.getElementById('stat-rooms-count');
         const profileMsgs = document.getElementById('stat-messages-count');
         const profileFeathers = document.getElementById('profile-feathers-val');
+        const profileSeeds = document.getElementById('profile-seeds-val');
+        const dailySeedsStat = document.getElementById('bird-daily-seeds-stat');
 
         if (profileName) profileName.textContent = this.currentUser.displayName;
         if (profileUser) profileUser.textContent = `ID: ${this.currentUser.username}`;
@@ -278,6 +285,11 @@ class ZonoApp {
         if (profileRooms) profileRooms.textContent = this.currentUser.stats.roomsCreated;
         if (profileMsgs) profileMsgs.textContent = this.currentUser.stats.messagesSent;
         if (profileFeathers) profileFeathers.textContent = `${this.currentUser.feathers} ريشة`;
+        if (profileSeeds) profileSeeds.textContent = `${this.currentUser.seeds} بذرة`;
+        if (dailySeedsStat) {
+            const active = this.getStoreItems().find(x => x.id === this.currentUser.activeBird);
+            dailySeedsStat.textContent = active?.dailySeeds ? `${active.dailySeeds}+` : '0';
+        }
     }
 
     addFeathers() {
@@ -730,10 +742,12 @@ class ZonoApp {
     // --- Store System (المتجر) ---
     getStoreItems() {
         return [
-            { id: 'classic_gold', name: 'العصفور الذهبي الكلاسيكي', type: 'skin', price: 0, desc: 'عصفور Zono الأصلي بصوته وحركته الكلاسيكية.', icon: '🕊️' },
-            { id: 'emerald', name: 'الزمردي الكلاسيكي', type: 'skin', price: 150, desc: 'طائر زمردي بلون الواحات النادرة مع لمعان رقيق.', icon: '🦜' },
-            { id: 'royal_blue', name: 'طائر الليل الأزرق الملكي', type: 'skin', price: 250, desc: 'ريش أزرق ملكي يحاكي سماء ليالي الماضي.', icon: '🪶' },
-            { id: 'crimson_phoenix', name: 'طائر الفينيق الأسطوري', type: 'skin', price: 400, desc: 'طائر ناري ملحمي يترك خلفه أثراً من البريق المتوهج.', icon: '🔥' }
+            { id: 'classic_gold', rank: 0, name: 'العصفور الذهبي الكلاسيكي', price: 0, dailySeeds: 0, durationDays: 0, icon: '🕊️', desc: 'الشكل الأساسي لعصفور Zono.' },
+            { id: 'emerald', rank: 1, name: 'الطائر الأخضر الملكي', price: 6000, dailySeeds: 500, durationDays: 500, icon: '🦜', desc: 'ينتج 500 بذرة يومياً لمدة 500 يوم.' },
+            { id: 'royal_blue', rank: 2, name: 'طائر الجليد الأزرق', price: 9000, dailySeeds: 750, durationDays: 500, icon: '🐦', desc: 'ينتج 750 بذرة يومياً لمدة 500 يوم.' },
+            { id: 'crimson_phoenix', rank: 3, name: 'طائر الكاردينال القرمزي', price: 12000, dailySeeds: 1000, durationDays: 500, icon: '🔴', desc: 'ينتج 1000 بذرة يومياً لمدة 500 يوم.' },
+            { id: 'ivory_cockatiel', rank: 4, name: 'طائر الكوكتيل العاجي', price: 18000, dailySeeds: 1500, durationDays: 500, icon: '🪽', desc: 'ينتج 1500 بذرة يومياً لمدة 500 يوم.' },
+            { id: 'obsidian_gold', rank: 5, name: 'النسر الأسود الذهبي', price: 30000, dailySeeds: 2500, durationDays: 500, icon: '🦅', desc: 'ينتج 2500 بذرة يومياً لمدة 500 يوم.' }
         ];
     }
 
@@ -741,39 +755,44 @@ class ZonoApp {
         const container = document.getElementById('store-items-grid');
         if (!container) return;
         const items = this.getStoreItems();
-        const userInventory = (this.currentUser && this.currentUser.inventory) || ['classic_gold'];
-        const activeSkin = (this.birdEngine && this.birdEngine.skin) || 'classic_gold';
+        const activeRank = Number(this.currentUser?.activeBirdRank || 0);
+        const activeSkin = this.currentUser?.activeBird || 'classic_gold';
+        const seeds = Number(this.currentUser?.seeds || 0);
 
         container.innerHTML = items.map(item => {
-            const isOwned = userInventory.includes(item.id) || item.price === 0;
-            const isEquipped = activeSkin === item.id;
+            const isActive = activeSkin === item.id;
+            const isPrevious = item.rank < activeRank;
+            const canBuy = item.rank > activeRank;
+            const affordable = seeds >= item.price;
 
             return `
-                <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between border ${isEquipped ? 'border-amber-400 shadow-amber-500/20 shadow-lg' : 'border-stone-800'} relative overflow-hidden">
+                <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between border ${isActive ? 'border-amber-400 shadow-amber-500/20 shadow-lg' : 'border-stone-800'} relative overflow-hidden ${isPrevious ? 'opacity-60' : ''}">
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-3xl p-2.5 rounded-xl bg-stone-900 border border-stone-800">${item.icon}</span>
                             <span class="font-mono text-xs font-bold ${item.price === 0 ? 'text-emerald-400' : 'text-amber-400'}">
-                                ${item.price === 0 ? 'مجاني' : `${item.price} 🪶`}
+                                ${item.price === 0 ? 'أساسي' : `${item.price.toLocaleString('en-US')} 🌾`}
                             </span>
                         </div>
                         <h4 class="font-bold text-stone-100 text-sm mb-1">${item.name}</h4>
-                        <p class="text-xs text-stone-300 leading-relaxed mb-4">${item.desc}</p>
+                        <div class="text-[11px] text-amber-300 mb-1">رقم ${item.rank || 0}</div>
+                        <p class="text-xs text-stone-300 leading-relaxed mb-2">${item.desc}</p>
+                        ${item.dailySeeds ? `<div class="text-[11px] text-stone-400 mb-4">🌾 ${item.dailySeeds.toLocaleString('en-US')} يومياً • ⏳ ${item.durationDays} يوم</div>` : '<div class="mb-4"></div>'}
                     </div>
                     <div>
-                        ${isEquipped ? `
+                        ${isActive ? `
                             <button class="w-full py-2 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-default">
-                                مُفعّل حالياً ✨
+                                الشكل الحالي ✨
                             </button>
-                        ` : isOwned ? `
-                            <button onclick="window.zonoApp.equipItem('${item.id}', '${item.type}')" class="w-full py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-stone-950 transition-colors">
-                                ارتداء / تفعيل
+                        ` : isPrevious ? `
+                            <button disabled class="w-full py-2 rounded-xl text-xs font-bold bg-stone-800 text-stone-500 border border-stone-700 cursor-not-allowed">
+                                🔒 شكل سابق — لا يمكن الرجوع إليه
                             </button>
-                        ` : `
-                            <button onclick="window.zonoApp.buyItem('${item.id}', ${item.price})" class="w-full py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold transition-all shadow">
-                                شراء الآن
+                        ` : canBuy ? `
+                            <button onclick="window.zonoApp.buyItem('${item.id}', ${item.price})" class="w-full py-2 rounded-xl text-xs font-bold ${affordable ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950' : 'bg-stone-800 text-stone-500'} transition-all shadow">
+                                شراء بـ ${item.price.toLocaleString('en-US')} بذرة
                             </button>
-                        `}
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -782,30 +801,44 @@ class ZonoApp {
 
     async buyItem(itemId, price) {
         if (!this.currentUser) return this.showAuthModal();
+        const item = this.getStoreItems().find(x => x.id === itemId);
+        if (!item || item.rank <= Number(this.currentUser.activeBirdRank || 0)) {
+            return this.showToast('لا يمكن شراء أو ارتداء طائر أقدم من طائرك الحالي', 'error');
+        }
         try {
             const { data, error } = await window.zunoBackend.client.rpc('zono_buy_bird', { p_item_id: itemId });
             if (error) throw error;
             await window.zonoAuth.loadProfile(window.zonoAuth.user);
             await this.syncUserFromSupabase();
-            if (window.zonoAudio) window.zonoAudio.playCoin();
-            this.showToast(`تم شراء الطائر بنجاح مقابل ${data?.price ?? price} ريشة!`, 'success');
+
+            // The new bird is equipped automatically and replaces the old appearance.
+            if (this.birdEngine) this.birdEngine.setSkin(itemId);
+            if (window.zonoAudio) window.zonoAudio.playChirp();
+            this.showToast(`تم شراء ${item.name} وتفعيله تلقائياً مقابل ${data?.price ?? price} بذرة 🌾`, 'success');
+            this.renderStore();
         } catch (e) {
             this.showToast(e.message || 'تعذر شراء الطائر', 'error');
         }
     }
 
     async equipItem(itemId, itemType) {
-        if (itemType !== 'skin' || !this.currentUser) return;
+        // Deliberately disabled: upgrades are permanent and older birds cannot be re-equipped.
+        this.showToast('الترقية دائمة ولا يمكن الرجوع إلى شكل طائر أقدم', 'error');
+    }
+
+    async claimBirdDailySeeds() {
+        if (!this.currentUser) return { ok: false };
         try {
-            const { error } = await window.zunoBackend.client.rpc('zono_equip_bird', { p_item_id: itemId });
+            const { data, error } = await window.zunoBackend.client.rpc('zono_claim_bird_daily_seeds');
             if (error) throw error;
-            this.currentUser.activeBird = itemId;
-            if (this.birdEngine) this.birdEngine.setSkin(itemId);
-            if (window.zonoAudio) window.zonoAudio.playChirp();
-            this.showToast('تم تفعيل الطائر الجديد بنجاح! 🕊️', 'success');
-            this.renderStore();
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            if (window.zonoAudio) window.zonoAudio.playCoin();
+            this.showToast(`اكتملت الرحلة اليومية: +${data?.reward || 0} بذرة 🌾`, 'success');
+            return data || { ok: true };
         } catch (e) {
-            this.showToast(e.message || 'تعذر تفعيل الطائر', 'error');
+            this.showToast(e.message || 'تعذر استلام بذور اليوم', 'error');
+            return { ok: false, error: e.message };
         }
     }
 

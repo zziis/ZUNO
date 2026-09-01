@@ -14,7 +14,7 @@ class ZonoBirdEngine {
 
         // State
         this.isFlying = false;
-        this.skin = 'classic_gold'; // classic_gold, emerald, royal_blue, crimson_phoenix
+        this.skin = 'classic_gold'; // progressive bird tiers; old tiers are locked after upgrade
         this.flightDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
         this.flightEndTime = null;
         this.flightStartTime = null;
@@ -186,6 +186,10 @@ class ZonoBirdEngine {
                 return { primary: '#3B82F6', secondary: '#1D4ED8', belly: '#BFDBFE', beak: '#F97316', glow: 'rgba(59, 130, 246, 0.4)' };
             case 'crimson_phoenix':
                 return { primary: '#EF4444', secondary: '#B91C1C', belly: '#FDE047', beak: '#FBBF24', glow: 'rgba(239, 68, 68, 0.45)' };
+            case 'ivory_cockatiel':
+                return { primary: '#F5F5F4', secondary: '#D6D3D1', belly: '#FFF7ED', beak: '#F59E0B', glow: 'rgba(245, 245, 244, 0.38)' };
+            case 'obsidian_gold':
+                return { primary: '#171717', secondary: '#854D0E', belly: '#FACC15', beak: '#F59E0B', glow: 'rgba(250, 204, 21, 0.48)' };
             case 'classic_gold':
             default:
                 return { primary: '#D4AF37', secondary: '#B7791F', belly: '#FEFCBF', beak: '#DD6B20', glow: 'rgba(212, 175, 55, 0.4)' };
@@ -199,11 +203,9 @@ class ZonoBirdEngine {
 
             if (this.remainingMs <= 0) {
                 this.resetFlight(false);
-                if (window.showZonoToast) {
-                    window.showZonoToast("مبروك! أكمل العصفور رحلة الـ 24 ساعة كاملة وحصلت على 100 ريشة ذهبية! 🏆", "success");
-                }
-                if (window.zonoApp) {
-                    window.zonoApp.addFeathers(100);
+                // Daily seed reward is validated and credited by Supabase.
+                if (window.zonoApp && typeof window.zonoApp.claimBirdDailySeeds === 'function') {
+                    window.zonoApp.claimBirdDailySeeds();
                 }
             }
         }
