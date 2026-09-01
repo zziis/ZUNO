@@ -336,18 +336,40 @@ class ZonoApp {
         fitCurrencyNumber(feathersEl, this.currentUser.feathers);
         fitCurrencyNumber(seedsEl, this.currentUser.seeds);
 
-        // Seed value: 500 seeds = 500 IQD, so the ratio is 1:1.
+        // Seed value: 500 seeds = 500 IQD, therefore 1 seed = 1 IQD.
         const seedValueSeedsEl = document.getElementById('zono-value-seeds-count');
         const seedValueIqdEl = document.getElementById('zono-value-iqd-count');
         const seedBalance = Math.max(0, Number(this.currentUser.seeds || 0));
         const seedValueIqd = seedBalance;
 
-        if (seedValueSeedsEl) {
-            seedValueSeedsEl.textContent = seedBalance.toLocaleString('en-US');
-        }
-        if (seedValueIqdEl) {
-            seedValueIqdEl.textContent = seedValueIqd.toLocaleString('en-US');
-        }
+        const fitValueNumber = (el, value) => {
+            if (!el) return;
+
+            const text = Number(value || 0).toLocaleString('en-US');
+            el.textContent = text;
+
+            const digits = String(Math.trunc(Number(value || 0))).length;
+            let size = '0.74rem';
+            if (digits >= 7)  size = '0.66rem';
+            if (digits >= 9)  size = '0.58rem';
+            if (digits >= 11) size = '0.50rem';
+            if (digits >= 13) size = '0.43rem';
+            if (digits >= 15) size = '0.37rem';
+
+            el.style.fontSize = size;
+            el.style.lineHeight = '1';
+            el.style.minWidth = '0';
+            el.style.maxWidth = window.innerWidth <= 390 ? '4.65rem'
+                               : window.innerWidth <= 640 ? '5.65rem'
+                               : '7.5rem';
+            el.style.overflow = 'hidden';
+            el.style.whiteSpace = 'nowrap';
+            el.style.textAlign = 'center';
+            el.style.fontVariantNumeric = 'tabular-nums';
+        };
+
+        fitValueNumber(seedValueSeedsEl, seedBalance);
+        fitValueNumber(seedValueIqdEl, seedValueIqd);
         if (avatarEl) avatarEl.src = this.currentUser.avatar;
     }
 
