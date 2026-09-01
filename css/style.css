@@ -572,28 +572,53 @@ nav.fixed.bottom-0 {
 }
 
 /* =========================================================
-   ZONO — ANNOUNCEMENT TICKER (ANCHORED ABOVE BOTTOM NAV)
-   النص قابل للتغيير من index.html داخل #zono-announcement-text
+   ZONO — ANNOUNCEMENT DOCK V2
+   Raised slightly and visually fills the empty zone above navigation
    ========================================================= */
 
-/* The bar is a child of the fixed navigation, so bottom:100%
-   keeps it exactly above the nav on every phone size. */
-.zono-announcement-bar {
+/* Soft dock background to make the empty space look intentional */
+nav.fixed.bottom-0::before {
+    content: "";
     position: absolute;
     left: 0;
     right: 0;
     bottom: 100%;
-    z-index: 1;
-    height: 2rem;
+    height: 4.6rem;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            to bottom,
+            rgba(6, 8, 12, 0.00) 0%,
+            rgba(7, 9, 13, 0.72) 28%,
+            rgba(9, 12, 18, 0.96) 100%
+        );
+    border-top: 1px solid rgba(245, 158, 11, .10);
+}
+
+/* Announcement itself sits a little higher inside that dock */
+.zono-announcement-bar {
+    position: absolute;
+    left: .75rem;
+    right: .75rem;
+    bottom: calc(100% + 1.15rem);
+    z-index: 2;
+    height: 2.05rem;
     overflow: hidden;
     display: flex;
     align-items: center;
-    background: linear-gradient(90deg, rgba(8,10,15,.98), rgba(18,20,26,.98), rgba(8,10,15,.98));
-    border-top: 1px solid rgba(245,158,11,.30);
-    border-bottom: 1px solid rgba(245,158,11,.30);
+    border-radius: .8rem;
+    background: linear-gradient(
+        90deg,
+        rgba(10, 12, 17, .98),
+        rgba(22, 20, 16, .98),
+        rgba(10, 12, 17, .98)
+    );
+    border: 1px solid rgba(245, 158, 11, .32);
+    box-shadow:
+        0 8px 18px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.025);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 -3px 12px rgba(0,0,0,.24);
     pointer-events: auto;
 }
 
@@ -612,7 +637,7 @@ nav.fixed.bottom-0 {
     width: max-content;
     white-space: nowrap;
     color: #f3c65c;
-    font-size: .76rem;
+    font-size: .74rem;
     font-weight: 800;
     line-height: 1;
     letter-spacing: .01em;
@@ -633,18 +658,26 @@ nav.fixed.bottom-0 {
 }
 
 @media (max-width: 640px) {
+    nav.fixed.bottom-0::before {
+        height: 4.2rem;
+    }
+
     .zono-announcement-bar {
-        height: 1.8rem;
+        left: .5rem;
+        right: .5rem;
+        bottom: calc(100% + .95rem);
+        height: 1.9rem;
+        border-radius: .7rem;
     }
 
     #zono-announcement-text {
-        font-size: .67rem;
+        font-size: .66rem;
         animation-duration: 10s;
     }
 
-    /* Reserve room for nav + announcement so page content is never covered. */
+    /* Reserve enough room for the raised ad + fixed nav */
     main {
-        padding-bottom: calc(7.65rem + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(8.25rem + env(safe-area-inset-bottom, 0px)) !important;
     }
 }
 
