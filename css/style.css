@@ -572,23 +572,29 @@ nav.fixed.bottom-0 {
 }
 
 /* =========================================================
-   ZONO — EDITABLE ANNOUNCEMENT TICKER
-   عدّل النص مستقبلاً من index.html داخل #zono-announcement-text
+   ZONO — ANNOUNCEMENT TICKER (ANCHORED ABOVE BOTTOM NAV)
+   النص قابل للتغيير من index.html داخل #zono-announcement-text
    ========================================================= */
+
+/* The bar is a child of the fixed navigation, so bottom:100%
+   keeps it exactly above the nav on every phone size. */
 .zono-announcement-bar {
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
-    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
-    z-index: 39;
-    height: 2.1rem;
+    bottom: 100%;
+    z-index: 1;
+    height: 2rem;
     overflow: hidden;
     display: flex;
     align-items: center;
-    background: linear-gradient(90deg, rgba(8,10,15,.96), rgba(18,20,26,.96), rgba(8,10,15,.96));
-    border-top: 1px solid rgba(245, 158, 11, .22);
-    border-bottom: 1px solid rgba(245, 158, 11, .22);
+    background: linear-gradient(90deg, rgba(8,10,15,.98), rgba(18,20,26,.98), rgba(8,10,15,.98));
+    border-top: 1px solid rgba(245,158,11,.30);
+    border-bottom: 1px solid rgba(245,158,11,.30);
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 -3px 12px rgba(0,0,0,.24);
+    pointer-events: auto;
 }
 
 .zono-announcement-track {
@@ -598,6 +604,7 @@ nav.fixed.bottom-0 {
     display: flex;
     align-items: center;
     overflow: hidden;
+    direction: ltr;
 }
 
 #zono-announcement-text {
@@ -607,6 +614,7 @@ nav.fixed.bottom-0 {
     color: #f3c65c;
     font-size: .76rem;
     font-weight: 800;
+    line-height: 1;
     letter-spacing: .01em;
     padding-inline: 1rem;
     text-shadow: 0 0 10px rgba(245,158,11,.18);
@@ -620,23 +628,23 @@ nav.fixed.bottom-0 {
 }
 
 @keyframes zonoAnnouncementLeftToRight {
-    0%   { transform: translateX(-115%); }
-    100% { transform: translateX(115vw); }
+    from { transform: translateX(-110%); }
+    to   { transform: translateX(100vw); }
 }
 
 @media (max-width: 640px) {
     .zono-announcement-bar {
-        bottom: calc(4.55rem + env(safe-area-inset-bottom, 0px));
-        height: 1.9rem;
+        height: 1.8rem;
     }
 
     #zono-announcement-text {
-        font-size: .68rem;
+        font-size: .67rem;
         animation-duration: 10s;
     }
 
+    /* Reserve room for nav + announcement so page content is never covered. */
     main {
-        padding-bottom: calc(7.6rem + env(safe-area-inset-bottom, 0px)) !important;
+        padding-bottom: calc(7.65rem + env(safe-area-inset-bottom, 0px)) !important;
     }
 }
 

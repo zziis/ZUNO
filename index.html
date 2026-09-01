@@ -427,16 +427,14 @@
         </section>
 
     </main>
-
-    <!-- ==================== Editable Announcement Ticker ==================== -->
-    <div id="zono-announcement-bar" class="zono-announcement-bar" aria-label="شريط الإعلانات">
-        <div class="zono-announcement-track">
-            <span id="zono-announcement-text">مرحباً بكم في Zono — تابعوا آخر التحديثات والإعلانات هنا</span>
-        </div>
-    </div>
-
-    <!-- ==================== Bottom Tactile Navigation Bar ==================== -->
+<!-- ==================== Bottom Tactile Navigation Bar ==================== -->
     <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-amber-500/20 px-2 py-2 sm:px-6">
+        <!-- Editable announcement: anchored directly above the bottom nav -->
+        <div id="zono-announcement-bar" class="zono-announcement-bar" aria-label="شريط الإعلانات">
+                <div class="zono-announcement-track">
+                    <span id="zono-announcement-text">مرحباً بكم في Zono — تابعوا آخر التحديثات والإعلانات هنا</span>
+                </div>
+            </div>
         <div class="max-w-md mx-auto flex items-center justify-around">
             <!-- 1. Rooms Tab -->
             <button data-tab="rooms" onclick="window.zonoApp.switchTab('rooms')" class="nav-btn flex flex-col items-center justify-center p-2 rounded-xl text-amber-400 scale-105 transition-all relative">
