@@ -96,15 +96,9 @@ class ZonoBirdEngine {
     }
 
     toggleFlight() {
-        if (this.isFlying) {
-            // Optional: User can pause or land early
-            const confirmLand = confirm("هل ترغب في إعادة العصفور إلى الغصن ليرتاح؟");
-            if (confirmLand) {
-                this.resetFlight(true);
-            }
-        } else {
-            this.startFlight();
-        }
+        // Once the 24-hour flight starts, it cannot be paused or ended early.
+        if (this.isFlying) return;
+        this.startFlight();
     }
 
     startFlight() {
@@ -252,12 +246,15 @@ class ZonoBirdEngine {
 
         if (triggerBtn) {
             if (this.isFlying) {
-                triggerBtn.innerHTML = `
-                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>إيقاف مؤقت / عودة للغصن</span>
-                `;
-                triggerBtn.className = "w-full py-3.5 px-6 rounded-2xl font-bold bg-gradient-to-r from-red-900/80 to-amber-900/80 hover:from-red-800 hover:to-amber-800 text-amber-100 border border-amber-500/30 shadow-lg flex items-center justify-center transition-all duration-300 active:scale-95";
+                /* Hide the launch button for the full 24-hour flight.
+                   No pause / return-to-branch control is shown. */
+                triggerBtn.classList.add('hidden');
+                triggerBtn.setAttribute('aria-hidden', 'true');
+                triggerBtn.disabled = true;
             } else {
+                triggerBtn.classList.remove('hidden');
+                triggerBtn.removeAttribute('aria-hidden');
+                triggerBtn.disabled = false;
                 triggerBtn.innerHTML = `
                     <svg class="w-5 h-5 ml-2 text-amber-300 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     <span>إطلاق العصفور للتحليق (24 ساعة)</span>

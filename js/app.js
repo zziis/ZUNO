@@ -929,10 +929,15 @@ class ZonoApp {
         if (!toastEl) return;
 
         toastEl.textContent = message;
-        toastEl.className = "fixed top-6 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-full text-xs font-bold z-50 backdrop-blur-xl shadow-2xl transition-all duration-300 border " +
+        toastEl.className = "fixed left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-2xl text-xs font-bold z-50 backdrop-blur-xl shadow-2xl transition-all duration-300 border text-center leading-relaxed " +
             (type === 'error' ? 'bg-red-950/90 text-red-200 border-red-500/50 shadow-red-900/40' :
              type === 'success' ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/50 shadow-emerald-900/40' :
              'bg-stone-900/90 text-amber-200 border-amber-500/40 shadow-amber-900/30');
+
+        /* Keep notifications below the phone status bar + Zono header */
+        toastEl.style.top = 'calc(env(safe-area-inset-top, 0px) + 5.8rem)';
+        toastEl.style.width = 'max-content';
+        toastEl.style.maxWidth = '88vw';
 
         toastEl.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
         toastEl.classList.add('opacity-100', 'translate-y-0');
