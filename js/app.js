@@ -1160,7 +1160,9 @@ class ZonoApp {
             const { data, error } = await window.zunoBackend.client.rpc('zono_my_notifications');
             if (error) throw error;
 
-            const rows = Array.isArray(data) ? data : [];
+            const rows = Array.isArray(data)
+                ? data
+                : (data && typeof data === 'object' ? [data] : []);
             const unread = rows.filter(x => !x.is_read).length;
             const newestId = rows.length ? Math.max(...rows.map(x => Number(x.id || 0))) : 0;
 
@@ -1192,7 +1194,9 @@ class ZonoApp {
                 this.notificationsPrimed = true;
                 this.lastNotificationId = storedId;
 
-                const newestUnread = rows.find(n => !n.is_read && Number(n.id || 0) > storedId);
+                const newestUnread = rows
+                    .filter(n => !n.is_read && Number(n.id || 0) > storedId)
+                    .sort((a,b) => Number(b.id || 0) - Number(a.id || 0))[0];
                 if (!primeOnly && newestUnread) {
                     this.showIncomingNotification(newestUnread);
                 } else if (primeOnly && newestUnread) {
