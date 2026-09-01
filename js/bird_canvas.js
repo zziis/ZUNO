@@ -14,8 +14,8 @@ class ZonoBirdEngine {
 
         // State
         this.isFlying = false;
-        this.skin = 'classic_gold'; // classic_gold, emerald, royal_blue, crimson_phoenix
-        this.flightDuration = window.zonoApp?.currentUser?.role === 'developer' ? 3 * 60 * 1000 : 24 * 60 * 60 * 1000; // developer 3 min, others 24h
+        this.skin = 'classic_gold'; // progressive bird tiers; old tiers are locked after upgrade
+        this.flightDuration = 24 * 60 * 60 * 1000; // 24 hours in ms
         this.flightEndTime = null;
         this.flightStartTime = null;
         this.remainingMs = this.flightDuration;
@@ -96,15 +96,9 @@ class ZonoBirdEngine {
     }
 
     toggleFlight() {
-        if (this.isFlying) {
-            // Optional: User can pause or land early
-            const confirmLand = confirm("هل ترغب في إعادة العصفور إلى الغصن ليرتاح؟");
-            if (confirmLand) {
-                this.resetFlight(true);
-            }
-        } else {
-            this.startFlight();
-        }
+        // Once the 24-hour flight starts, it cannot be paused or ended early.
+        if (this.isFlying) return;
+        this.startFlight();
     }
 
     startFlight() {
@@ -192,6 +186,10 @@ class ZonoBirdEngine {
                 return { primary: '#3B82F6', secondary: '#1D4ED8', belly: '#BFDBFE', beak: '#F97316', glow: 'rgba(59, 130, 246, 0.4)' };
             case 'crimson_phoenix':
                 return { primary: '#EF4444', secondary: '#B91C1C', belly: '#FDE047', beak: '#FBBF24', glow: 'rgba(239, 68, 68, 0.45)' };
+            case 'ivory_cockatiel':
+                return { primary: '#F5F5F4', secondary: '#D6D3D1', belly: '#FFF7ED', beak: '#F59E0B', glow: 'rgba(245, 245, 244, 0.38)' };
+            case 'obsidian_gold':
+                return { primary: '#171717', secondary: '#854D0E', belly: '#FACC15', beak: '#F59E0B', glow: 'rgba(250, 204, 21, 0.48)' };
             case 'classic_gold':
             default:
                 return { primary: '#D4AF37', secondary: '#B7791F', belly: '#FEFCBF', beak: '#DD6B20', glow: 'rgba(212, 175, 55, 0.4)' };
@@ -205,17 +203,9 @@ class ZonoBirdEngine {
 
             if (this.remainingMs <= 0) {
                 this.resetFlight(false);
-                if (window.showZonoToast) {
-                    if (window.zonoApp?.currentUser?.role === 'developer') {
-                        window.zunoBackend.client.rpc('zono_developer_claim_seeds').then(async ({data,error}) => {
-                            if (error) return window.showZonoToast(error.message || 'تعذر إضافة البذور','error');
-                            await window.zonoAuth.loadProfile(window.zonoAuth.user);
-                            await window.zonoApp.syncUserFromSupabase();
-                            window.showZonoToast(`اكتملت 3 دقائق: +${Number(data?.reward||0).toLocaleString('en-US')} بذرة 🌾`,'success');
-                        });
-                    } else {
-                        window.showZonoToast("مبروك! اكتملت رحلة الـ 24 ساعة 🏆", "success");
-                    }
+                // Daily seed reward is validated and credited by Supabase.
+                if (window.zonoApp && typeof window.zonoApp.claimBirdDailySeeds === 'function') {
+                    window.zonoApp.claimBirdDailySeeds();
                 }
             }
         }
@@ -258,12 +248,15 @@ class ZonoBirdEngine {
 
         if (triggerBtn) {
             if (this.isFlying) {
-                triggerBtn.innerHTML = `
-                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>إيقاف مؤقت / عودة للغصن</span>
-                `;
-                triggerBtn.className = "w-full py-3.5 px-6 rounded-2xl font-bold bg-gradient-to-r from-red-900/80 to-amber-900/80 hover:from-red-800 hover:to-amber-800 text-amber-100 border border-amber-500/30 shadow-lg flex items-center justify-center transition-all duration-300 active:scale-95";
+                /* Hide the launch button for the full 24-hour flight.
+                   No pause / return-to-branch control is shown. */
+                triggerBtn.classList.add('hidden');
+                triggerBtn.setAttribute('aria-hidden', 'true');
+                triggerBtn.disabled = true;
             } else {
+                triggerBtn.classList.remove('hidden');
+                triggerBtn.removeAttribute('aria-hidden');
+                triggerBtn.disabled = false;
                 triggerBtn.innerHTML = `
                     <svg class="w-5 h-5 ml-2 text-amber-300 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     <span>إطلاق العصفور للتحليق (24 ساعة)</span>
