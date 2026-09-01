@@ -721,18 +721,50 @@ nav.fixed.bottom-0::before {
 }
 
 /* =========================================================
-   ZONO V1 — UPDATE 11
-   Clean 2-row mobile header + fully visible store cards
+   ZONO V1 — UPDATE 12
+   Final phone dimensions + resource labels always visible
    ========================================================= */
+
+html {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    min-height: 100svh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+header,
+main,
+nav,
+section {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+main {
+    min-width: 0;
+    overflow-x: hidden;
+}
 
 .zono-header-inner {
     width: 100%;
+    min-width: 0;
     display: grid;
     grid-template-columns: auto minmax(12rem, 1fr) auto;
     grid-template-areas: "brand currency controls";
     align-items: center;
     gap: .8rem;
-    min-width: 0;
 }
 
 .zono-brand {
@@ -764,7 +796,8 @@ nav.fixed.bottom-0::before {
 
 .zono-resource {
     min-width: 0;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     justify-content: center;
     gap: .28rem;
@@ -778,13 +811,19 @@ nav.fixed.bottom-0::before {
     background: rgba(245,158,11,.28);
 }
 
+.zono-resource-label {
+    display: inline-block !important;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
 #header-feathers-count,
 #header-seeds-count {
     display: inline-block;
-    min-width: 0;
+    min-width: 0 !important;
     max-width: 7.5rem;
-    overflow: hidden;
-    white-space: nowrap;
+    overflow: hidden !important;
+    white-space: nowrap !important;
     text-align: center;
     font-variant-numeric: tabular-nums;
     line-height: 1;
@@ -805,27 +844,38 @@ nav.fixed.bottom-0::before {
     flex: 0 0 auto !important;
 }
 
-/* Store cards must never be dimmed merely because the skin is older. */
+/* Store cards stay equally bright */
 #store-items-grid > .glass-panel {
     opacity: 1 !important;
     filter: none !important;
 }
 
+/* ---------- MOBILE ---------- */
 @media (max-width: 640px) {
     header {
-        padding: .5rem .55rem .55rem !important;
+        position: sticky;
+        top: 0;
+        min-height: 7.15rem;
+        padding:
+            calc(.45rem + env(safe-area-inset-top, 0px))
+            .55rem
+            .55rem !important;
+        overflow: visible !important;
     }
 
     .zono-header-inner {
+        min-height: 5.65rem;
         grid-template-columns: minmax(0, 1fr) auto;
         grid-template-areas:
             "brand controls"
             "currency currency";
-        gap: .42rem .5rem;
+        grid-template-rows: 2.15rem 2.45rem;
+        gap: .45rem .5rem;
+        align-content: center;
     }
 
     .zono-brand {
-        max-width: 8rem;
+        max-width: 8.1rem;
         gap: .4rem;
         overflow: hidden;
     }
@@ -882,29 +932,91 @@ nav.fixed.bottom-0::before {
 
     #zono-currency-pill {
         width: min(94vw, 22rem);
+        min-width: 0;
         height: 2.35rem;
         padding: .28rem .5rem;
         gap: .28rem;
+        margin: 0 auto;
     }
 
     .zono-resource {
+        grid-template-columns: auto minmax(0, 1fr) auto;
         gap: .18rem;
     }
 
     .zono-resource > .text-sm {
-        font-size: .75rem !important;
+        font-size: .72rem !important;
     }
 
     .zono-resource-label {
-        font-size: .55rem !important;
+        display: inline-block !important;
+        font-size: .54rem !important;
+        line-height: 1 !important;
     }
 
     #header-feathers-count,
     #header-seeds-count {
-        max-width: 6rem;
+        max-width: 5.7rem !important;
+    }
+
+    /* Main content uses stable viewport dimensions */
+    main {
+        width: 100%;
+        max-width: 100%;
+        min-height: calc(100svh - 7.15rem);
+        padding-left: .55rem !important;
+        padding-right: .55rem !important;
+        padding-bottom: calc(8.2rem + env(safe-area-inset-bottom, 0px)) !important;
+        box-sizing: border-box;
+    }
+
+    .tab-content,
+    .tab-content > .glass-panel {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Counter circle stays the same physical size within a device */
+    #tab-counter div.relative.w-full.max-w-\[440px\] {
+        width: min(56vw, 235px) !important;
+        height: min(56vw, 235px) !important;
+        min-width: 0 !important;
+        max-width: 235px !important;
+        aspect-ratio: 1 / 1 !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    #bird-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 235px !important;
+        max-height: 235px !important;
+    }
+
+    /* Clock card fixed size: no vertical jump */
+    #tab-counter .max-w-md.mx-auto.my-6 {
+        width: min(88vw, 350px) !important;
+        min-height: 7.4rem !important;
+        height: 7.4rem !important;
+        margin: .38rem auto !important;
+        box-sizing: border-box;
+    }
+
+    #bird-quote-text {
+        height: 1.9rem !important;
+        min-height: 1.9rem !important;
+        max-height: 1.9rem !important;
+        overflow: hidden !important;
+    }
+
+    nav.fixed.bottom-0 {
+        padding-bottom: calc(.45rem + env(safe-area-inset-bottom, 0px)) !important;
     }
 }
 
+/* Small phones: keep labels, shrink ONLY numbers/icons */
 @media (max-width: 390px) {
     .zono-brand {
         max-width: 6.8rem;
@@ -912,16 +1024,43 @@ nav.fixed.bottom-0::before {
 
     #zono-currency-pill {
         width: 96vw;
-        padding-inline: .38rem;
+        padding-inline: .35rem;
+    }
+
+    .zono-resource {
+        gap: .12rem;
+    }
+
+    .zono-resource > .text-sm {
+        font-size: .66rem !important;
     }
 
     .zono-resource-label {
-        display: none !important;
+        display: inline-block !important;
+        font-size: .50rem !important;
     }
 
     #header-feathers-count,
     #header-seeds-count {
-        max-width: 5.2rem;
+        max-width: 4.65rem !important;
+    }
+}
+
+/* Short screens: reduce only vertical whitespace, never header structure */
+@media (max-width: 640px) and (max-height: 760px) {
+    main {
+        padding-top: .45rem !important;
+    }
+
+    #tab-counter div.relative.w-full.max-w-\[440px\] {
+        width: min(50vw, 210px) !important;
+        height: min(50vw, 210px) !important;
+        max-width: 210px !important;
+    }
+
+    #bird-canvas {
+        max-width: 210px !important;
+        max-height: 210px !important;
     }
 }
 

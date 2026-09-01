@@ -290,22 +290,27 @@ class ZonoApp {
 
         const fitCurrencyNumber = (el, value) => {
             if (!el) return;
+
             const text = String(Math.max(0, Number(value || 0)));
             el.textContent = text;
 
-            // Keep very large balances inside the fixed currency pill.
+            // Only the number shrinks. "ريشة" / "بذرة" always stay visible.
             const digits = text.length;
-            let size = '0.78rem';
-            if (digits >= 6) size = '0.70rem';
-            if (digits >= 8) size = '0.61rem';
-            if (digits >= 10) size = '0.53rem';
-            if (digits >= 12) size = '0.46rem';
-            if (digits >= 14) size = '0.40rem';
+            let size = '0.76rem';
+
+            if (digits >= 6)  size = '0.69rem';
+            if (digits >= 8)  size = '0.61rem';
+            if (digits >= 10) size = '0.54rem';
+            if (digits >= 12) size = '0.47rem';
+            if (digits >= 14) size = '0.41rem';
+            if (digits >= 16) size = '0.36rem';
 
             el.style.fontSize = size;
             el.style.lineHeight = '1';
-            el.style.maxWidth = window.innerWidth <= 640 ? '2.75rem' : '4.6rem';
             el.style.minWidth = '0';
+            el.style.maxWidth = window.innerWidth <= 390 ? '4.65rem'
+                               : window.innerWidth <= 640 ? '5.7rem'
+                               : '7.5rem';
             el.style.overflow = 'hidden';
             el.style.whiteSpace = 'nowrap';
             el.style.textAlign = 'center';
