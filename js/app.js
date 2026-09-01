@@ -165,6 +165,8 @@ class ZonoApp {
 
     showMainApp() {
         this.hideAuthModal();
+        const soundSetting = document.getElementById('setting-sound-toggle');
+        if (soundSetting) soundSetting.checked = this.soundEnabled;
         this.updateHeaderUI();
         this.updateProfileUI();
         this.renderStore();
@@ -999,7 +1001,9 @@ class ZonoApp {
             await window.zonoAuth.loadProfile(window.zonoAuth.user);
             await this.syncUserFromSupabase();
             if (window.zonoAudio) window.zonoAudio.playCoin();
-            this.showToast(`اكتملت الرحلة اليومية: +${data?.reward || 0} بذرة 🌾`, 'success');
+            const rewardSeeds = Number(data?.reward || 0);
+            this.showToast(`اكتملت الرحلة اليومية: +${rewardSeeds} بذرة 🌾`, 'success');
+            await this.recordActivity('counter_seed_reward', 'seed', rewardSeeds, 'مكافأة العداد', 'بذور من رحلة العصفور');
             return data || { ok: true };
         } catch (e) {
             this.showToast(e.message || 'تعذر استلام بذور اليوم', 'error');
@@ -1015,7 +1019,9 @@ class ZonoApp {
             await window.zonoAuth.loadProfile(window.zonoAuth.user);
             await this.syncUserFromSupabase();
             if (window.zonoAudio) window.zonoAudio.playCoin();
-            this.showToast(`تم استلام مكافأة اليوم: +${data?.reward || 60} ريشة 🪶✨`, 'success');
+            const rewardFeathers = Number(data?.reward || 60);
+            this.showToast(`تم استلام مكافأة اليوم: +${rewardFeathers} ريشة 🪶✨`, 'success');
+            await this.recordActivity('counter_feather_reward', 'feather', rewardFeathers, 'مكافأة الريش', 'ريش من العداد');
         } catch (e) {
             this.showToast(e.message || 'المكافأة غير متاحة الآن', 'error');
         }
@@ -1147,6 +1153,7 @@ class ZonoApp {
             if (idEl) idEl.value = '';
             if (amountEl) amountEl.value = '';
             this.showToast(`تم إرسال ${Number(amount).toLocaleString('en-US')} بذرة إلى ID ${recipientId}`, 'success');
+            await this.recordActivity('seed_sent', 'seed', -amount, 'إرسال بذور', `تم الإرسال إلى ID ${recipientId}`);
             await this.loadNotifications();
         } catch (e) {
             this.showToast(e.message || 'تعذر إرسال البذور', 'error');
@@ -1170,44 +1177,55 @@ class ZonoApp {
             if (error) throw error;
 
             const rows = Array.isArray(data) ? data : [];
+            this.notificationRows = rows;
+
             const unread = rows.filter(x => !x.is_read).length;
             const newestId = rows.length ? Math.max(...rows.map(x => Number(x.id || 0))) : 0;
 
-            const badge = document.getElementById('zono-notification-count');
-            if (badge) {
+            // Notification badge now lives on the account avatar.
+            ['header-profile-notification-count', 'profile-notification-count'].forEach(id => {
+                const badge = document.getElementById(id);
+                if (!badge) return;
                 badge.textContent = unread > 99 ? '99+' : String(unread);
                 badge.classList.toggle('hidden', unread === 0);
-            }
+                badge.classList.toggle('flex', unread > 0);
+            });
 
             const list = document.getElementById('zono-notifications-list');
             if (list) {
-                list.innerHTML = rows.length ? rows.map(n => `
-                    <div class="zono-notification-item ${n.is_read ? '' : 'unread'}">
-                        <div class="zono-notification-icon">${n.kind === 'seed_transfer' ? '🌾' : '💬'}</div>
-                        <div>
-                            <strong>${this.escapeHtml(n.title || 'إشعار')}</strong>
-                            <p>${this.escapeHtml(n.body || '')}</p>
-                            <small>${new Date(n.created_at).toLocaleString('ar-IQ')}</small>
-                        </div>
-                    </div>
-                `).join('') : '<div class="zono-notification-empty">لا توجد إشعارات جديدة</div>';
+                list.innerHTML = rows.length ? rows.map(n => {
+                    const icon =
+                        n.kind === 'seed_transfer' ? '🌾' :
+                        n.kind === 'private_message' ? '💬' :
+                        n.kind === 'support' ? '🛟' :
+                        n.kind === 'developer_message' ? '👑' :
+                        n.kind === 'agent_message' ? '🛡️' : '🔔';
+
+                    return `
+                        <div class="p-3 rounded-2xl border ${n.is_read ? 'border-stone-800 bg-stone-900/55' : 'border-amber-500/40 bg-amber-950/20'}">
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 shrink-0 rounded-xl bg-stone-950/80 border border-stone-800 flex items-center justify-center text-lg">${icon}</div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <strong class="text-sm text-stone-100">${this.escapeHtml(n.title || 'إشعار')}</strong>
+                                        ${n.is_read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>'}
+                                    </div>
+                                    <p class="text-xs text-stone-300 mt-1 leading-relaxed">${this.escapeHtml(n.body || '')}</p>
+                                    <small class="block text-[10px] text-stone-500 mt-2">${new Date(n.created_at).toLocaleString('ar-IQ')}</small>
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('') : '<div class="text-center text-stone-500 text-xs py-6">لا توجد إشعارات</div>';
             }
 
             const storageKey = `zono_last_notification_${this.currentUser.username || this.currentUser.id}`;
-            let storedId = Number(localStorage.getItem(storageKey) || 0);
+            const storedId = Number(localStorage.getItem(storageKey) || 0);
 
-            // First load: show the newest unread item once, including notifications received while offline.
             if (!this.notificationsPrimed) {
                 this.notificationsPrimed = true;
                 this.lastNotificationId = storedId;
-
                 const newestUnread = rows.find(n => !n.is_read && Number(n.id || 0) > storedId);
-                if (!primeOnly && newestUnread) {
-                    this.showIncomingNotification(newestUnread);
-                } else if (primeOnly && newestUnread) {
-                    // On app entry we still surface the latest unread transfer/message once.
-                    this.showIncomingNotification(newestUnread);
-                }
+                if (newestUnread) this.showIncomingNotification(newestUnread);
 
                 if (newestId > storedId) {
                     localStorage.setItem(storageKey, String(newestId));
@@ -1216,22 +1234,117 @@ class ZonoApp {
                 return;
             }
 
-            // Subsequent polls: show every new unread notification, oldest first.
             const newRows = rows
                 .filter(n => !n.is_read && Number(n.id || 0) > this.lastNotificationId)
                 .sort((a,b) => Number(a.id || 0) - Number(b.id || 0));
 
-            for (const n of newRows) {
-                this.showIncomingNotification(n);
-            }
+            for (const n of newRows) this.showIncomingNotification(n);
 
             if (newestId > this.lastNotificationId) {
                 this.lastNotificationId = newestId;
                 localStorage.setItem(storageKey, String(newestId));
             }
         } catch (e) {
-            // Silent here so polling never interrupts the app.
+            // Keep the app usable if notification RPC is temporarily unavailable.
         }
+    }
+
+    openAccountCenter(mode = 'notifications') {
+        this.switchTab('profile');
+        this.switchAccountCenter(mode);
+        setTimeout(() => {
+            document.getElementById('zono-account-center')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+    }
+
+    async switchAccountCenter(mode = 'notifications') {
+        const notifications = mode !== 'history';
+        document.getElementById('account-center-notifications')?.classList.toggle('hidden', !notifications);
+        document.getElementById('account-center-history')?.classList.toggle('hidden', notifications);
+
+        const nBtn = document.getElementById('account-center-tab-notifications');
+        const hBtn = document.getElementById('account-center-tab-history');
+
+        if (nBtn) {
+            nBtn.classList.toggle('bg-amber-500/20', notifications);
+            nBtn.classList.toggle('text-amber-300', notifications);
+            nBtn.classList.toggle('border-amber-500/30', notifications);
+            nBtn.classList.toggle('text-stone-400', !notifications);
+        }
+        if (hBtn) {
+            hBtn.classList.toggle('bg-amber-500/20', !notifications);
+            hBtn.classList.toggle('text-amber-300', !notifications);
+            hBtn.classList.toggle('border-amber-500/30', !notifications);
+            hBtn.classList.toggle('text-stone-400', notifications);
+        }
+
+        if (notifications) {
+            await this.loadNotifications(false);
+        } else {
+            await this.loadActivityHistory();
+        }
+    }
+
+    async recordActivity(kind, resource, amount, title, detail = '') {
+        if (!window.zunoBackend?.client || !this.currentUser) return;
+        try {
+            await window.zunoBackend.client.rpc('zono_add_activity_log', {
+                p_kind: String(kind || 'activity'),
+                p_resource: String(resource || 'seed'),
+                p_amount: Number(amount || 0),
+                p_title: String(title || 'عملية'),
+                p_detail: String(detail || '')
+            });
+        } catch (_) {}
+    }
+
+    async loadActivityHistory() {
+        const list = document.getElementById('zono-activity-history-list');
+        if (!list || !window.zunoBackend?.client || !this.currentUser) return;
+
+        let activities = [];
+        try {
+            const { data, error } = await window.zunoBackend.client.rpc('zono_my_activity_log');
+            if (!error && Array.isArray(data)) activities = data;
+        } catch (_) {}
+
+        // Seed-transfer notifications are also part of the financial history,
+        // including transfers/messages from developer or agent.
+        const transferRows = (this.notificationRows || [])
+            .filter(n => n.kind === 'seed_transfer')
+            .map(n => ({
+                id: `n-${n.id}`,
+                kind: 'seed_received',
+                resource: 'seed',
+                amount: Number(n.amount || 0),
+                title: n.title || 'استلام بذور',
+                detail: n.body || '',
+                created_at: n.created_at
+            }));
+
+        const all = [...activities, ...transferRows]
+            .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+            .slice(0, 100);
+
+        list.innerHTML = all.length ? all.map(row => {
+            const isSeed = row.resource === 'seed';
+            const icon = isSeed ? '🌾' : '🪶';
+            const amount = Number(row.amount || 0);
+            const sign = amount > 0 ? '+' : '';
+            return `
+                <div class="p-3 rounded-2xl bg-stone-900/55 border border-stone-800">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                            <strong class="text-xs text-stone-100">${icon} ${this.escapeHtml(row.title || 'عملية')}</strong>
+                            <p class="text-[11px] text-stone-400 mt-1">${this.escapeHtml(row.detail || '')}</p>
+                            <small class="block text-[10px] text-stone-500 mt-1">${new Date(row.created_at).toLocaleString('ar-IQ')}</small>
+                        </div>
+                        <div class="shrink-0 font-mono font-black ${amount >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                            ${sign}${amount.toLocaleString('en-US')}
+                        </div>
+                    </div>
+                </div>`;
+        }).join('') : '<div class="text-center text-stone-500 text-xs py-6">لا توجد عمليات مسجلة بعد</div>';
     }
 
     showIncomingNotification(n) {
@@ -1269,17 +1382,14 @@ class ZonoApp {
     }
 
     toggleNotifications() {
-        const panel = document.getElementById('zono-notifications-panel');
-        if (!panel) return;
-        panel.classList.toggle('hidden');
-        if (!panel.classList.contains('hidden')) this.loadNotifications();
+        this.openAccountCenter('notifications');
     }
 
     async markNotificationsRead() {
         try {
             const { error } = await window.zunoBackend.client.rpc('zono_mark_notifications_read');
             if (error) throw error;
-            await this.loadNotifications();
+            await this.loadNotifications(false);
         } catch (e) {
             this.showToast('تعذر تحديث الإشعارات', 'error');
         }

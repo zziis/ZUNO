@@ -83,35 +83,17 @@
 
             <!-- Controls -->
             <div class="zono-header-controls">
-                <button id="zono-notification-bell" onclick="window.zonoApp.toggleNotifications()" class="zono-notification-bell" title="الإشعارات">
-                    🔔
-                    <span id="zono-notification-count" class="zono-notification-count hidden">0</span>
-                </button>
-                <button id="theme-toggle-btn" onclick="window.zonoApp.toggleTheme()" class="w-9 h-9 rounded-full bg-stone-900/90 border border-stone-700/80 hover:border-amber-500 flex items-center justify-center text-sm transition-all text-amber-300" title="تبديل المظهر">
-                    📜
-                </button>
-
-                <button onclick="window.zonoApp.toggleSound()" class="w-9 h-9 rounded-full bg-stone-900/90 border border-stone-700/80 hover:border-amber-500 flex items-center justify-center text-sm transition-all text-amber-300" title="المؤثرات الصوتية">
-                    🔔
-                </button>
-
-                <div onclick="window.zonoApp.switchTab('profile')" class="zono-profile-quick flex items-center space-x-2 space-x-reverse cursor-pointer pl-1 pr-2 py-1 rounded-full bg-stone-900/60 border border-stone-800 hover:border-amber-500/50 transition-all">
-                    <img id="header-user-avatar" src="https://api.dicebear.com/7.x/micah/svg?seed=zono_guest" alt="User" class="w-7 h-7 rounded-full bg-stone-800 border border-amber-500/40 object-cover">
+                <!-- Account avatar only. Theme, sound and notifications moved inside Account. -->
+                <div onclick="window.zonoApp.openAccountCenter('notifications')" class="zono-profile-quick relative flex items-center space-x-2 space-x-reverse cursor-pointer pl-1 pr-2 py-1 rounded-full bg-stone-900/60 border border-stone-800 hover:border-amber-500/50 transition-all">
+                    <div class="relative">
+                        <img id="header-user-avatar" src="https://api.dicebear.com/7.x/micah/svg?seed=zono_guest" alt="User" class="w-9 h-9 rounded-full bg-stone-800 border border-amber-500/40 object-cover">
+                        <span id="header-profile-notification-count" class="hidden absolute -top-2 -left-2 min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-black items-center justify-center border-2 border-stone-950 shadow-lg">0</span>
+                    </div>
                     <span id="header-user-name" class="text-xs font-bold text-stone-200 hidden sm:inline-block max-w-[90px] truncate">ضيف_زونو</span>
                 </div>
             </div>
         </div>
     </header>
-
-    <div id="zono-notifications-panel" class="zono-notifications-panel hidden">
-        <div class="zono-notifications-head">
-            <strong>الإشعارات</strong>
-            <button onclick="window.zonoApp.markNotificationsRead()">تحديد الكل كمقروء</button>
-        </div>
-        <div id="zono-notifications-list" class="zono-notifications-list">
-            <div class="zono-notification-empty">لا توجد إشعارات جديدة</div>
-        </div>
-    </div>
 
     <!-- Main Content Body -->
     <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 pb-28">
@@ -358,10 +340,11 @@
             <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/40 relative overflow-hidden shadow-2xl">
                 <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 sm:space-x-reverse">
                     <!-- Avatar with Vintage Frame -->
-                    <div class="relative">
+                    <div class="relative cursor-pointer" onclick="window.zonoApp.openAccountCenter('notifications')">
                         <div class="vintage-avatar-frame w-24 h-24 sm:w-28 sm:h-28">
                             <img id="profile-avatar-img" src="https://api.dicebear.com/7.x/micah/svg?seed=zono_user" alt="Profile" class="w-full h-full rounded-full bg-stone-900 object-cover">
                         </div>
+                        <span id="profile-notification-count" class="hidden absolute -top-1 -left-1 min-w-[24px] h-6 px-1 rounded-full bg-red-600 text-white text-[11px] font-black items-center justify-center border-2 border-stone-950 shadow-xl">0</span>
                     </div>
 
                     <!-- User Info -->
@@ -392,6 +375,44 @@
                             <button onclick="window.zonoApp.logout()" class="px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900 text-xs font-bold text-red-300 border border-red-800/40 transition-all">
                                 تسجيل الخروج
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Notifications + Activity Log -->
+                <div id="zono-account-center" class="mt-6 rounded-3xl border border-amber-500/30 bg-stone-950/45 p-4 sm:p-5">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div>
+                            <h4 class="text-base font-black text-amber-300">🔔 مركز الحساب</h4>
+                            <p class="text-[11px] text-stone-400 mt-1">الإشعارات والسجل المالي للعداد</p>
+                        </div>
+                        <button onclick="window.zonoApp.markNotificationsRead()" class="text-[10px] font-bold text-emerald-300 hover:text-emerald-200">
+                            تحديد الإشعارات كمقروءة
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-stone-900/80 border border-stone-800 mb-4">
+                        <button id="account-center-tab-notifications" onclick="window.zonoApp.switchAccountCenter('notifications')" class="py-2.5 rounded-xl text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            🔔 الإشعارات
+                        </button>
+                        <button id="account-center-tab-history" onclick="window.zonoApp.switchAccountCenter('history')" class="py-2.5 rounded-xl text-xs font-black text-stone-400 border border-transparent">
+                            📜 السجل
+                        </button>
+                    </div>
+
+                    <div id="account-center-notifications">
+                        <div id="zono-notifications-list" class="space-y-2">
+                            <div class="text-center text-stone-500 text-xs py-6">لا توجد إشعارات جديدة</div>
+                        </div>
+                    </div>
+
+                    <div id="account-center-history" class="hidden">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-stone-300">سجل البذور والريش</span>
+                            <button onclick="window.zonoApp.loadActivityHistory()" class="text-[10px] text-amber-300 font-bold">تحديث ↻</button>
+                        </div>
+                        <div id="zono-activity-history-list" class="space-y-2">
+                            <div class="text-center text-stone-500 text-xs py-6">لا توجد عمليات مسجلة</div>
                         </div>
                     </div>
                 </div>
@@ -719,6 +740,6 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/app.js?v=20260901-2223"></script>
+    <script src="js/app.js?v=20260901-accountcenter1"></script>
 </body>
 </html>
