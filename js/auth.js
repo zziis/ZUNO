@@ -39,8 +39,38 @@ class ZonoAuth {
 
     let session;
     if (identifier.includes('@')) {
-      const { data, error } = await this.client.auth.signInWithPassword({ email: identifier.toLowerCase(), password });
-      if (error) throw new Error('البريد أو كلمة المرور غير صحيحة');
+      const normalizedEmail = identifier.toLowerCase().trim();
+      const { data, error } = await this.client.auth.signInWithPassword({
+        email: normalizedEmail,
+        password
+      });
+
+      if (error) {
+        const raw = String(error.message || '').toLowerCase();
+
+        if (raw.includes('email not confirmed')) {
+          throw new Error('البريد الإلكتروني غير مؤكد. افتح رسالة التأكيد ثم حاول مرة أخرى.');
+        }
+
+        if (raw.includes('invalid login credentials')) {
+          throw new Error('بيانات الدخول غير صحيحة. تأكد من البريد وكلمة المرور كما كُتبت عند إنشاء الحساب.');
+        }
+
+        if (raw.includes('user not found')) {
+          throw new Error('لا يوجد حساب بهذا البريد الإلكتروني.');
+        }
+
+        if (raw.includes('network') || raw.includes('fetch')) {
+          throw new Error('تعذر الاتصال بالخادم. تحقق من الإنترنت وحاول مرة أخرى.');
+        }
+
+        throw new Error(error.message || 'تعذر تسجيل الدخول');
+      }
+
+      if (!data?.session?.user) {
+        throw new Error('لم يتم إنشاء جلسة تسجيل الدخول. حاول مرة أخرى.');
+      }
+
       session = data.session;
     } else {
       const id = Number(identifier.replace(/\D/g,''));
