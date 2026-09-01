@@ -270,7 +270,7 @@ class ZonoApp {
         const profileFeathers = document.getElementById('profile-feathers-val');
 
         if (profileName) profileName.textContent = this.currentUser.displayName;
-        if (profileUser) profileUser.textContent = `@${this.currentUser.username}`;
+        if (profileUser) profileUser.textContent = `ID: ${this.currentUser.username}`;
         if (profileBio) profileBio.textContent = this.currentUser.bio;
         if (profileAvatar) profileAvatar.src = this.currentUser.avatar;
         if (profileBadge) profileBadge.textContent = this.currentUser.badge;
