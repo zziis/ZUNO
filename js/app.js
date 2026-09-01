@@ -828,7 +828,7 @@ class ZonoApp {
         container.innerHTML = items.map(item => {
             const isActive = activeSkin === item.id;
             const isPrevious = item.rank < activeRank;
-            const canBuy = item.rank > 0 && item.rank >= activeRank;
+            const canBuy = item.rank > 0;
             const affordable = seeds >= item.price;
             const ownedCount = Number(purchaseCounts[item.id] || 0);
 
@@ -866,8 +866,11 @@ class ZonoApp {
 
                     <div>
                         ${isPrevious ? `
-                            <button disabled class="w-full py-2 rounded-xl text-xs font-bold bg-stone-800 text-stone-500 border border-stone-700 cursor-not-allowed">
-                                🔒 شكل سابق — لا يمكن الرجوع إليه
+                            <div class="mb-2 text-center text-[10px] text-stone-400 font-bold">
+                                🔒 شكل سابق — الشراء يزيد الإنتاج فقط ولن يغيّر شكلك الحالي
+                            </div>
+                            <button onclick="window.zonoApp.buyItem('${item.id}', ${item.price})" class="w-full py-2 rounded-xl text-xs font-bold ${affordable ? 'bg-gradient-to-r from-amber-700 to-yellow-700 hover:from-amber-600 hover:to-yellow-600 text-stone-950' : 'bg-stone-800 text-stone-500'} transition-all shadow">
+                                شراء مرة أخرى بـ ${item.price.toLocaleString('en-US')} بذرة
                             </button>
                         ` : canBuy ? `
                             ${isActive ? `<div class="mb-2 text-center text-[10px] text-emerald-300 font-bold">✨ الشكل الحالي — يمكنك شراءه مرة أخرى</div>` : ''}
@@ -888,8 +891,8 @@ class ZonoApp {
     async buyItem(itemId, price) {
         if (!this.currentUser) return this.showAuthModal();
         const item = this.getStoreItems().find(x => x.id === itemId);
-        if (!item || item.rank < Number(this.currentUser.activeBirdRank || 0)) {
-            return this.showToast('لا يمكن شراء أو ارتداء طائر أقدم من طائرك الحالي', 'error');
+        if (!item || item.rank <= 0) {
+            return this.showToast('هذا الطائر غير متاح للشراء', 'error');
         }
         try {
             const { data, error } = await window.zunoBackend.client.rpc('zono_buy_bird', { p_item_id: itemId });
