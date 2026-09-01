@@ -438,7 +438,7 @@ class ZonoApp {
         }
     }
 
-    openWallet() {
+    async openWallet() {
         if (!this.currentUser) return this.showAuthModal();
 
         const panel = document.getElementById('zono-wallet-panel');
@@ -448,6 +448,16 @@ class ZonoApp {
         this.updateProfileUI();
 
         panel.classList.remove('hidden');
+
+        const admin = document.getElementById('zono-withdrawal-admin');
+        if (admin) {
+            admin.classList.toggle('hidden', this.currentUser.role !== 'developer');
+        }
+
+        await this.loadWithdrawalHistory();
+        if (this.currentUser.role === 'developer') {
+            await this.loadWithdrawalAdmin();
+        }
 
         setTimeout(() => {
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -478,6 +488,188 @@ class ZonoApp {
 
         if (fib) fib.classList.toggle('hidden', method !== 'fib');
         if (qi) qi.classList.toggle('hidden', method !== 'qi');
+    }
+
+    previewWithdrawAmount(method) {
+        const input = document.getElementById(method === 'fib' ? 'fib-seeds-amount' : 'qi-seeds-amount');
+        const preview = document.getElementById(method === 'fib' ? 'fib-withdraw-preview' : 'qi-withdraw-preview');
+        if (!input || !preview) return;
+
+        const amount = Math.max(0, Number(String(input.value || '').replace(/\D/g, '')) || 0);
+        preview.textContent = `يعادل: ${amount.toLocaleString('en-US')} د.ع`;
+        preview.classList.toggle('text-red-400', amount > 0 && amount < 15000);
+        preview.classList.toggle('text-emerald-300', amount >= 15000);
+    }
+
+    async submitWithdrawal(method) {
+        if (!this.currentUser) return this.showAuthModal();
+
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+
+        const isFib = method === 'fib';
+        const accountName = String(document.getElementById(isFib ? 'fib-account-name' : 'qi-account-name')?.value || '').trim();
+        const amount = Number(String(document.getElementById(isFib ? 'fib-seeds-amount' : 'qi-seeds-amount')?.value || '').replace(/\D/g, ''));
+        const verificationCode = String(document.getElementById(isFib ? 'fib-verification-code' : 'qi-verification-code')?.value || '').replace(/\D/g, '');
+
+        let fibPhone = '';
+        let qiPhone11 = '';
+        let qiAccount = '';
+
+        if (isFib) {
+            fibPhone = String(document.getElementById('fib-phone')?.value || '').replace(/\D/g, '');
+            if (accountName.length < 2) return this.showToast('أدخل اسم صاحب حساب FIB', 'error');
+            if (fibPhone.length < 10 || fibPhone.length > 15) return this.showToast('رقم هاتف FIB غير صحيح', 'error');
+        } else {
+            qiPhone11 = String(document.getElementById('qi-phone-11')?.value || '').replace(/\D/g, '');
+            qiAccount = String(document.getElementById('qi-account-number')?.value || '').replace(/\D/g, '');
+            if (accountName.length < 2) return this.showToast('أدخل اسم صاحب بطاقة Qi', 'error');
+            if (qiPhone11.length !== 11) return this.showToast('يجب أن يكون الرقم مكوناً من 11 رقم', 'error');
+            if (qiAccount.length < 4) return this.showToast('أدخل رقم حساب Qi الصحيح', 'error');
+        }
+
+        if (!Number.isInteger(amount) || amount < 15000) {
+            return this.showToast('الحد الأدنى للسحب 15,000 بذرة', 'error');
+        }
+
+        if (amount > Number(this.currentUser.seeds || 0)) {
+            return this.showToast('رصيد البذور غير كافٍ', 'error');
+        }
+
+        if (verificationCode.length < 4 || verificationCode.length > 8) {
+            return this.showToast('رمز التوثيق يجب أن يكون من 4 إلى 8 أرقام', 'error');
+        }
+
+        try {
+            const { data, error } = await client.rpc('zono_create_withdrawal', {
+                p_method: method,
+                p_account_name: accountName,
+                p_fib_phone: fibPhone || null,
+                p_qi_phone_11: qiPhone11 || null,
+                p_qi_account: qiAccount || null,
+                p_amount_seeds: amount,
+                p_verification_code: verificationCode
+            });
+
+            if (error) throw error;
+
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            this.updateProfileUI();
+
+            ['fib-account-name','fib-phone','fib-seeds-amount','fib-verification-code',
+             'qi-account-name','qi-phone-11','qi-account-number','qi-seeds-amount','qi-verification-code']
+                .forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = '';
+                });
+
+            this.previewWithdrawAmount('fib');
+            this.previewWithdrawAmount('qi');
+            await this.loadWithdrawalHistory();
+
+            this.showToast(`تم إنشاء طلب سحب ${amount.toLocaleString('en-US')} بذرة — قيد المعالجة`, 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر إتمام طلب السحب', 'error');
+        }
+    }
+
+    async loadWithdrawalHistory() {
+        const list = document.getElementById('zono-withdrawal-history-list');
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!list || !client || !this.currentUser) return;
+
+        try {
+            const { data, error } = await client.rpc('zono_my_withdrawals');
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+
+            list.innerHTML = rows.length ? rows.map(row => {
+                const status = String(row.status || 'pending');
+                const statusText = status === 'approved' ? 'تمت الموافقة'
+                    : status === 'rejected' ? 'تم الرفض'
+                    : 'قيد المعالجة';
+
+                const statusClass = status === 'approved' ? 'zono-status-approved'
+                    : status === 'rejected' ? 'zono-status-rejected'
+                    : 'zono-status-pending';
+
+                const reason = status === 'rejected' && row.rejection_reason
+                    ? `<div class="text-[10px] text-red-300 mt-2">السبب: ${this.escapeHtml(row.rejection_reason)}</div>`
+                    : '';
+
+                return `
+                    <div class="zono-withdrawal-row">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="font-black text-xs text-stone-100">${row.method === 'fib' ? '🏦 FIB' : '💳 Qi'} — ${Number(row.amount_seeds || 0).toLocaleString('en-US')} بذرة</div>
+                                <div class="text-[10px] text-stone-500 mt-1">${new Date(row.created_at).toLocaleString('ar-IQ')}</div>
+                                ${reason}
+                            </div>
+                            <span class="zono-withdrawal-status ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>`;
+            }).join('') : '<div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات سحب</div>';
+        } catch (e) {
+            list.innerHTML = '<div class="text-center text-red-400 text-xs py-4">تعذر تحميل سجل السحب</div>';
+        }
+    }
+
+    async loadWithdrawalAdmin() {
+        const list = document.getElementById('zono-withdrawal-admin-list');
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!list || !client || this.currentUser?.role !== 'developer') return;
+
+        try {
+            const { data, error } = await client.rpc('zono_pending_withdrawals');
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+
+            list.innerHTML = rows.length ? rows.map(row => `
+                <div class="zono-withdrawal-row border-emerald-500/20">
+                    <div class="font-black text-xs text-stone-100">${row.method === 'fib' ? '🏦 FIB' : '💳 Qi'} — ID ${row.public_id}</div>
+                    <div class="text-[10px] text-stone-300 mt-2 leading-5">
+                        الاسم: ${this.escapeHtml(row.account_name || '')}<br>
+                        ${row.method === 'fib'
+                            ? `هاتف FIB: ${this.escapeHtml(row.fib_phone || '')}`
+                            : `رقم 11: ${this.escapeHtml(row.qi_phone_11 || '')}<br>حساب Qi: ${this.escapeHtml(row.qi_account || '')}`}
+                        <br>البذور: ${Number(row.amount_seeds || 0).toLocaleString('en-US')}
+                        <br>القيمة: ${Number(row.amount_iqd || 0).toLocaleString('en-US')} د.ع
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button onclick="window.zonoApp.reviewWithdrawal(${Number(row.id)}, 'approved')" class="zono-withdraw-approve-btn">موافقة</button>
+                        <button onclick="window.zonoApp.reviewWithdrawal(${Number(row.id)}, 'rejected')" class="zono-withdraw-reject-btn">رفض</button>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات قيد المعالجة</div>';
+        } catch (e) {
+            list.innerHTML = '<div class="text-center text-red-400 text-xs py-4">تعذر تحميل الطلبات</div>';
+        }
+    }
+
+    async reviewWithdrawal(id, decision) {
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!client || this.currentUser?.role !== 'developer') return;
+
+        let reason = '';
+        if (decision === 'rejected') {
+            reason = window.prompt('اكتب سبب رفض طلب السحب:') || '';
+            if (!reason.trim()) return this.showToast('يجب كتابة سبب الرفض', 'error');
+        }
+
+        try {
+            const { data, error } = await client.rpc('zono_review_withdrawal', {
+                p_withdrawal_id: Number(id),
+                p_decision: decision,
+                p_rejection_reason: reason.trim() || null
+            });
+            if (error) throw error;
+
+            await this.loadWithdrawalAdmin();
+            this.showToast(decision === 'approved' ? 'تمت الموافقة على الطلب' : 'تم رفض الطلب وإرجاع البذور', 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تحديث الطلب', 'error');
+        }
     }
 
     addFeathers() {

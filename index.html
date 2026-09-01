@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260901-wallet1">
+    <link rel="stylesheet" href="css/style.css?v=20260901-wallet2">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -415,7 +415,23 @@
                             </div>
                         </button>
 
-                        <div id="zono-wallet-method-fib" class="zono-wallet-method-empty hidden"></div>
+                        <div id="zono-wallet-method-fib" class="zono-wallet-method-form hidden">
+                            <div class="zono-wallet-form-title">🏦 معلومات FIB</div>
+                            <label class="zono-wallet-label">اسم صاحب الحساب FIB</label>
+                            <input id="fib-account-name" class="zono-wallet-input" type="text" maxlength="80" placeholder="الاسم الكامل">
+
+                            <label class="zono-wallet-label">رقم الهاتف المسجل في FIB</label>
+                            <input id="fib-phone" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="15" placeholder="07xxxxxxxxx">
+
+                            <label class="zono-wallet-label">عدد البذور</label>
+                            <input id="fib-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('fib')">
+                            <div id="fib-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
+
+                            <label class="zono-wallet-label">رمز التوثيق</label>
+                            <input id="fib-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
+
+                            <button onclick="window.zonoApp.submitWithdrawal('fib')" class="zono-wallet-submit-btn">إتمام الطلب</button>
+                        </div>
 
                         <button onclick="window.zonoApp.selectWalletMethod('qi')" class="zono-wallet-method-card">
                             <div class="flex items-center justify-between w-full">
@@ -427,7 +443,46 @@
                             </div>
                         </button>
 
-                        <div id="zono-wallet-method-qi" class="zono-wallet-method-empty hidden"></div>
+                        <div id="zono-wallet-method-qi" class="zono-wallet-method-form hidden">
+                            <div class="zono-wallet-form-title">💳 معلومات Qi</div>
+                            <label class="zono-wallet-label">اسم صاحب البطاقة</label>
+                            <input id="qi-account-name" class="zono-wallet-input" type="text" maxlength="80" placeholder="الاسم الكامل">
+
+                            <label class="zono-wallet-label">الرقم المكون من 11 رقم</label>
+                            <input id="qi-phone-11" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="11" placeholder="11 رقم بالضبط">
+
+                            <label class="zono-wallet-label">رقم حساب Qi</label>
+                            <input id="qi-account-number" class="zono-wallet-input" type="text" inputmode="numeric" maxlength="30" placeholder="رقم حساب Qi">
+
+                            <label class="zono-wallet-label">عدد البذور</label>
+                            <input id="qi-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('qi')">
+                            <div id="qi-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
+
+                            <label class="zono-wallet-label">رمز التوثيق</label>
+                            <input id="qi-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
+
+                            <button onclick="window.zonoApp.submitWithdrawal('qi')" class="zono-wallet-submit-btn">إتمام الطلب</button>
+                        </div>
+                    </div>
+
+                    <div class="zono-wallet-history mt-5">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h5 class="text-xs font-black text-stone-200">📜 سجل السحب</h5>
+                            <button onclick="window.zonoApp.loadWithdrawalHistory()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button>
+                        </div>
+                        <div id="zono-withdrawal-history-list" class="space-y-2">
+                            <div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات سحب</div>
+                        </div>
+                    </div>
+
+                    <div id="zono-withdrawal-admin" class="hidden mt-5 border-t border-stone-800 pt-4">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h5 class="text-xs font-black text-emerald-300">🛡️ طلبات السحب للإدارة</h5>
+                            <button onclick="window.zonoApp.loadWithdrawalAdmin()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button>
+                        </div>
+                        <div id="zono-withdrawal-admin-list" class="space-y-2">
+                            <div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات قيد المعالجة</div>
+                        </div>
                     </div>
                 </div>
 
@@ -795,7 +850,7 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/app.js?v=20260901-wallet1"></script>
+    <script src="js/app.js?v=20260901-wallet2"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">

@@ -1530,3 +1530,123 @@ body:not(.zono-counter-mode) #zono-seed-value-pill.counter-only-hidden {
         min-height: 4.15rem;
     }
 }
+
+
+/* ===== Wallet withdrawal forms ===== */
+.zono-wallet-method-form {
+    padding: .9rem;
+    border-radius: 1.1rem;
+    border: 1px solid rgba(52,211,153,.28);
+    background: rgba(12,18,17,.78);
+}
+
+.zono-wallet-form-title {
+    color: #6ee7b7;
+    font-weight: 950;
+    font-size: .82rem;
+    margin-bottom: .75rem;
+}
+
+.zono-wallet-label {
+    display: block;
+    color: #d6d3d1;
+    font-size: .68rem;
+    font-weight: 800;
+    margin: .65rem .1rem .35rem;
+}
+
+.zono-wallet-input {
+    width: 100%;
+    min-height: 3.15rem;
+    padding: 0 .9rem;
+    border-radius: .9rem;
+    border: 1px solid rgba(120,113,108,.62);
+    background: rgba(28,25,23,.94);
+    color: #f5f5f4;
+    outline: none;
+    text-align: right;
+    direction: rtl;
+    font-size: .82rem;
+}
+
+.zono-wallet-input:focus {
+    border-color: rgba(52,211,153,.78);
+    box-shadow: 0 0 0 3px rgba(16,185,129,.08);
+}
+
+.zono-wallet-preview {
+    margin-top: .4rem;
+    font-size: .65rem;
+    color: #a8a29e;
+    font-weight: 800;
+}
+
+.zono-wallet-submit-btn {
+    width: 100%;
+    min-height: 3.25rem;
+    margin-top: .9rem;
+    border: 0;
+    border-radius: .95rem;
+    background: linear-gradient(90deg,#10b981,#22c55e);
+    color: #06271e;
+    font-weight: 950;
+    font-size: .9rem;
+}
+
+.zono-wallet-history {
+    border-top: 1px solid rgba(120,113,108,.22);
+    padding-top: 1rem;
+}
+
+.zono-withdrawal-row {
+    padding: .8rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(120,113,108,.38);
+    background: rgba(28,25,23,.65);
+}
+
+.zono-withdrawal-status {
+    flex: 0 0 auto;
+    padding: .35rem .55rem;
+    border-radius: 999px;
+    font-size: .6rem;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.zono-status-pending {
+    color: #fde68a;
+    border: 1px solid rgba(245,158,11,.42);
+    background: rgba(120,53,15,.42);
+}
+
+.zono-status-approved {
+    color: #6ee7b7;
+    border: 1px solid rgba(16,185,129,.42);
+    background: rgba(6,78,59,.42);
+}
+
+.zono-status-rejected {
+    color: #fca5a5;
+    border: 1px solid rgba(239,68,68,.42);
+    background: rgba(127,29,29,.42);
+}
+
+.zono-withdraw-approve-btn,
+.zono-withdraw-reject-btn {
+    min-height: 2.6rem;
+    border-radius: .8rem;
+    font-size: .72rem;
+    font-weight: 950;
+}
+
+.zono-withdraw-approve-btn {
+    color: #064e3b;
+    background: #34d399;
+}
+
+.zono-withdraw-reject-btn {
+    color: #fee2e2;
+    background: rgba(153,27,27,.88);
+    border: 1px solid rgba(239,68,68,.45);
+}
