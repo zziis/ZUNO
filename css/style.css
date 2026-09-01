@@ -309,3 +309,38 @@ nav.fixed.bottom-0 { padding-bottom: calc(.5rem + env(safe-area-inset-bottom, 0p
 @media (max-width: 380px) {
   #bird-canvas { width: min(74vw, 300px) !important; height: min(74vw, 300px) !important; }
 }
+
+/* ZONO - تعديل العداد فقط */
+@media (max-width: 640px) {
+  #bird-canvas {
+    width: min(64vw, 285px) !important;
+    height: min(64vw, 285px) !important;
+  }
+
+  #tab-counter div.relative.w-full.max-w-\[440px\] {
+    width: min(64vw, 285px) !important;
+    height: min(64vw, 285px) !important;
+    margin: .45rem auto !important;
+  }
+
+  #tab-counter .max-w-md.mx-auto.my-6 {
+    width: min(88vw, 390px) !important;
+    margin: .55rem auto !important;
+    padding: .65rem .75rem !important;
+    border-radius: 1rem !important;
+  }
+
+  #bird-timer-display {
+    font-size: clamp(1.65rem, 8vw, 2.35rem) !important;
+    line-height: 1 !important;
+    letter-spacing: .025em !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #bird-canvas,
+  #tab-counter div.relative.w-full.max-w-\[440px\] {
+    width: min(60vw, 245px) !important;
+    height: min(60vw, 245px) !important;
+  }
+}
