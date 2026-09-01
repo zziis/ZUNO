@@ -251,8 +251,12 @@ class ZonoApp {
         // Balances are visible only on the Counter tab.
         // visibility is used instead of display:none so the header height never changes.
         const currencyPill = document.getElementById('zono-currency-pill');
+        const seedValuePill = document.getElementById('zono-seed-value-pill');
         if (currencyPill) {
             currencyPill.classList.toggle('counter-only-hidden', tabId !== 'counter');
+        }
+        if (seedValuePill) {
+            seedValuePill.classList.toggle('counter-only-hidden', tabId !== 'counter');
         }
 
         // Hide all tabs
@@ -327,6 +331,19 @@ class ZonoApp {
         if (nameEl) nameEl.textContent = this.currentUser.displayName;
         fitCurrencyNumber(feathersEl, this.currentUser.feathers);
         fitCurrencyNumber(seedsEl, this.currentUser.seeds);
+
+        // Seed value: 500 seeds = 500 IQD, so the ratio is 1:1.
+        const seedValueSeedsEl = document.getElementById('zono-value-seeds-count');
+        const seedValueIqdEl = document.getElementById('zono-value-iqd-count');
+        const seedBalance = Math.max(0, Number(this.currentUser.seeds || 0));
+        const seedValueIqd = seedBalance;
+
+        if (seedValueSeedsEl) {
+            seedValueSeedsEl.textContent = seedBalance.toLocaleString('en-US');
+        }
+        if (seedValueIqdEl) {
+            seedValueIqdEl.textContent = seedValueIqd.toLocaleString('en-US');
+        }
         if (avatarEl) avatarEl.src = this.currentUser.avatar;
     }
 

@@ -1052,3 +1052,125 @@ section {
     }
 }
 
+
+
+/* =========================================================
+   ZONO V1 — UPDATE 14
+   Second capsule: seed balance value in Iraqi dinar
+   500 seeds = 500 IQD (1 seed = 1 IQD)
+   ========================================================= */
+
+#zono-seed-value-pill {
+    grid-area: seedvalue;
+    justify-self: center;
+    width: min(100%, 24rem);
+    min-width: 0;
+    height: 2.35rem;
+    border-radius: 999px;
+    padding: .30rem .70rem;
+    display: grid;
+    grid-template-columns: auto 1px minmax(0,1fr) auto minmax(0,1fr);
+    align-items: center;
+    gap: .38rem;
+    overflow: hidden;
+}
+
+.zono-value-label,
+.zono-value-seeds,
+.zono-value-iqd,
+.zono-value-equals {
+    white-space: nowrap;
+}
+
+.zono-value-divider {
+    width: 1px;
+    height: 1.2rem;
+    background: rgba(245,158,11,.24);
+}
+
+#zono-value-seeds-count,
+#zono-value-iqd-count {
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    min-width: 0;
+    overflow: hidden;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* When hidden outside Counter, preserve geometry. */
+#zono-seed-value-pill.counter-only-hidden {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+@media (min-width: 641px) {
+    .zono-header-inner {
+        grid-template-columns: auto minmax(12rem, 1fr) auto;
+        grid-template-areas:
+            "brand currency controls"
+            "brand seedvalue controls";
+        grid-template-rows: auto auto;
+        row-gap: .35rem;
+    }
+}
+
+@media (max-width: 640px) {
+    /* Header gets one extra fixed row without changing between tabs. */
+    header {
+        height: 9.65rem !important;
+        min-height: 9.65rem !important;
+        max-height: 9.65rem !important;
+    }
+
+    .zono-header-inner {
+        grid-template-areas:
+            "brand controls"
+            "currency currency"
+            "seedvalue seedvalue" !important;
+        grid-template-rows: 2.1rem 2.35rem 2.2rem !important;
+        gap: .34rem .5rem !important;
+    }
+
+    #zono-seed-value-pill {
+        width: min(94vw, 22rem);
+        height: 2.2rem;
+        padding: .26rem .48rem;
+        gap: .24rem;
+        font-size: .64rem;
+    }
+
+    .zono-value-label {
+        font-size: .56rem;
+        color: rgba(214,211,209,.85);
+    }
+
+    #zono-value-seeds-count,
+    #zono-value-iqd-count {
+        max-width: 5.2rem;
+    }
+
+    main {
+        min-height: calc(100dvh - 9.65rem) !important;
+    }
+}
+
+@media (max-width: 390px) {
+    #zono-seed-value-pill {
+        width: 96vw;
+        padding-inline: .32rem;
+        gap: .16rem;
+        font-size: .58rem;
+    }
+
+    .zono-value-label {
+        font-size: .50rem;
+    }
+
+    #zono-value-seeds-count,
+    #zono-value-iqd-count {
+        max-width: 4.2rem;
+    }
+}
