@@ -833,7 +833,7 @@ class ZonoApp {
             const ownedCount = Number(purchaseCounts[item.id] || 0);
 
             return `
-                <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between border ${isActive ? 'border-amber-400 shadow-amber-500/20 shadow-lg' : 'border-stone-800'} relative overflow-hidden ${isPrevious ? 'opacity-60' : ''}">
+                <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between border ${isActive ? 'border-amber-400 shadow-amber-500/20 shadow-lg' : 'border-stone-800'} relative overflow-hidden">
                     <div>
                         <div class="flex items-center justify-between mb-3">
                             <span class="text-3xl p-2.5 rounded-xl bg-stone-900 border border-stone-800">${item.icon}</span>
@@ -869,8 +869,8 @@ class ZonoApp {
                             <div class="mb-2 text-center text-[10px] text-stone-400 font-bold">
                                 🔒 شكل سابق — الشراء يزيد الإنتاج فقط ولن يغيّر شكلك الحالي
                             </div>
-                            <button onclick="window.zonoApp.buyItem('${item.id}', ${item.price})" class="w-full py-2 rounded-xl text-xs font-bold ${affordable ? 'bg-gradient-to-r from-amber-700 to-yellow-700 hover:from-amber-600 hover:to-yellow-600 text-stone-950' : 'bg-stone-800 text-stone-500'} transition-all shadow">
-                                شراء مرة أخرى بـ ${item.price.toLocaleString('en-US')} بذرة
+                            <button onclick="window.zonoApp.buyItem('${item.id}', ${item.price})" class="w-full py-2 rounded-xl text-xs font-bold ${affordable ? 'bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950' : 'bg-stone-800 text-stone-500'} transition-all shadow">
+                                ${ownedCount > 0 ? 'شراء مرة أخرى' : 'شراء'} بـ ${item.price.toLocaleString('en-US')} بذرة
                             </button>
                         ` : canBuy ? `
                             ${isActive ? `<div class="mb-2 text-center text-[10px] text-emerald-300 font-bold">✨ الشكل الحالي — يمكنك شراءه مرة أخرى</div>` : ''}
