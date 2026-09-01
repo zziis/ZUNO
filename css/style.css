@@ -681,3 +681,180 @@ nav.fixed.bottom-0::before {
     }
 }
 
+
+
+/* =========================================================
+   ZONO V1 — Update 08
+   Stable counter + fixed currency header on mobile
+   ========================================================= */
+
+/* Stop the timer area from jumping when quotes or values change. */
+#bird-timer-display {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+}
+
+#bird-quote-text {
+    height: 2.2em !important;
+    min-height: 2.2em !important;
+    max-height: 2.2em !important;
+    overflow: hidden !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+#bird-daily-seeds-total,
+#bird-daily-feathers-total {
+    display: inline-block;
+    min-width: 2.2ch;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Make the timer card a stable height so it doesn't move up/down. */
+#tab-counter .max-w-md.mx-auto.my-6 {
+    min-height: 8.1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* ===== Header currency protection ===== */
+header > div {
+    min-width: 0;
+}
+
+header > div > div:last-child {
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+/* The dual-currency pill must never grow with the balance. */
+header [onclick*="switchTab('store')"] {
+    width: 15.2rem;
+    max-width: 15.2rem;
+    min-width: 15.2rem;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+header [onclick*="switchTab('store')"] > span {
+    min-width: 0;
+    flex: 1 1 0;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#header-feathers-count,
+#header-seeds-count {
+    display: inline-block;
+    min-width: 0;
+    max-width: 5.8rem;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Keep theme, sound and avatar visible no matter how large balances get. */
+#theme-toggle-btn,
+header button[onclick*="toggleSound"],
+header [onclick*="switchTab('profile')"] {
+    flex-shrink: 0 !important;
+}
+
+/* Mobile header: compact currencies, preserve all controls. */
+@media (max-width: 640px) {
+    header {
+        overflow: visible !important;
+    }
+
+    header > div {
+        gap: .28rem !important;
+    }
+
+    header > div > div:last-child {
+        gap: .24rem !important;
+        flex: 1 1 auto;
+        justify-content: flex-end;
+    }
+
+    header [onclick*="switchTab('store')"] {
+        width: 10.9rem;
+        min-width: 10.9rem;
+        max-width: 10.9rem;
+        padding: .32rem .42rem !important;
+        gap: .28rem !important;
+    }
+
+    header [onclick*="switchTab('store')"] > span {
+        gap: .18rem !important;
+    }
+
+    header [onclick*="switchTab('store')"] .text-sm {
+        font-size: .72rem !important;
+    }
+
+    header [onclick*="switchTab('store')"] .text-\[10px\] {
+        font-size: .52rem !important;
+    }
+
+    #header-feathers-count,
+    #header-seeds-count {
+        max-width: 3.85rem;
+    }
+
+    #theme-toggle-btn,
+    header button[onclick*="toggleSound"] {
+        width: 1.85rem !important;
+        height: 1.85rem !important;
+        min-width: 1.85rem !important;
+        font-size: .72rem !important;
+    }
+
+    header [onclick*="switchTab('profile')"] {
+        padding-left: .12rem !important;
+        padding-right: .12rem !important;
+        border: none !important;
+        background: transparent !important;
+    }
+
+    #header-user-avatar {
+        width: 1.9rem !important;
+        height: 1.9rem !important;
+        min-width: 1.9rem !important;
+    }
+
+    /* Stable timer card on phones */
+    #tab-counter .max-w-md.mx-auto.my-6 {
+        min-height: 7.4rem !important;
+        height: 7.4rem !important;
+        margin-top: .38rem !important;
+        margin-bottom: .38rem !important;
+    }
+
+    #bird-quote-text {
+        height: 1.9rem !important;
+        min-height: 1.9rem !important;
+        max-height: 1.9rem !important;
+    }
+}
+
+/* Narrow phones: hide only the currency words, never the buttons/icons. */
+@media (max-width: 390px) {
+    header [onclick*="switchTab('store')"] {
+        width: 9.6rem;
+        min-width: 9.6rem;
+        max-width: 9.6rem;
+    }
+
+    header [onclick*="switchTab('store')"] .text-\[10px\] {
+        display: none !important;
+    }
+
+    #header-feathers-count,
+    #header-seeds-count {
+        max-width: 3.35rem;
+    }
+}
