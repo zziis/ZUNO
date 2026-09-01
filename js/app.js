@@ -3,6 +3,7 @@ class ZonoApp {
         this.notificationWatcher = null;
         this.lastNotificationId = 0;
         this.notificationsPrimed = false;
+        this.historyPeriod = 'day';
 
         this.currentUser = null;
         this.currentTab = 'rooms';
@@ -265,6 +266,7 @@ class ZonoApp {
     switchTab(tabId) {
         if (window.zonoAudio) window.zonoAudio.playTap();
         this.currentTab = tabId;
+        document.body.classList.toggle('zono-counter-mode', tabId === 'counter');
 
         // Balances are visible only on the Counter tab.
         // visibility is used instead of display:none so the header height never changes.
@@ -1153,7 +1155,6 @@ class ZonoApp {
             if (idEl) idEl.value = '';
             if (amountEl) amountEl.value = '';
             this.showToast(`تم إرسال ${Number(amount).toLocaleString('en-US')} بذرة إلى ID ${recipientId}`, 'success');
-            await this.recordActivity('seed_sent', 'seed', -amount, 'إرسال بذور', `تم الإرسال إلى ID ${recipientId}`);
             await this.loadNotifications();
         } catch (e) {
             this.showToast(e.message || 'تعذر إرسال البذور', 'error');
@@ -1176,13 +1177,14 @@ class ZonoApp {
             const { data, error } = await window.zunoBackend.client.rpc('zono_my_notifications');
             if (error) throw error;
 
-            const rows = Array.isArray(data) ? data : [];
+            const allowedKinds = new Set(['seed_transfer','support','developer_message','company_message']);
+            const rows = (Array.isArray(data) ? data : [])
+                .filter(n => allowedKinds.has(String(n.kind || '')));
             this.notificationRows = rows;
 
             const unread = rows.filter(x => !x.is_read).length;
             const newestId = rows.length ? Math.max(...rows.map(x => Number(x.id || 0))) : 0;
 
-            // Notification badge now lives on the account avatar.
             ['header-profile-notification-count', 'profile-notification-count'].forEach(id => {
                 const badge = document.getElementById(id);
                 if (!badge) return;
@@ -1196,26 +1198,26 @@ class ZonoApp {
                 list.innerHTML = rows.length ? rows.map(n => {
                     const icon =
                         n.kind === 'seed_transfer' ? '🌾' :
-                        n.kind === 'private_message' ? '💬' :
                         n.kind === 'support' ? '🛟' :
-                        n.kind === 'developer_message' ? '👑' :
-                        n.kind === 'agent_message' ? '🛡️' : '🔔';
+                        n.kind === 'developer_message' ? '👑' : '🏢';
 
                     return `
-                        <div class="p-3 rounded-2xl border ${n.is_read ? 'border-stone-800 bg-stone-900/55' : 'border-amber-500/40 bg-amber-950/20'}">
-                            <div class="flex items-start gap-3">
-                                <div class="w-9 h-9 shrink-0 rounded-xl bg-stone-950/80 border border-stone-800 flex items-center justify-center text-lg">${icon}</div>
+                        <button type="button"
+                                onclick="window.zonoApp.openNotificationDetail(${Number(n.id || 0)})"
+                                class="zono-account-notification-card block ${n.is_read ? 'border border-stone-800 bg-stone-900/55' : 'border border-amber-500/40 bg-amber-950/20'}">
+                            <div class="flex items-start gap-2.5">
+                                <div class="zono-n-icon shrink-0 bg-stone-950/80 border border-stone-800 flex items-center justify-center text-base">${icon}</div>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-center justify-between gap-2">
-                                        <strong class="text-sm text-stone-100">${this.escapeHtml(n.title || 'إشعار')}</strong>
+                                        <strong class="zono-n-title text-stone-100">${this.escapeHtml(n.title || 'إشعار')}</strong>
                                         ${n.is_read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>'}
                                     </div>
-                                    <p class="text-xs text-stone-300 mt-1 leading-relaxed">${this.escapeHtml(n.body || '')}</p>
-                                    <small class="block text-[10px] text-stone-500 mt-2">${new Date(n.created_at).toLocaleString('ar-IQ')}</small>
+                                    <p class="zono-n-preview text-stone-400">${this.escapeHtml(n.body || '')}</p>
+                                    <small class="zono-n-time block text-stone-500">${new Date(n.created_at).toLocaleString('ar-IQ')}</small>
                                 </div>
                             </div>
-                        </div>`;
-                }).join('') : '<div class="text-center text-stone-500 text-xs py-6">لا توجد إشعارات</div>';
+                        </button>`;
+                }).join('') : '<div class="text-center text-stone-500 text-xs py-5">لا توجد إشعارات</div>';
             }
 
             const storageKey = `zono_last_notification_${this.currentUser.username || this.currentUser.id}`;
@@ -1244,9 +1246,7 @@ class ZonoApp {
                 this.lastNotificationId = newestId;
                 localStorage.setItem(storageKey, String(newestId));
             }
-        } catch (e) {
-            // Keep the app usable if notification RPC is temporarily unavailable.
-        }
+        } catch (_) {}
     }
 
     openAccountCenter(mode = 'notifications') {
@@ -1278,11 +1278,53 @@ class ZonoApp {
             hBtn.classList.toggle('text-stone-400', notifications);
         }
 
-        if (notifications) {
-            await this.loadNotifications(false);
-        } else {
-            await this.loadActivityHistory();
+        if (notifications) await this.loadNotifications(false);
+        else await this.loadActivityHistory();
+    }
+
+    async openNotificationDetail(notificationId) {
+        const n = (this.notificationRows || []).find(x => Number(x.id || 0) === Number(notificationId));
+        if (!n) return;
+
+        const icon =
+            n.kind === 'seed_transfer' ? '🌾' :
+            n.kind === 'support' ? '🛟' :
+            n.kind === 'developer_message' ? '👑' : '🏢';
+
+        const modal = document.getElementById('zono-notification-detail-modal');
+        const iconEl = document.getElementById('notification-detail-icon');
+        const titleEl = document.getElementById('notification-detail-title');
+        const timeEl = document.getElementById('notification-detail-time');
+        const bodyEl = document.getElementById('notification-detail-body');
+
+        if (iconEl) iconEl.textContent = icon;
+        if (titleEl) titleEl.textContent = n.title || 'إشعار';
+        if (timeEl) timeEl.textContent = new Date(n.created_at).toLocaleString('ar-IQ');
+        if (bodyEl) bodyEl.textContent = n.body || '';
+
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
+
+        if (!n.is_read) {
+            try {
+                const { error } = await window.zunoBackend.client.rpc('zono_mark_notification_read', {
+                    p_notification_id: Number(n.id)
+                });
+                if (!error) {
+                    n.is_read = true;
+                    await this.loadNotifications(false);
+                }
+            } catch (_) {}
+        }
+    }
+
+    closeNotificationDetail() {
+        const modal = document.getElementById('zono-notification-detail-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 
     async recordActivity(kind, resource, amount, title, detail = '') {
@@ -1298,6 +1340,29 @@ class ZonoApp {
         } catch (_) {}
     }
 
+    async switchHistoryPeriod(period = 'day') {
+        this.historyPeriod = period === 'week' ? 'week' : 'day';
+        const day = this.historyPeriod === 'day';
+
+        const dayBtn = document.getElementById('history-period-day');
+        const weekBtn = document.getElementById('history-period-week');
+
+        if (dayBtn) {
+            dayBtn.classList.toggle('bg-emerald-500/15', day);
+            dayBtn.classList.toggle('text-emerald-300', day);
+            dayBtn.classList.toggle('border-emerald-500/30', day);
+            dayBtn.classList.toggle('text-stone-400', !day);
+        }
+        if (weekBtn) {
+            weekBtn.classList.toggle('bg-emerald-500/15', !day);
+            weekBtn.classList.toggle('text-emerald-300', !day);
+            weekBtn.classList.toggle('border-emerald-500/30', !day);
+            weekBtn.classList.toggle('text-stone-400', day);
+        }
+
+        await this.loadActivityHistory();
+    }
+
     async loadActivityHistory() {
         const list = document.getElementById('zono-activity-history-list');
         if (!list || !window.zunoBackend?.client || !this.currentUser) return;
@@ -1308,43 +1373,31 @@ class ZonoApp {
             if (!error && Array.isArray(data)) activities = data;
         } catch (_) {}
 
-        // Seed-transfer notifications are also part of the financial history,
-        // including transfers/messages from developer or agent.
-        const transferRows = (this.notificationRows || [])
-            .filter(n => n.kind === 'seed_transfer')
-            .map(n => ({
-                id: `n-${n.id}`,
-                kind: 'seed_received',
-                resource: 'seed',
-                amount: Number(n.amount || 0),
-                title: n.title || 'استلام بذور',
-                detail: n.body || '',
-                created_at: n.created_at
-            }));
+        const allowedKinds = new Set(['counter_seed_reward','counter_feather_reward']);
+        let rows = activities.filter(x => allowedKinds.has(String(x.kind || '')));
 
-        const all = [...activities, ...transferRows]
-            .sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
-            .slice(0, 100);
+        const now = new Date();
+        const hours = (this.historyPeriod || 'day') === 'week' ? 24 * 7 : 24;
+        const threshold = new Date(now.getTime() - hours * 60 * 60 * 1000);
 
-        list.innerHTML = all.length ? all.map(row => {
-            const isSeed = row.resource === 'seed';
-            const icon = isSeed ? '🌾' : '🪶';
+        rows = rows
+            .filter(x => new Date(x.created_at) >= threshold)
+            .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+        list.innerHTML = rows.length ? rows.map(row => {
+            const icon = row.resource === 'seed' ? '🌾' : '🪶';
             const amount = Number(row.amount || 0);
-            const sign = amount > 0 ? '+' : '';
             return `
-                <div class="p-3 rounded-2xl bg-stone-900/55 border border-stone-800">
+                <div class="p-2.5 rounded-xl bg-stone-900/55 border border-stone-800">
                     <div class="flex items-center justify-between gap-3">
                         <div class="min-w-0">
-                            <strong class="text-xs text-stone-100">${icon} ${this.escapeHtml(row.title || 'عملية')}</strong>
-                            <p class="text-[11px] text-stone-400 mt-1">${this.escapeHtml(row.detail || '')}</p>
-                            <small class="block text-[10px] text-stone-500 mt-1">${new Date(row.created_at).toLocaleString('ar-IQ')}</small>
+                            <strong class="text-[11px] text-stone-100">${icon} ${this.escapeHtml(row.title || 'مكافأة العداد')}</strong>
+                            <small class="block text-[9px] text-stone-500 mt-1">${new Date(row.created_at).toLocaleString('ar-IQ')}</small>
                         </div>
-                        <div class="shrink-0 font-mono font-black ${amount >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                            ${sign}${amount.toLocaleString('en-US')}
-                        </div>
+                        <div class="shrink-0 font-mono text-sm font-black text-emerald-400">+${amount.toLocaleString('en-US')}</div>
                     </div>
                 </div>`;
-        }).join('') : '<div class="text-center text-stone-500 text-xs py-6">لا توجد عمليات مسجلة بعد</div>';
+        }).join('') : `<div class="text-center text-stone-500 text-xs py-5">لا توجد عمليات خلال ${(this.historyPeriod || 'day') === 'week' ? 'الأسبوع' : 'اليوم'}</div>`;
     }
 
     showIncomingNotification(n) {

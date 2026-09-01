@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260901-1">
+    <link rel="stylesheet" href="css/style.css?v=20260901-refined3">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -380,39 +380,42 @@
                 </div>
 
                 <!-- Account Notifications + Activity Log -->
-                <div id="zono-account-center" class="mt-6 rounded-3xl border border-amber-500/30 bg-stone-950/45 p-4 sm:p-5">
-                    <div class="flex items-center justify-between gap-3 mb-4">
+                <div id="zono-account-center" class="mt-5 rounded-3xl border border-amber-500/30 bg-stone-950/45 p-4 sm:p-5">
+                    <div class="flex items-center justify-between gap-3 mb-3">
                         <div>
-                            <h4 class="text-base font-black text-amber-300">🔔 مركز الحساب</h4>
-                            <p class="text-[11px] text-stone-400 mt-1">الإشعارات والسجل المالي للعداد</p>
+                            <h4 class="text-sm sm:text-base font-black text-amber-300">🔔 مركز الحساب</h4>
+                            <p class="text-[10px] text-stone-400 mt-0.5">الإشعارات وسجل العداد</p>
                         </div>
-                        <button onclick="window.zonoApp.markNotificationsRead()" class="text-[10px] font-bold text-emerald-300 hover:text-emerald-200">
-                            تحديد الإشعارات كمقروءة
+                        <button onclick="window.zonoApp.markNotificationsRead()" class="text-[9px] font-bold text-emerald-300 hover:text-emerald-200">
+                            تحديد كمقروء
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-stone-900/80 border border-stone-800 mb-4">
-                        <button id="account-center-tab-notifications" onclick="window.zonoApp.switchAccountCenter('notifications')" class="py-2.5 rounded-xl text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-stone-900/80 border border-stone-800 mb-3">
+                        <button id="account-center-tab-notifications" onclick="window.zonoApp.switchAccountCenter('notifications')" class="py-2 rounded-lg text-[11px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/30">
                             🔔 الإشعارات
                         </button>
-                        <button id="account-center-tab-history" onclick="window.zonoApp.switchAccountCenter('history')" class="py-2.5 rounded-xl text-xs font-black text-stone-400 border border-transparent">
+                        <button id="account-center-tab-history" onclick="window.zonoApp.switchAccountCenter('history')" class="py-2 rounded-lg text-[11px] font-black text-stone-400 border border-transparent">
                             📜 السجل
                         </button>
                     </div>
 
                     <div id="account-center-notifications">
-                        <div id="zono-notifications-list" class="space-y-2">
-                            <div class="text-center text-stone-500 text-xs py-6">لا توجد إشعارات جديدة</div>
+                        <div id="zono-notifications-list" class="space-y-1.5">
+                            <div class="text-center text-stone-500 text-xs py-5">لا توجد إشعارات</div>
                         </div>
                     </div>
 
                     <div id="account-center-history" class="hidden">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-xs font-bold text-stone-300">سجل البذور والريش</span>
-                            <button onclick="window.zonoApp.loadActivityHistory()" class="text-[10px] text-amber-300 font-bold">تحديث ↻</button>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="text-[11px] font-bold text-stone-300">سجل بذور العداد والريش</span>
+                            <div class="flex items-center gap-1 p-1 rounded-xl bg-stone-900/80 border border-stone-800">
+                                <button id="history-period-day" onclick="window.zonoApp.switchHistoryPeriod('day')" class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">اليوم</button>
+                                <button id="history-period-week" onclick="window.zonoApp.switchHistoryPeriod('week')" class="px-3 py-1.5 rounded-lg text-[10px] font-black text-stone-400 border border-transparent">أسبوع</button>
+                            </div>
                         </div>
-                        <div id="zono-activity-history-list" class="space-y-2">
-                            <div class="text-center text-stone-500 text-xs py-6">لا توجد عمليات مسجلة</div>
+                        <div id="zono-activity-history-list" class="space-y-1.5">
+                            <div class="text-center text-stone-500 text-xs py-5">لا توجد عمليات في السجل</div>
                         </div>
                     </div>
                 </div>
@@ -740,6 +743,24 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/app.js?v=20260901-accountcenter1"></script>
+    <script src="js/app.js?v=20260901-refined3"></script>
+
+    <!-- Notification Detail Modal -->
+    <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+        <div class="zono-notification-detail-card rounded-3xl border border-amber-500/40 bg-stone-950 shadow-2xl p-5">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <span id="notification-detail-icon" class="w-10 h-10 rounded-xl bg-stone-900 border border-stone-800 flex items-center justify-center text-xl">🔔</span>
+                    <div>
+                        <h3 id="notification-detail-title" class="font-black text-amber-300 text-base">الإشعار</h3>
+                        <p id="notification-detail-time" class="text-[10px] text-stone-500 mt-0.5"></p>
+                    </div>
+                </div>
+                <button onclick="window.zonoApp.closeNotificationDetail()" class="w-9 h-9 rounded-full bg-stone-900 border border-stone-800 text-stone-300">✕</button>
+            </div>
+            <div id="notification-detail-body" class="rounded-2xl bg-stone-900/70 border border-stone-800 p-4 text-sm text-stone-200 leading-7 whitespace-pre-wrap"></div>
+        </div>
+    </div>
+
 </body>
 </html>
