@@ -403,6 +403,7 @@ class ZonoApp {
         const profileMsgs = document.getElementById('stat-messages-count');
         const profileFeathers = document.getElementById('profile-feathers-val');
         const profileSeeds = document.getElementById('profile-seeds-val');
+        const walletIqdBalance = document.getElementById('zono-wallet-iqd-balance');
         const dailySeedsStat = document.getElementById('bird-daily-seeds-stat');
         const dailySeedsTotalEl = document.getElementById('bird-daily-seeds-total');
         const dailyFeathersTotalEl = document.getElementById('bird-daily-feathers-total');
@@ -423,6 +424,7 @@ class ZonoApp {
         if (profileMsgs) profileMsgs.textContent = this.currentUser.stats.messagesSent;
         if (profileFeathers) profileFeathers.textContent = `${this.currentUser.feathers} ريشة`;
         if (profileSeeds) profileSeeds.textContent = `${this.currentUser.seeds} بذرة`;
+        if (walletIqdBalance) walletIqdBalance.textContent = Number(this.currentUser.seeds || 0).toLocaleString('en-US');
         if (dailySeedsStat) {
             dailySeedsStat.textContent = this.currentUser.dailySeedsTotal
                 ? `${Number(this.currentUser.dailySeedsTotal).toLocaleString('en-US')}+`
@@ -434,6 +436,48 @@ class ZonoApp {
         if (dailyFeathersTotalEl) {
             dailyFeathersTotalEl.textContent = Number(this.currentUser.dailyFeathersTotal || 60).toLocaleString('en-US');
         }
+    }
+
+    openWallet() {
+        if (!this.currentUser) return this.showAuthModal();
+
+        const panel = document.getElementById('zono-wallet-panel');
+        if (!panel) return;
+
+        this.switchTab('profile');
+        this.updateProfileUI();
+
+        panel.classList.remove('hidden');
+
+        setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
+    }
+
+    closeWallet() {
+        const panel = document.getElementById('zono-wallet-panel');
+        const options = document.getElementById('zono-wallet-withdraw-options');
+        const fib = document.getElementById('zono-wallet-method-fib');
+        const qi = document.getElementById('zono-wallet-method-qi');
+
+        if (panel) panel.classList.add('hidden');
+        if (options) options.classList.add('hidden');
+        if (fib) fib.classList.add('hidden');
+        if (qi) qi.classList.add('hidden');
+    }
+
+    toggleWalletWithdraw() {
+        const options = document.getElementById('zono-wallet-withdraw-options');
+        if (!options) return;
+        options.classList.toggle('hidden');
+    }
+
+    selectWalletMethod(method) {
+        const fib = document.getElementById('zono-wallet-method-fib');
+        const qi = document.getElementById('zono-wallet-method-qi');
+
+        if (fib) fib.classList.toggle('hidden', method !== 'fib');
+        if (qi) qi.classList.toggle('hidden', method !== 'qi');
     }
 
     addFeathers() {
