@@ -1288,3 +1288,16 @@ section {
     .zono-notifications-panel {top:9.8rem;left:.55rem}
     .seed-transfer-fields {grid-template-columns:1fr}
 }
+
+
+/* Incoming notification emphasis */
+#zono-notification-bell:not(:has(.zono-notification-count.hidden)) {
+    box-shadow: 0 0 0 1px rgba(245,158,11,.25), 0 0 18px rgba(245,158,11,.30);
+}
+.zono-notification-count:not(.hidden) {
+    animation: zonoBellPulse 1.4s ease-in-out infinite;
+}
+@keyframes zonoBellPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.13); }
+}

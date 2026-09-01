@@ -1,5 +1,9 @@
 class ZonoApp {
     constructor() {
+        this.notificationWatcher = null;
+        this.lastNotificationId = 0;
+        this.notificationsPrimed = false;
+
         this.currentUser = null;
         this.currentTab = 'rooms';
         this.activeRoom = null;
@@ -24,7 +28,8 @@ class ZonoApp {
             if (logged) {
                 await this.syncUserFromSupabase();
                 this.showMainApp();
-                await this.loadNotifications();
+                await this.loadNotifications(true);
+                this.startNotificationWatcher();
             } else {
                 this.showAuthModal();
             }
@@ -200,6 +205,8 @@ class ZonoApp {
             );
             await this.syncUserFromSupabase();
             this.showMainApp();
+            await this.loadNotifications(true);
+            this.startNotificationWatcher();
             if (window.zonoAudio) window.zonoAudio.playChirp();
             this.showToast(`مرحباً بك يا ${this.currentUser.displayName}!`, 'success');
         } catch (e) {
@@ -238,6 +245,13 @@ class ZonoApp {
     }
 
     async logout() {
+        if (this.notificationWatcher) {
+            clearInterval(this.notificationWatcher);
+            this.notificationWatcher = null;
+        }
+        this.notificationsPrimed = false;
+        this.lastNotificationId = 0;
+
         if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
         try { await window.zonoAuth.logout(); } catch (_) {}
         this.currentUser = null;
@@ -1139,18 +1153,23 @@ class ZonoApp {
         }
     }
 
-    async loadNotifications() {
+
+    async loadNotifications(primeOnly = false) {
         if (!window.zunoBackend?.client || !this.currentUser) return;
         try {
             const { data, error } = await window.zunoBackend.client.rpc('zono_my_notifications');
             if (error) throw error;
+
             const rows = Array.isArray(data) ? data : [];
             const unread = rows.filter(x => !x.is_read).length;
+            const newestId = rows.length ? Math.max(...rows.map(x => Number(x.id || 0))) : 0;
+
             const badge = document.getElementById('zono-notification-count');
             if (badge) {
                 badge.textContent = unread > 99 ? '99+' : String(unread);
                 badge.classList.toggle('hidden', unread === 0);
             }
+
             const list = document.getElementById('zono-notifications-list');
             if (list) {
                 list.innerHTML = rows.length ? rows.map(n => `
@@ -1164,10 +1183,83 @@ class ZonoApp {
                     </div>
                 `).join('') : '<div class="zono-notification-empty">لا توجد إشعارات جديدة</div>';
             }
-        } catch (_) {}
+
+            const storageKey = `zono_last_notification_${this.currentUser.username || this.currentUser.id}`;
+            let storedId = Number(localStorage.getItem(storageKey) || 0);
+
+            // First load: show the newest unread item once, including notifications received while offline.
+            if (!this.notificationsPrimed) {
+                this.notificationsPrimed = true;
+                this.lastNotificationId = storedId;
+
+                const newestUnread = rows.find(n => !n.is_read && Number(n.id || 0) > storedId);
+                if (!primeOnly && newestUnread) {
+                    this.showIncomingNotification(newestUnread);
+                } else if (primeOnly && newestUnread) {
+                    // On app entry we still surface the latest unread transfer/message once.
+                    this.showIncomingNotification(newestUnread);
+                }
+
+                if (newestId > storedId) {
+                    localStorage.setItem(storageKey, String(newestId));
+                    this.lastNotificationId = newestId;
+                }
+                return;
+            }
+
+            // Subsequent polls: show every new unread notification, oldest first.
+            const newRows = rows
+                .filter(n => !n.is_read && Number(n.id || 0) > this.lastNotificationId)
+                .sort((a,b) => Number(a.id || 0) - Number(b.id || 0));
+
+            for (const n of newRows) {
+                this.showIncomingNotification(n);
+            }
+
+            if (newestId > this.lastNotificationId) {
+                this.lastNotificationId = newestId;
+                localStorage.setItem(storageKey, String(newestId));
+            }
+        } catch (e) {
+            // Silent here so polling never interrupts the app.
+        }
     }
 
-    toggleNotifications() {
+    showIncomingNotification(n) {
+        if (!n) return;
+
+        const amount = Number(n.amount || 0);
+        let message = n.body || n.title || 'إشعار جديد';
+
+        if (n.kind === 'seed_transfer') {
+            message = `🌾 استلمت ${amount.toLocaleString('en-US')} بذرة\n${n.body || ''}`;
+            if (window.zonoAudio?.enabled) window.zonoAudio.playTap?.();
+            this.showToast(message, 'success');
+
+            // Refresh receiver balance immediately after a seed transfer.
+            setTimeout(async () => {
+                try {
+                    await window.zonoAuth.loadProfile(window.zonoAuth.user);
+                    await this.syncUserFromSupabase();
+                } catch (_) {}
+            }, 250);
+        } else if (n.kind === 'private_message') {
+            this.showToast(`💬 ${message}`, 'info');
+        } else {
+            this.showToast(message, 'info');
+        }
+    }
+
+    startNotificationWatcher() {
+        if (this.notificationWatcher) clearInterval(this.notificationWatcher);
+        this.notificationWatcher = setInterval(() => {
+            if (document.visibilityState === 'visible' && this.currentUser) {
+                this.loadNotifications(false);
+            }
+        }, 5000);
+    }
+
+    toggleNotifications()    toggleNotifications() {
         const panel = document.getElementById('zono-notifications-panel');
         if (!panel) return;
         panel.classList.toggle('hidden');
@@ -1190,6 +1282,7 @@ class ZonoApp {
         if (!toastEl) return;
 
         toastEl.textContent = message;
+        toastEl.style.whiteSpace = 'pre-line';
         toastEl.className = "fixed left-1/2 transform -translate-x-1/2 px-5 py-2.5 rounded-2xl text-xs font-bold z-50 backdrop-blur-xl shadow-2xl transition-all duration-300 border text-center leading-relaxed " +
             (type === 'error' ? 'bg-red-950/90 text-red-200 border-red-500/50 shadow-red-900/40' :
              type === 'success' ? 'bg-emerald-950/90 text-emerald-200 border-emerald-500/50 shadow-emerald-900/40' :
