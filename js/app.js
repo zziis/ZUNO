@@ -296,14 +296,15 @@ class ZonoApp {
             // Keep very large balances inside the fixed currency pill.
             const digits = text.length;
             let size = '0.78rem';
-            if (digits >= 7) size = '0.69rem';
-            if (digits >= 9) size = '0.60rem';
-            if (digits >= 11) size = '0.52rem';
-            if (digits >= 13) size = '0.46rem';
+            if (digits >= 6) size = '0.70rem';
+            if (digits >= 8) size = '0.61rem';
+            if (digits >= 10) size = '0.53rem';
+            if (digits >= 12) size = '0.46rem';
+            if (digits >= 14) size = '0.40rem';
 
             el.style.fontSize = size;
             el.style.lineHeight = '1';
-            el.style.maxWidth = '5.8rem';
+            el.style.maxWidth = window.innerWidth <= 640 ? '2.75rem' : '4.6rem';
             el.style.minWidth = '0';
             el.style.overflow = 'hidden';
             el.style.whiteSpace = 'nowrap';
