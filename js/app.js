@@ -1179,7 +1179,13 @@ class ZonoApp {
 
             const allowedKinds = new Set(['seed_transfer','support','developer_message','company_message']);
             const rows = (Array.isArray(data) ? data : [])
-                .filter(n => allowedKinds.has(String(n.kind || '')));
+                .filter(n => {
+                    const kind = String(n.kind || '');
+                    const looksLikeSeedTransfer =
+                        Number(n.amount || 0) > 0 &&
+                        Number(n.sender_public_id || 0) > 0;
+                    return allowedKinds.has(kind) || looksLikeSeedTransfer;
+                });
             this.notificationRows = rows;
 
             const unread = rows.filter(x => !x.is_read).length;
@@ -1196,8 +1202,11 @@ class ZonoApp {
             const list = document.getElementById('zono-notifications-list');
             if (list) {
                 list.innerHTML = rows.length ? rows.map(n => {
+                    const looksLikeSeedTransfer =
+                        n.kind === 'seed_transfer' ||
+                        (Number(n.amount || 0) > 0 && Number(n.sender_public_id || 0) > 0);
                     const icon =
-                        n.kind === 'seed_transfer' ? '🌾' :
+                        looksLikeSeedTransfer ? '🌾' :
                         n.kind === 'support' ? '🛟' :
                         n.kind === 'developer_message' ? '👑' : '🏢';
 
@@ -1286,8 +1295,11 @@ class ZonoApp {
         const n = (this.notificationRows || []).find(x => Number(x.id || 0) === Number(notificationId));
         if (!n) return;
 
+        const looksLikeSeedTransfer =
+            n.kind === 'seed_transfer' ||
+            (Number(n.amount || 0) > 0 && Number(n.sender_public_id || 0) > 0);
         const icon =
-            n.kind === 'seed_transfer' ? '🌾' :
+            looksLikeSeedTransfer ? '🌾' :
             n.kind === 'support' ? '🛟' :
             n.kind === 'developer_message' ? '👑' : '🏢';
 
