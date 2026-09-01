@@ -1259,7 +1259,7 @@ class ZonoApp {
         }, 5000);
     }
 
-    toggleNotifications()    toggleNotifications() {
+    toggleNotifications() {
         const panel = document.getElementById('zono-notifications-panel');
         if (!panel) return;
         panel.classList.toggle('hidden');
