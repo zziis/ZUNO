@@ -232,9 +232,8 @@
                     </button>
 
                     <div class="grid grid-cols-2 gap-3">
-                        <button onclick="window.zonoApp.feedBird()" class="py-2.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 space-x-reverse">
-                            <span>🌾</span>
-                            <span>إطعام العصفور</span>
+                        <button onclick="window.zonoApp.switchTab('birds')" class="w-full py-3 px-4 rounded-xl bg-stone-900/80 border border-stone-700 hover:border-amber-500/50 text-stone-100 font-bold text-xs transition-all active:scale-95">
+                            <span>🕊️ شراء عصفور</span>
                         </button>
                         <button onclick="window.zonoApp.boostFlight()" class="py-2.5 px-4 rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-200 border border-stone-700 text-xs font-bold transition-all flex items-center justify-center space-x-1.5 space-x-reverse">
                             <span>⚡</span>
@@ -266,25 +265,31 @@
 
         <!-- ==================== TAB 4: المتجر (Store & Bazaar) ==================== -->
         <section id="tab-store" class="tab-content space-y-6">
-            <!-- Store Hero Banner -->
-            <div class="glass-panel p-6 rounded-3xl border border-amber-500/30 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="glass-panel p-6 rounded-3xl border border-amber-500/30 text-center">
+                <div class="text-4xl mb-3">🛍️</div>
+                <h2 class="text-2xl font-black text-stone-100 mb-2">متجر زونو</h2>
+                <p class="text-xs text-stone-400 leading-relaxed max-w-md mx-auto">
+                    هذا القسم مخصص للمقتنيات والإضافات القادمة. شراء الطيور أصبح في قسم مستقل من زر «شراء عصفور» داخل العداد.
+                </p>
+            </div>
+        </section>
+
+        <!-- ==================== Bird Shop ==================== -->
+        <section id="tab-birds" class="tab-content space-y-6">
+            <div class="glass-panel p-5 rounded-3xl border border-amber-500/30 flex items-center justify-between gap-3">
                 <div>
-                    <div class="flex items-center space-x-2 space-x-reverse text-amber-400 text-xs font-bold mb-1">
-                        <span>🏛️</span>
-                        <span>بازار زونو الكلاسيكي</span>
-                    </div>
-                    <h2 class="text-2xl font-black text-stone-100">المتجر ومقتنيات النوستالجيا</h2>
-                    <p class="text-xs text-stone-300 mt-1">اشترِ الطائر بالبذور؛ ويمكن شراء نفس الطائر أكثر من مرة بنفس السعر لزيادة إنتاجك اليومي لمدة 500 يوم.</p>
+                    <div class="text-[11px] text-amber-400 font-bold mb-1">🕊️ متجر الطيور</div>
+                    <h2 class="text-2xl font-black text-stone-100">شراء العصافير</h2>
+                    <p class="text-xs text-stone-400 mt-1">
+                        اشترِ نفس الطائر أكثر من مرة لزيادة إنتاج البذور، بينما يبقى أعلى شكل وصلت إليه هو الشكل النشط.
+                    </p>
                 </div>
-                <!-- Daily Reward Claim -->
-                <button onclick="window.zonoApp.claimDailyReward()" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-stone-950 font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center space-x-2 space-x-reverse whitespace-nowrap active:scale-95">
-                    <span>🎁</span>
-                    <span>استلام مكافأة اليوم (60 ريشة)</span>
+                <button onclick="window.zonoApp.switchTab('counter')" class="shrink-0 px-4 py-2 rounded-xl bg-stone-900 border border-stone-700 hover:border-amber-500 text-stone-200 text-xs font-bold transition-all">
+                    ← رجوع
                 </button>
             </div>
 
-            <!-- Store Grid -->
-            <div id="store-items-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div id="bird-shop-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 <!-- Populated dynamically by app.js -->
             </div>
         </section>

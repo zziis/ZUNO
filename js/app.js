@@ -290,6 +290,10 @@ class ZonoApp {
         if (tabId === 'counter' && this.birdEngine) {
             this.birdEngine.updateUI();
         }
+        if (tabId === 'birds') {
+            this.renderStore();
+        }
+
     }
 
     updateHeaderUI() {
@@ -846,7 +850,7 @@ class ZonoApp {
     }
 
     renderStore() {
-        const container = document.getElementById('store-items-grid');
+        const container = document.getElementById('bird-shop-grid');
         if (!container) return;
         const items = this.getStoreItems();
         const activeRank = Number(this.currentUser?.activeBirdRank || 0);
