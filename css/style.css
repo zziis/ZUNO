@@ -3413,3 +3413,73 @@ html[class*="theme"] .zono-room-message-capsule{
     width:4.3rem!important;height:4.3rem!important;min-width:4.3rem!important;min-height:4.3rem!important
   }
 }
+
+
+/* =========================================================
+   ZONO V9.1 — FORCE ALL ROOM MESSAGES TO THE RIGHT
+   This block intentionally has higher specificity than the old LEFT rules.
+   ========================================================= */
+#room-messages-flow{
+    direction:rtl!important;
+}
+
+#room-messages-flow > .flex,
+#room-messages-flow .zono-room-message-row,
+#room-messages-flow .zono-room-message-item,
+#room-messages-flow .zono-room-message-right{
+    width:100%!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-end!important;
+    justify-content:flex-start!important;
+    margin-left:auto!important;
+    margin-right:0!important;
+    padding-left:.25rem!important;
+    padding-right:.25rem!important;
+    text-align:right!important;
+    direction:rtl!important;
+}
+
+#room-messages-flow .zono-room-msg-head{
+    width:auto!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    align-self:flex-end!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    text-align:right!important;
+    direction:rtl!important;
+}
+
+#room-messages-flow .zono-room-message-actionline{
+    width:auto!important;
+    max-width:86%!important;
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:flex-end!important;
+    justify-content:flex-start!important;
+    align-self:flex-end!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    direction:rtl!important;
+}
+
+#room-messages-flow .zono-room-compact-bubble,
+#room-messages-flow .zono-glass-message,
+#room-messages-flow .zono-voice-message{
+    align-self:flex-end!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    text-align:right!important;
+    direction:rtl!important;
+}
+
+#room-messages-flow .zono-room-reply-quote{
+    align-self:flex-end!important;
+    margin-left:0!important;
+    margin-right:2.25rem!important;
+    text-align:right!important;
+    direction:rtl!important;
+}
