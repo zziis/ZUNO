@@ -2631,3 +2631,40 @@ html[data-theme="imperial"] .glass-panel{
 .zono-music-upload-status.is-working{color:#fde68a;background:rgba(120,53,15,.16)}
 .zono-music-upload-status.is-ok{color:#86efac;background:rgba(20,83,45,.18)}
 .zono-music-upload-status.is-error{color:#fca5a5;background:rgba(127,29,29,.18)}
+
+/* ===== ZONO ROOM UI V7 ===== */
+.zono-room-topbar{display:flex;align-items:center;gap:.55rem;padding:.75rem;border-bottom:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.38);backdrop-filter:blur(13px)}
+.zono-room-main-card{flex:1;min-width:0;display:flex;align-items:center;gap:.65rem;padding:.42rem .55rem;border-radius:1rem;background:rgba(30,41,59,.36);border:1px solid rgba(139,92,246,.22);box-shadow:inset 0 0 25px rgba(124,58,237,.03);text-align:right}
+.zono-room-main-image{width:3rem;height:3rem;border-radius:.85rem;object-fit:cover;flex:0 0 auto;border:1px solid rgba(34,211,238,.32);box-shadow:0 0 12px rgba(34,211,238,.08)}
+.zono-room-main-meta{min-width:0;flex:1}.zono-room-main-title-row{display:flex;align-items:center;gap:.35rem}.zono-room-main-title-row h3{font-size:.75rem;font-weight:950;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zono-room-main-subrow{display:flex;align-items:center;gap:.38rem;margin-top:.24rem}.zono-room-member-count{padding:.15rem .45rem;border-radius:999px;background:rgba(15,23,42,.45);border:1px solid rgba(148,163,184,.18);color:#cbd5e1;font-size:.5rem;font-weight:900}
+.zono-room-menu-btn{width:2.5rem;height:2.5rem;border-radius:.85rem;display:flex;align-items:center;justify-content:center;background:rgba(39,29,10,.5);border:1px solid rgba(245,158,11,.35);color:#fbbf24;font-size:1.15rem;font-weight:950}
+.zono-room-favorite-btn{width:2rem!important;height:2rem!important;flex:0 0 auto!important;border-radius:.65rem!important;background:rgba(136,19,55,.18)!important}
+
+.zono-mic-seat-circle{min-height:5.2rem!important}
+.zono-mic-seat-circle:not(.occupied) .zono-mic-seat-icon{width:3.9rem!important;height:3.9rem!important;border-radius:50%!important;background:rgba(15,23,42,.16)!important;border:1.5px solid rgba(226,232,240,.18)!important;color:rgba(248,250,252,.78)!important;font-size:1.65rem!important;font-weight:300!important;backdrop-filter:blur(2px)}
+.zono-mic-seat-circle:not(.occupied){background:transparent!important}.zono-mic-seat-circle:not(.occupied) b{display:none!important}
+.zono-mic-seat-circle.is-speaking .zono-mic-avatar-wrap{box-shadow:0 0 24px rgba(34,211,238,.5),0 0 45px rgba(168,85,247,.25)!important}
+.zono-mic-seat-circle.is-speaking .zono-mic-avatar-wrap::before{border:2px solid rgba(34,211,238,.85)!important;animation:zonoMicPulseV7 .95s ease-out infinite!important}
+.zono-mic-seat-circle.is-speaking .zono-mic-avatar-wrap::after{border:2px solid rgba(168,85,247,.6)!important;animation:zonoMicPulseV7 1.25s ease-out .18s infinite!important}
+@keyframes zonoMicPulseV7{0%{transform:scale(.82);opacity:.95}100%{transform:scale(1.5);opacity:0}}
+.zono-room-music-fab.is-playing::after{display:none!important}
+
+.zono-room-gift-fab{position:absolute;z-index:8;left:.7rem;bottom:5.6rem;width:3rem;height:3rem;border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;background:linear-gradient(145deg,rgba(109,40,217,.82),rgba(190,24,93,.78));border:1px solid rgba(244,114,182,.3);box-shadow:0 0 22px rgba(168,85,247,.2)}
+
+.zono-room-composer{padding:.65rem .75rem;border-top:1px solid rgba(255,255,255,.08);background:rgba(2,6,23,.55);backdrop-filter:blur(15px);display:flex;align-items:center;gap:.55rem}
+.zono-room-message-capsule{flex:1;min-width:0;display:flex;align-items:center;gap:.35rem;padding:.22rem .3rem;border-radius:1.4rem;background:rgba(48,32,77,.48);border:1px solid rgba(167,139,250,.28);backdrop-filter:blur(10px)}
+.zono-room-message-capsule input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#f8fafc;font-size:.68rem;padding:.72rem .25rem}.zono-room-message-capsule input::placeholder{color:rgba(203,213,225,.62)}
+.zono-room-emoji-btn,.zono-room-inline-send{width:2.15rem;height:2.15rem;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.28);color:#e2e8f0;font-size:1rem}.zono-room-inline-send{font-size:.85rem;color:#67e8f9}
+.zono-room-emoji-panel{position:absolute;right:4.2rem;bottom:4.6rem;display:grid;grid-template-columns:repeat(4,2.3rem);gap:.35rem;padding:.55rem;border-radius:1rem;background:rgba(2,6,23,.95);border:1px solid rgba(139,92,246,.28);box-shadow:0 15px 35px rgba(0,0,0,.35)}.zono-room-emoji-panel button{width:2.3rem;height:2.3rem;border-radius:.65rem;background:rgba(30,41,59,.7);font-size:1rem}
+
+.zono-glass-message{background:rgba(15,23,42,.42)!important;border:1px solid rgba(255,255,255,.08)!important;backdrop-filter:blur(8px)!important;box-shadow:0 8px 24px rgba(0,0,0,.12)!important}
+.zono-room-message-avatar{width:2.5rem!important;height:2.5rem!important}
+.zono-account-level{display:inline-flex;align-items:center;padding:.08rem .28rem;border-radius:999px;background:rgba(14,165,233,.82);color:white;font-size:.42rem;font-weight:950;white-space:nowrap}
+
+.zono-room-sheet{width:min(32rem,100%);max-height:78vh;overflow-y:auto;padding:1rem;border-radius:1.6rem 1.6rem 0 0;background:linear-gradient(180deg,#171a36,#11162e);border:1px solid rgba(96,165,250,.18);box-shadow:0 -18px 55px rgba(0,0,0,.4)}
+@media(min-width:640px){.zono-room-sheet{border-radius:1.6rem;max-height:80vh}}
+.zono-sheet-handle{width:3rem;height:.3rem;border-radius:999px;background:#64748b;margin:0 auto .9rem;opacity:.7}.zono-sheet-head{display:flex;align-items:center;justify-content:space-between;gap:.7rem;padding-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,.08)}.zono-sheet-head h3{font-size:1rem;font-weight:950;color:#f8fafc}.zono-sheet-head span{display:inline-block;margin-top:.15rem;padding:.12rem .42rem;border-radius:999px;background:#0e7490;color:#cffafe;font-size:.55rem}.zono-sheet-head button{width:2rem;height:2rem;border-radius:50%;background:#263047;color:#e2e8f0}
+.zono-room-owner-card{padding:1rem 0}.zono-owner-profile{display:flex;align-items:center;gap:1rem;padding:1rem;border-radius:1.2rem;background:rgba(30,41,59,.48);border:1px solid rgba(245,158,11,.22)}.zono-owner-avatar{width:4.7rem!important;height:4.7rem!important}.zono-owner-meta{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;min-width:0}.zono-owner-meta b{width:100%;font-size:.9rem;color:#f8fafc}.zono-owner-meta small{width:100%;color:#94a3b8;font-size:.55rem}.zono-owner-meta em{font-style:normal;padding:.2rem .45rem;border-radius:999px;background:rgba(245,158,11,.15);color:#fbbf24;font-size:.5rem;font-weight:900}
+.zono-room-members-list{padding:.8rem 0;display:flex;flex-direction:column;gap:.55rem}.zono-member-section-title{display:flex;align-items:center;gap:.4rem;font-size:.75rem;font-weight:950;color:#67e8f9;padding:.35rem .2rem}.zono-member-section-title span{padding:.1rem .38rem;border-radius:999px;background:#155e75;color:#cffafe;font-size:.48rem}.zono-member-public-card{display:flex;align-items:center;gap:.7rem;padding:.72rem;border-radius:1rem;background:rgba(30,41,59,.45);border:1px solid rgba(34,211,238,.14)}.zono-member-public-avatar{width:3.6rem!important;height:3.6rem!important;flex:0 0 auto}.zono-member-public-meta{min-width:0;flex:1}.zono-member-public-meta>div{display:flex;align-items:center;gap:.4rem}.zono-member-public-meta b{font-size:.7rem;color:#f8fafc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.zono-member-public-meta small{display:block;margin-top:.15rem;color:#94a3b8;font-size:.5rem}.zono-member-public-meta em{display:inline-block;margin-top:.22rem;font-style:normal;padding:.14rem .4rem;border-radius:999px;background:rgba(8,145,178,.18);color:#67e8f9;font-size:.48rem;font-weight:900}
+@media(max-width:520px){.zono-room-topbar{padding:.55rem}.zono-room-main-card{padding:.35rem .45rem}.zono-room-main-image{width:2.65rem;height:2.65rem}.zono-room-menu-btn{width:2.25rem;height:2.25rem}.zono-room-gift-fab{left:.45rem;bottom:5.3rem}}

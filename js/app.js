@@ -1580,9 +1580,12 @@ class ZonoApp {
             document.getElementById('room-modal-lock')?.classList.toggle('hidden', !data.is_locked);
 
             const adminBtn=document.getElementById('room-admin-button');
-            if (adminBtn) adminBtn.classList.toggle('hidden', !(data.is_owner || data.is_moderator));
+            if (adminBtn) adminBtn.classList.toggle('hidden', !data.is_owner);
 
             if (modal) modal.classList.remove('hidden');
+
+            history.pushState({zonoRoomOpen:true,roomId:Number(data.public_id)},'',location.href);
+            this._roomHistoryArmed=true;
 
             this.applyRoomVisuals(data);
             await this.loadRoomMessages();
@@ -1748,8 +1751,9 @@ class ZonoApp {
                             <div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                         </div>
                         <span class="zono-name-capsule ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
+                        <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
                     </div>
-                    <div class="zono-voice-message">
+                    <div class="zono-voice-message zono-glass-message">
                         <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url || '')}')" class="zono-voice-play">▶</button>
                         <div class="zono-voice-waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                         <span>${this.formatVoiceDuration(Number(msg.media_duration || 0))}</span>
@@ -1768,10 +1772,11 @@ class ZonoApp {
                         <img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                     </div>
                     <span class="zono-name-capsule ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
-                    <span class="text-stone-500 text-[9px]">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
+                    <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
+                    <span class="text-stone-400 text-[9px]">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
                 </div>
                 <div class="zono-room-text-actions ${isMe?'is-me':''}">
-                    <div class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow">
+                    <div class="p-3 rounded-2xl max-w-[85%] text-sm zono-glass-message ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow">
                         ${this.escapeHtml(msg.content || '')}
                     </div>
                     ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف الرسالة">🗑️</button>` : ''}
@@ -1817,10 +1822,97 @@ class ZonoApp {
             });
             if (error) throw error;
             this.roomMembers=Array.isArray(data)?data:[];
-            document.getElementById('room-modal-count').textContent=`${this.roomMembers.length} متواجد`;
+            const countEl=document.getElementById('room-modal-count');
+            if(countEl) countEl.textContent=`👥 ${this.roomMembers.length}`;
+            const sheetCount=document.getElementById('zono-members-sheet-count');
+            if(sheetCount) sheetCount.textContent=String(this.roomMembers.length);
             if (showToast) this.showToast('تم تحديث المتواجدين', 'success');
             this.renderRoomAdminMembers();
+            this.renderRoomMembersPanel();
         } catch (_) {}
+    }
+
+    async openRoomOwnerInfo() {
+        if(!this.activeRoom) return;
+        const modal=document.getElementById('zono-room-owner-info-modal');
+        const card=document.getElementById('zono-room-owner-card');
+        modal?.classList.remove('hidden'); modal?.classList.add('flex');
+        if(!card) return;
+        card.innerHTML='<div class="text-center text-stone-500 py-5">جاري تحميل مالك الروم...</div>';
+        const client=this.getRoomClient();
+        try{
+            const {data,error}=await client.rpc('zono_room_owner_info_v7',{p_room_public_id:Number(this.activeRoom.public_id)});
+            if(error) throw error;
+            const frameCls=this.getAvatarFrameCatalog().find(x=>x.key===data.avatar_frame)?.cls || 'zono-frame-basic';
+            card.innerHTML=`<div class="zono-owner-profile">
+                <div class="zono-avatar-frame ${frameCls} zono-owner-avatar"><div class="zono-frame-crown"></div><img src="${this.escapeHtml(data.avatar||'')}" alt=""></div>
+                <div class="zono-owner-meta">
+                    <b>${this.escapeHtml(data.display_name||'مالك الروم')}</b>
+                    <span class="zono-account-level">LV.${Number(data.account_level||1)}</span>
+                    <small>ID ${Number(data.public_id||0)}</small>
+                    <em>👑 مالك الروم</em>
+                </div>
+            </div>`;
+        }catch(e){card.innerHTML=`<div class="text-center text-red-300 py-5">${this.escapeHtml(e.message||'تعذر تحميل معلومات المالك')}</div>`}
+    }
+
+    closeRoomOwnerInfo() {
+        const modal=document.getElementById('zono-room-owner-info-modal');
+        modal?.classList.add('hidden'); modal?.classList.remove('flex');
+    }
+
+    openRoomMembersPanel() {
+        if(!this.activeRoom) return;
+        const modal=document.getElementById('zono-room-members-modal');
+        modal?.classList.remove('hidden'); modal?.classList.add('flex');
+        this.loadRoomMembers();
+    }
+
+    closeRoomMembersPanel() {
+        const modal=document.getElementById('zono-room-members-modal');
+        modal?.classList.add('hidden'); modal?.classList.remove('flex');
+    }
+
+    renderRoomMembersPanel() {
+        const box=document.getElementById('zono-room-members-list');
+        if(!box) return;
+        const members=[...(this.roomMembers||[])];
+        const mods=members.filter(m=>!m.is_owner && (m.is_moderator||m.is_manager));
+        const users=members.filter(m=>!m.is_owner && !m.is_moderator && !m.is_manager);
+
+        const card=(m)=>{
+            const role=m.is_manager?'مسؤول':m.is_moderator?'مشرف':'عضو';
+            const frameCls=this.getAvatarFrameCatalog().find(x=>x.key===m.avatar_frame)?.cls || 'zono-frame-basic';
+            return `<div class="zono-member-public-card">
+                <div class="zono-avatar-frame ${frameCls} zono-member-public-avatar"><div class="zono-frame-crown"></div><img src="${this.escapeHtml(m.avatar||'')}" alt=""></div>
+                <div class="zono-member-public-meta">
+                    <div><b>${this.escapeHtml(m.display_name||'')}</b><span class="zono-account-level">LV.${Number(m.account_level||1)}</span></div>
+                    <small>ID ${Number(m.public_id||0)}</small>
+                    <em>${role==='عضو'?'👤':role==='مشرف'?'🛡️':'⭐'} ${role}</em>
+                </div>
+            </div>`;
+        };
+
+        box.innerHTML=`
+            ${mods.length?`<div class="zono-member-section-title">🛡️ المشرفون <span>${mods.length}</span></div>${mods.map(card).join('')}`:''}
+            <div class="zono-member-section-title">👥 الأعضاء <span>${users.length}</span></div>
+            ${users.map(card).join('') || '<div class="text-center text-stone-500 py-6 text-xs">لا يوجد أعضاء آخرون حاليًا</div>'}
+        `;
+    }
+
+    toggleRoomEmojiPanel() {
+        document.getElementById('zono-room-emoji-panel')?.classList.toggle('hidden');
+    }
+
+    insertRoomEmoji(emoji) {
+        const input=document.getElementById('room-message-input');
+        if(!input) return;
+        const start=input.selectionStart??input.value.length;
+        const end=input.selectionEnd??input.value.length;
+        input.value=input.value.slice(0,start)+emoji+input.value.slice(end);
+        input.focus();
+        const pos=start+emoji.length;
+        input.setSelectionRange?.(pos,pos);
     }
 
     openRoomAdmin() {
@@ -2205,8 +2297,9 @@ class ZonoApp {
             const occupied=!!seat.user_public_id;
             const locked=!!seat.is_locked;
             return `<button data-public-id="${occupied?Number(seat.user_public_id):''}" onclick="window.zonoApp.handleMicSeatClick(${seatNo},${occupied?'true':'false'})" class="zono-mic-seat zono-mic-seat-circle ${occupied?'occupied':''} ${locked?'locked':''}">
-                ${occupied?`<div class="zono-mic-avatar-wrap"><img src="${this.escapeHtml(seat.avatar||'')}" alt=""></div><b>${this.escapeHtml(seat.display_name||'')}</b>`
-                           :`<div class="zono-mic-seat-icon">${locked?'🔒':'🎙️'}</div><b>${locked?'مقفل':'صعود'}</b>`}
+                ${occupied
+                    ? `<div class="zono-mic-avatar-wrap"><img src="${this.escapeHtml(seat.avatar||'')}" alt=""></div><b>${this.escapeHtml(seat.display_name||'')}</b>`
+                    : `<div class="zono-mic-seat-icon">${locked?'🔒':'+'}</div>`}
             </button>`;
         }).join('');
     }
@@ -2899,8 +2992,9 @@ class ZonoApp {
         }catch(e){this.showToast(e.message||'تعذر حذف الرسالة','error')}
     }
 
-    requestRoomExit() {
+    requestRoomExit(fromHistory=false) {
         if(!this.activeRoom) return this.closeRoomModal();
+        this._roomExitFromHistory=!!fromHistory;
 
         const modal=document.getElementById('zono-room-exit-modal');
         const name=document.getElementById('zono-room-exit-name');
@@ -2914,16 +3008,28 @@ class ZonoApp {
         const modal=document.getElementById('zono-room-exit-modal');
         modal?.classList.add('hidden');
         modal?.classList.remove('flex');
+        if(this.activeRoom && this._roomExitFromHistory){
+            history.pushState({zonoRoomOpen:true,roomId:Number(this.activeRoom.public_id)},'',location.href);
+            this._roomHistoryArmed=true;
+        }
+        this._roomExitFromHistory=false;
     }
 
     confirmRoomExit() {
-        this.closeRoomExitModal();
+        const modal=document.getElementById('zono-room-exit-modal');
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+        this._roomExitFromHistory=false;
         this.closeRoomModal();
     }
 
     closeRoomModal() {
         const modal=document.getElementById('room-chat-modal');
         if(modal) modal.classList.add('hidden');
+        this.closeRoomOwnerInfo?.();
+        this.closeRoomMembersPanel?.();
+        document.getElementById('zono-room-emoji-panel')?.classList.add('hidden');
+        this._roomHistoryArmed=false;
         clearInterval(this.roomPollTimer);
         clearInterval(this.roomPresenceTimer);
         this.roomPollTimer=null;
@@ -3913,6 +4019,31 @@ class ZonoApp {
             roomInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') this.sendRoomMessage();
             });
+        }
+
+        window.addEventListener('popstate',()=>{
+            if(this.activeRoom){
+                this._roomHistoryArmed=false;
+                this.requestRoomExit(true);
+            }
+        });
+
+        const roomShell=document.getElementById('zono-room-shell');
+        if(roomShell){
+            let startX=null,startY=null;
+            roomShell.addEventListener('touchstart',(e)=>{
+                const t=e.touches?.[0];
+                if(t && t.clientX<28){startX=t.clientX;startY=t.clientY}
+                else {startX=null;startY=null}
+            },{passive:true});
+            roomShell.addEventListener('touchend',(e)=>{
+                if(startX===null) return;
+                const t=e.changedTouches?.[0];
+                const dx=(t?.clientX||0)-startX;
+                const dy=Math.abs((t?.clientY||0)-(startY||0));
+                startX=null;startY=null;
+                if(dx>75 && dy<90) this.requestRoomExit(false);
+            },{passive:true});
         }
 
         const dmInput = document.getElementById('dm-message-input');
