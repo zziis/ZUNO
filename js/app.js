@@ -10,6 +10,8 @@ class ZonoApp {
         this.activeRoom = null;
         this.activeDirectChat = null;
         this.rooms = [];
+        this.roomFilter = 'all';
+        this.roomSearch = '';
         this.roomMembers = [];
         this.activeRoom = null;
         this.pendingProtectedRoom = null;
@@ -1405,38 +1407,84 @@ class ZonoApp {
         if (!container || !client) return;
 
         try {
-            const { data, error } = await client.rpc('zono_list_rooms');
+            // v23 يضيف القسم ونوع الروم ومدة التجربة. إذا لم يُفعّل SQL الجديد نعود للدالة القديمة.
+            let data, error;
+            ({ data, error } = await client.rpc('zono_list_rooms_v23'));
+            if (error) ({ data, error } = await client.rpc('zono_list_rooms'));
             if (error) throw error;
 
-            this.rooms = Array.isArray(data) ? data : [];
-            if (count) count.textContent = `${this.rooms.length} روم`;
+            this.rooms = (Array.isArray(data) ? data : [])
+                .filter(Boolean)
+                .sort((a,b) => Number(b.active_members || 0) - Number(a.active_members || 0));
             this.renderRooms();
             if (showToast) this.showToast('تم تحديث الرومات', 'success');
         } catch (e) {
+            if (count) count.textContent = '0 روم';
             container.innerHTML = `<div class="zono-rooms-empty"><div class="text-3xl mb-2">⚠️</div><div>تعذر تحميل الرومات</div><div class="text-[10px] mt-1">${this.escapeHtml(e.message || '')}</div></div>`;
         }
     }
 
+    getRoomCategoryLabel(category) {
+        const map = {
+            general:'عام', poetry:'شعر', songs:'أغاني', music:'موسيقى',
+            challenges:'تحديات', contests:'مسابقات'
+        };
+        return map[String(category || 'general')] || 'عام';
+    }
+
+    setRoomSearch(value) {
+        this.roomSearch = String(value || '').trim().toLowerCase();
+        this.renderRooms();
+    }
+
+    setRoomFilter(filter, button = null) {
+        this.roomFilter = String(filter || 'all');
+        document.querySelectorAll('.zono-room-filter-chip').forEach(btn => btn.classList.toggle('active', btn === button || btn.dataset.roomFilter === this.roomFilter));
+        this.renderRooms();
+    }
+
+    getVisibleRooms() {
+        const q = this.roomSearch;
+        return [...(this.rooms || [])]
+            .filter(room => {
+                const cat = String(room.category || room.room_category || 'general');
+                if (this.roomFilter === 'following' && !(room.is_favorite || room.is_following || room.following)) return false;
+                if (!['all','following'].includes(this.roomFilter) && cat !== this.roomFilter) return false;
+                if (!q) return true;
+                const name = String(room.name || '').toLowerCase();
+                const id = String(room.public_id || '').toLowerCase();
+                return name.includes(q) || id.includes(q);
+            })
+            .sort((a,b) => Number(b.active_members || 0) - Number(a.active_members || 0));
+    }
+
     renderRooms() {
         const container = document.getElementById('rooms-list-container');
+        const count = document.getElementById('zono-rooms-count');
         if (!container) return;
 
-        if (!this.rooms.length) {
+        const visible = this.getVisibleRooms();
+        if (count) count.textContent = `${visible.length} روم`;
+
+        if (!visible.length) {
             container.innerHTML = `
                 <div class="zono-rooms-empty">
                     <div class="text-4xl mb-3">🏛️</div>
-                    <div class="font-black text-stone-200">لا توجد رومات حتى الآن</div>
-                    <div class="text-xs text-stone-500 mt-1">كن أول من ينشئ رومًا في Zono.</div>
+                    <div class="font-black text-stone-200">لا توجد رومات مطابقة</div>
+                    <div class="text-xs text-stone-500 mt-1">غيّر البحث أو القسم لعرض رومات أخرى.</div>
                 </div>`;
             return;
         }
 
-        container.innerHTML = this.rooms.map(room => `
+        container.innerHTML = visible.map(room => {
+            const category = String(room.category || room.room_category || 'general');
+            return `
             <button onclick="window.zonoApp.openRoom(${Number(room.public_id)})" class="zono-room-square-card">
                 <img src="${this.escapeHtml(room.image_url || '')}" alt="${this.escapeHtml(room.name || 'Room')}" class="zono-room-card-image">
                 <div class="zono-room-card-overlay"></div>
+                <span class="zono-room-category-chip">${this.escapeHtml(this.getRoomCategoryLabel(category))}</span>
 
-                <div class="zono-room-card-top">
+                <div class="zono-room-card-top has-category">
                     <span class="zono-room-id-chip">ID ${Number(room.public_id)}</span>
                     <span class="zono-room-lock-chip">${room.is_locked ? '🔒' : '🌐'}</span>
                 </div>
@@ -1450,15 +1498,12 @@ class ZonoApp {
                         <span>${this.escapeHtml(room.owner_name || '')}</span>
                     </div>
                 </div>
-            </button>
-        `).join('');
+            </button>`;
+        }).join('');
     }
 
     openCreateRoomModal() {
         if (!this.currentUser) return this.showAuthModal();
-        if (Number(this.currentUser.seeds || 0) < 30000) {
-            return this.showToast('تحتاج 30,000 بذرة لإنشاء روم', 'error');
-        }
 
         const modal = document.getElementById('zono-create-room-modal');
         if (!modal) return;
@@ -1477,6 +1522,16 @@ class ZonoApp {
                 wrap.classList.remove('hidden');
             });
         }
+    }
+
+    showPermanentRoomInfo() {
+        const modal=document.getElementById('zono-permanent-room-info-modal');
+        if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}
+    }
+
+    hidePermanentRoomInfo() {
+        const modal=document.getElementById('zono-permanent-room-info-modal');
+        if(modal){modal.classList.add('hidden');modal.classList.remove('flex');}
     }
 
     closeCreateRoomModal() {
@@ -1512,20 +1567,34 @@ class ZonoApp {
         const name = String(document.getElementById('zono-room-name-input')?.value || '').trim();
         const bio = String(document.getElementById('zono-room-bio-input')?.value || '').trim();
         const file = document.getElementById('zono-room-image-input')?.files?.[0];
+        const category = String(document.getElementById('zono-room-category-input')?.value || 'general');
+        const plan = String(document.querySelector('input[name="zono-room-plan"]:checked')?.value || 'permanent');
 
         if (name.length < 2 || name.length > 60) return this.showToast('اسم الروم يجب أن يكون من 2 إلى 60 حرفًا', 'error');
         if (bio.length < 2 || bio.length > 240) return this.showToast('أدخل نبذة مناسبة للروم', 'error');
         if (!file) return this.showToast('اختر صورة للروم', 'error');
+        if (!['general','poetry','songs','music','challenges','contests'].includes(category)) return this.showToast('اختر قسمًا صحيحًا للروم', 'error');
+        if (!['permanent','trial'].includes(plan)) return this.showToast('اختر نوع الروم', 'error');
+        if (plan === 'permanent' && Number(this.currentUser.seeds || 0) < 30000) return this.showToast('تحتاج 30,000 بذرة لشراء روم دائم', 'error');
 
         try {
             this.showToast('جاري رفع صورة الروم...', 'info');
             const imageUrl = await this.uploadRoomImage(file);
 
-            const { data, error } = await client.rpc('zono_create_room', {
+            let data, error;
+            ({data,error}=await client.rpc('zono_create_room_v23', {
                 p_name:name,
                 p_bio:bio,
-                p_image_url:imageUrl
-            });
+                p_image_url:imageUrl,
+                p_category:category,
+                p_plan:plan
+            }));
+
+            // توافق مؤقت مع قاعدة البيانات القديمة حتى يتم تشغيل ملف SQL المرفق.
+            if (error && /zono_create_room_v23|function|schema cache|could not find/i.test(String(error.message||error))) {
+                if (plan === 'trial') throw new Error('فعّل ملف Supabase المرفق أولًا لاستخدام الروم التجريبي 60 يوم');
+                ({data,error}=await client.rpc('zono_create_room', {p_name:name,p_bio:bio,p_image_url:imageUrl}));
+            }
             if (error) throw error;
 
             await window.zonoAuth.loadProfile(window.zonoAuth.user);
@@ -1536,11 +1605,13 @@ class ZonoApp {
                 const el=document.getElementById(id); if(el) el.value='';
             });
             const fi=document.getElementById('zono-room-image-input'); if(fi) fi.value='';
+            const cat=document.getElementById('zono-room-category-input'); if(cat) cat.value='general';
+            const permanent=document.querySelector('input[name="zono-room-plan"][value="permanent"]'); if(permanent) permanent.checked=true;
             document.getElementById('zono-room-image-preview-wrap')?.classList.add('hidden');
 
             this.closeCreateRoomModal();
             await this.loadRooms();
-            this.showToast(`تم إنشاء الروم — ID ${data?.public_id || ''}`, 'success');
+            this.showToast(plan==='trial' ? `تم إنشاء الروم التجريبي لمدة 60 يوم — ID ${data?.public_id || ''}` : `تم إنشاء الروم الدائم — ID ${data?.public_id || ''}`, 'success');
         } catch (e) {
             this.showToast(e.message || 'تعذر إنشاء الروم', 'error');
         }
@@ -1561,6 +1632,11 @@ class ZonoApp {
             if (error) throw error;
 
             this.activeRoom = data;
+            if (listRoom) {
+                this.activeRoom.category = listRoom.category || listRoom.room_category || 'general';
+                this.activeRoom.plan_type = listRoom.plan_type || listRoom.room_plan || 'permanent';
+                this.activeRoom.trial_expires_at = listRoom.trial_expires_at || null;
+            }
             this.activeRoom.messages = [];
             this.roomMusicState = null;
             this.roomMusicSongs = [];
@@ -2205,6 +2281,7 @@ class ZonoApp {
     }
 
     async buyRoomMicPackage(count) {
+        if(String(this.activeRoom?.plan_type||'permanent')==='trial') return this.showToast('شراء المايكات متاح للروم الدائم فقط','error');
         if(!this.activeRoom?.is_owner) return this.showToast('شراء الباقة لمالك الروم فقط','error');
         if(![4,6,8].includes(Number(count))) return;
         const price=Number(count)*1000;
@@ -2836,6 +2913,7 @@ class ZonoApp {
     }
 
     async uploadRoomMusic() {
+        if(String(this.activeRoom?.plan_type||'permanent')==='trial') return this.showToast('رفع الأغاني متاح للروم الدائم فقط','error');
         if(!(this.activeRoom?.is_owner||this.activeRoom?.is_moderator)) return this.showToast('رفع الأغاني للمالك والمشرفين فقط','error');
 
         const input=document.getElementById('zono-room-music-file');
