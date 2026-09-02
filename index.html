@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260902-ui7">
+    <link rel="stylesheet" href="css/style.css?v=20260902-v8-visual2">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -856,7 +856,7 @@
                     </div>
                     <button type="button" id="zono-room-favorite-btn" onclick="event.stopPropagation();window.zonoApp.toggleRoomFavorite()" class="zono-room-favorite-btn" title="حفظ في المفضلة">♡</button>
                 </div>
-                <button type="button" id="room-modal-count" onclick="window.zonoApp.openRoomMembersPanel()" class="zono-room-member-capsule"><span id="zono-room-member-avatars" class="zono-room-member-avatars"></span><span id="zono-room-member-number">0</span><span>👥</span></button>
+                <button type="button" id="room-modal-count" onclick="window.zonoApp.openRoomMembersPanel()" class="zono-room-member-capsule"><span class="zono-room-member-icon">👥</span><span id="zono-room-member-number">0</span><span id="zono-room-member-avatars" class="zono-room-member-avatars"></span></button>
                 <button type="button" id="room-admin-button" onclick="window.zonoApp.openRoomAdmin()" class="hidden zono-room-menu-btn" title="إدارة الروم">☰</button>
             </div>
 
@@ -936,14 +936,25 @@
             </div>
 
             <div class="zono-room-composer relative z-[5]">
+                <button id="zono-room-bottom-gift" onclick="window.zonoApp.openRoomGiftModal()" class="zono-bottom-round-btn zono-bottom-gift-btn" title="الهدايا">🎁</button>
+
+                <button id="zono-room-bottom-music" onclick="window.zonoApp.toggleRoomMusicPanel()" class="hidden zono-bottom-round-btn zono-bottom-music-btn" title="موسيقى الروم">♪</button>
+
+                <button id="zono-room-voice-btn" onclick="window.zonoApp.toggleVoiceRecording()" class="zono-bottom-round-btn zono-bottom-voice-btn" title="بصمة صوتية" aria-label="بصمة صوتية">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 14.5a3.5 3.5 0 0 0 3.5-3.5V6a3.5 3.5 0 0 0-7 0v5a3.5 3.5 0 0 0 3.5 3.5Z"></path>
+                        <path d="M5.8 10.5v.8A6.2 6.2 0 0 0 12 17.5a6.2 6.2 0 0 0 6.2-6.2v-.8"></path>
+                        <path d="M12 17.5V21"></path>
+                        <path d="M9 21h6"></path>
+                    </svg>
+                </button>
+
                 <div class="zono-room-message-capsule">
-                    <button onclick="window.zonoApp.toggleRoomEmojiPanel()" class="zono-room-emoji-btn" title="سمايل">🙂</button>
+                    <button onclick="window.zonoApp.toggleRoomEmojiPanel()" class="zono-room-emoji-btn" title="سمايل">☺</button>
                     <input type="text" id="room-message-input" maxlength="1000" placeholder="اكتب رسالتك..." autocomplete="off">
                     <button id="room-send-button" onclick="window.zonoApp.sendRoomMessage()" class="zono-room-inline-send" title="إرسال">➤</button>
                 </div>
-                <button id="zono-room-voice-btn" onclick="window.zonoApp.toggleVoiceRecording()" class="zono-bottom-round-btn" title="بصمة صوتية">◉</button>
-                <button id="zono-room-bottom-music" onclick="window.zonoApp.toggleRoomMusicPanel()" class="hidden zono-bottom-round-btn" title="موسيقى الروم">♪</button>
-                <button id="zono-room-bottom-gift" onclick="window.zonoApp.openRoomGiftModal()" class="zono-bottom-round-btn" title="الهدايا">🎁</button>
+
                 <div id="zono-room-emoji-panel" class="hidden zono-room-emoji-panel">
                     <button onclick="window.zonoApp.insertRoomEmoji('😂')">😂</button><button onclick="window.zonoApp.insertRoomEmoji('❤️')">❤️</button><button onclick="window.zonoApp.insertRoomEmoji('😍')">😍</button><button onclick="window.zonoApp.insertRoomEmoji('🔥')">🔥</button><button onclick="window.zonoApp.insertRoomEmoji('👏')">👏</button><button onclick="window.zonoApp.insertRoomEmoji('🌹')">🌹</button><button onclick="window.zonoApp.insertRoomEmoji('😎')">😎</button><button onclick="window.zonoApp.insertRoomEmoji('✨')">✨</button>
                 </div>
