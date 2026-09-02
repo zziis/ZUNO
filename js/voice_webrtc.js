@@ -143,6 +143,9 @@
                 if(payload?.peer_id===this.peerId) return;
                 this.app?.showRoomEntryNotice?.(payload||{});
             });
+            ch.on('broadcast', { event:'room-music-change' }, () => {
+                this.app?.loadRoomMusicState?.(true);
+            });
             ch.on('presence', { event:'sync' }, () => {
                 this.handlePresenceSync().catch(()=>{});
             });
@@ -186,6 +189,13 @@
                 user_public_id:this.myPublicId(),
                 display_name:payload.display_name || this.myName(),
                 name_theme:payload.name_theme || 'basic'
+            });
+        }
+
+        async broadcastRoomMusicChange() {
+            await this.sendBroadcast('room-music-change',{
+                peer_id:this.peerId,
+                at:Date.now()
             });
         }
 

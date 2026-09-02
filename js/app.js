@@ -23,6 +23,17 @@ class ZonoApp {
         this.recordedVoiceUrl = null;
         this.voiceStartedAt = null;
         this.voiceMaxTimer = null;
+        this.roomMusicState = null;
+        this.roomMusicSongs = [];
+        this.roomMusicIsStaff = false;
+        this.roomMusicIsOwner = false;
+        this.roomMusicAudio = null;
+        this.roomMusicVolume = Number(localStorage.getItem('zono_room_music_volume') || 70) / 100;
+        this.roomMusicMuted = localStorage.getItem('zono_room_music_muted') === 'true';
+
+        this.activeVoiceAudio = null;
+        this.activeVoiceButton = null;
+        this.roomInitialMessagesLoaded = false;
         this.birdEngine = null;
         this.theme = localStorage.getItem('zono_theme') || 'classic_night';
         this.ownedThemes = new Set(['classic_night','daylight']);
@@ -1548,6 +1559,10 @@ class ZonoApp {
 
             this.activeRoom = data;
             this.activeRoom.messages = [];
+            this.roomMusicState = null;
+            this.roomMusicSongs = [];
+
+            this.roomInitialMessagesLoaded = false;
             this.pendingProtectedRoom = null;
             this.closeRoomPasswordModal();
 
@@ -1570,6 +1585,7 @@ class ZonoApp {
             await this.loadRoomMessages();
             await this.loadRoomMembers();
             await this.loadRoomMicState();
+            await this.loadRoomMusicState(true);
 
             if (window.zonoLiveVoice) {
                 await window.zonoLiveVoice.joinRoom(Number(data.public_id));
@@ -1591,6 +1607,7 @@ class ZonoApp {
                     this.loadRoomMessages(true);
                     this.loadRoomMembers();
                     this.loadRoomMicState();
+                    this.loadRoomMusicState(true);
                 }
             }, 2000);
             this.roomPresenceTimer = setInterval(() => {
@@ -1675,11 +1692,16 @@ class ZonoApp {
         const client=this.getRoomClient();
         if (!client || !this.activeRoom) return;
         try {
+            // The server deletes room messages older than 60 minutes.
+            // On entry show only the latest 10; while the user stays, allow up to 100.
             const { data, error } = await client.rpc('zono_room_messages', {
                 p_room_public_id:Number(this.activeRoom.public_id)
             });
             if (error) throw error;
-            this.activeRoom.messages = Array.isArray(data) ? [...data].reverse() : [];
+            const all = Array.isArray(data) ? [...data].reverse() : [];
+            const limit = this.roomInitialMessagesLoaded ? 100 : 10;
+            this.activeRoom.messages = all.slice(-limit);
+            this.roomInitialMessagesLoaded = true;
             this.renderRoomMessages();
         } catch (e) {
             if (!silent) this.showToast(e.message || 'تعذر تحميل الرسائل', 'error');
@@ -1745,8 +1767,11 @@ class ZonoApp {
                     <span class="zono-name-capsule ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
                     <span class="text-stone-500 text-[9px]">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
                 </div>
-                <div class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow">
-                    ${this.escapeHtml(msg.content || '')}
+                <div class="zono-room-text-actions ${isMe?'is-me':''}">
+                    <div class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow">
+                        ${this.escapeHtml(msg.content || '')}
+                    </div>
+                    ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف الرسالة">🗑️</button>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -1810,6 +1835,7 @@ class ZonoApp {
         if (mode) mode.value = this.activeRoom.mic_mode || 'open';
         this.loadRoomMembers();
         this.loadRoomMicState();
+        this.loadRoomMusicState(true);
     }
 
     closeRoomAdmin() {
@@ -2388,15 +2414,393 @@ class ZonoApp {
 
     toggleVoicePlayback(button,url) {
         if(!url) return;
-        if(button._audio){
-            if(button._audio.paused){button._audio.play();button.textContent='⏸'}else{button._audio.pause();button.textContent='▶'}
+
+        // تشغيل بصمة واحدة فقط. الضغط على نفس البصمة يعيدها من البداية.
+        if(this.activeVoiceAudio){
+            try{ this.activeVoiceAudio.pause(); this.activeVoiceAudio.currentTime=0; }catch(_){}
+            if(this.activeVoiceButton){
+                this.activeVoiceButton.textContent='▶';
+                this.activeVoiceButton.classList.remove('is-playing');
+            }
+        }
+
+        let a = button._audio;
+        if(!a){
+            a = new Audio(url);
+            button._audio = a;
+        }
+        try{ a.currentTime=0; }catch(_){}
+        this.activeVoiceAudio=a;
+        this.activeVoiceButton=button;
+
+        a.onplay=()=>{button.textContent='Ⅱ';button.classList.add('is-playing')};
+        a.onpause=()=>{button.textContent='▶';button.classList.remove('is-playing')};
+        a.onended=()=>{
+            button.textContent='▶';button.classList.remove('is-playing');
+            try{a.currentTime=0}catch(_){}
+            if(this.activeVoiceAudio===a){this.activeVoiceAudio=null;this.activeVoiceButton=null}
+        };
+        a.play().catch(()=>this.showToast('تعذر تشغيل الرسالة الصوتية','error'));
+    }
+
+    stopActiveVoicePlayback() {
+        if(!this.activeVoiceAudio) return;
+        try{this.activeVoiceAudio.pause();this.activeVoiceAudio.currentTime=0}catch(_){}
+        if(this.activeVoiceButton){this.activeVoiceButton.textContent='▶';this.activeVoiceButton.classList.remove('is-playing')}
+        this.activeVoiceAudio=null;this.activeVoiceButton=null;
+    }
+
+    ensureRoomMusicAudio() {
+        if(this.roomMusicAudio) return this.roomMusicAudio;
+        const audio=new Audio();
+        audio.preload='auto';
+        audio.playsInline=true;
+        audio.crossOrigin='anonymous';
+        audio.volume=this.roomMusicMuted ? 0 : this.roomMusicVolume;
+
+        audio.onplay=()=>{
+            document.getElementById('zono-room-music-fab')?.classList.add('is-playing');
+            const main=document.getElementById('zono-music-main-control');
+            if(main) main.textContent='Ⅱ';
+        };
+        audio.onpause=()=>{
+            document.getElementById('zono-room-music-fab')?.classList.remove('is-playing');
+            const main=document.getElementById('zono-music-main-control');
+            if(main) main.textContent='▶';
+        };
+        audio.ontimeupdate=()=>this.renderRoomMusicProgress();
+        audio.onended=()=>{
+            // Only room staff changes the shared track. Listeners never change room playback.
+            if(this.roomMusicIsStaff) this.roomMusicControl('ended').catch(()=>{});
+        };
+
+        this.roomMusicAudio=audio;
+        return audio;
+    }
+
+    toggleRoomMusicPanel() {
+        const panel=document.getElementById('zono-room-music-panel');
+        if(!panel) return;
+        panel.classList.toggle('hidden');
+        if(!panel.classList.contains('hidden')) this.loadRoomMusicState(false);
+    }
+
+    formatMediaTime(sec) {
+        sec=Math.max(0,Math.floor(Number(sec)||0));
+        return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`;
+    }
+
+    async loadRoomMusicState(silent=true) {
+        const client=this.getRoomClient();
+        if(!client || !this.activeRoom) return;
+        try{
+            const roomId=Number(this.activeRoom.public_id);
+            const {data,error}=await client.rpc('zono_room_music_state',{p_room_public_id:roomId});
+            if(error) throw error;
+            // Ignore a late response belonging to a room that was already closed/switched.
+            if(!this.activeRoom || Number(this.activeRoom.public_id)!==roomId) return;
+
+            this.roomMusicState=data?.state||null;
+            this.roomMusicSongs=Array.isArray(data?.songs)?data.songs:[];
+            this.roomMusicIsStaff=!!data?.is_staff;
+            this.roomMusicIsOwner=!!data?.is_owner;
+
+            this.applyRoomMusicState(data);
+            this.renderRoomMusicList();
+            this.renderRoomMusicAdminList();
+        }catch(e){
+            if(!silent) this.showToast(e.message||'تعذر تحميل موسيقى الروم','error');
+        }
+    }
+
+    applyRoomMusicState(payload) {
+        const state=payload?.state||null;
+        const audio=this.ensureRoomMusicAudio();
+
+        const controls=document.getElementById('zono-music-staff-controls');
+        controls?.classList.toggle('hidden',!this.roomMusicIsStaff);
+
+        const volumeInput=document.getElementById('zono-music-volume');
+        if(volumeInput) volumeInput.value=String(Math.round(this.roomMusicVolume*100));
+        const volumeLabel=document.getElementById('zono-music-volume-label');
+        if(volumeLabel) volumeLabel.textContent=`${Math.round(this.roomMusicVolume*100)}%`;
+        const muteBtn=document.getElementById('zono-music-mute-btn');
+        if(muteBtn) muteBtn.textContent=this.roomMusicMuted?'🔇':'🔊';
+
+        const title=document.getElementById('zono-music-now-title');
+
+        if(!state?.song_url){
+            if(title) title.textContent='لا توجد أغنية تعمل';
+            try{
+                audio.pause();
+                audio.removeAttribute('src');
+                audio.load();
+                delete audio.dataset.songId;
+            }catch(_){}
+            this.renderRoomMusicProgress();
             return;
         }
-        const a=new Audio(url);button._audio=a;
-        a.onended=()=>button.textContent='▶';
-        a.onpause=()=>button.textContent='▶';
-        a.onplay=()=>button.textContent='⏸';
-        a.play().catch(()=>this.showToast('تعذر تشغيل الرسالة الصوتية','error'));
+
+        if(title) title.textContent=state.song_title||'موسيقى الروم';
+
+        const changed=audio.dataset.songId!==String(state.song_id);
+        if(changed){
+            audio.dataset.songId=String(state.song_id);
+            audio.src=state.song_url;
+            audio.load();
+        }
+
+        audio.volume=this.roomMusicMuted ? 0 : this.roomMusicVolume;
+
+        const base=Math.max(0,Number(state.position_seconds||0));
+        const serverNow=new Date(state.server_now||Date.now()).getTime();
+        const startedAt=state.started_at?new Date(state.started_at).getTime():serverNow;
+        const target=state.status==='playing'
+            ? base + Math.max(0,(serverNow-startedAt)/1000)
+            : base;
+
+        const syncPosition=()=>{
+            if(Number.isFinite(target) && Math.abs((audio.currentTime||0)-target)>1.8){
+                try{audio.currentTime=Math.min(target,Number.isFinite(audio.duration)?audio.duration:target)}catch(_){}
+            }
+        };
+
+        if(changed){
+            audio.onloadedmetadata=()=>{
+                syncPosition();
+                if(state.status==='playing') audio.play().catch(()=>{});
+                this.renderRoomMusicProgress();
+            };
+        }else{
+            syncPosition();
+        }
+
+        if(state.status==='playing'){
+            const p=audio.play();
+            if(p?.catch) p.catch(()=>{});
+        }else{
+            audio.pause();
+        }
+
+        const repeat=document.getElementById('zono-music-repeat-btn');
+        if(repeat) repeat.textContent=state.repeat_mode==='one'?'🔂 تكرار':'🔁 التالي';
+
+        this.renderRoomMusicProgress();
+    }
+
+    renderRoomMusicProgress() {
+        const audio=this.roomMusicAudio;
+        const current=Number(audio?.currentTime||this.roomMusicState?.position_seconds||0);
+        const duration=Number(
+            (Number.isFinite(audio?.duration) ? audio.duration : 0)
+            || this.roomMusicState?.duration_seconds
+            || 0
+        );
+        const pct=duration>0?Math.max(0,Math.min(100,current/duration*100)):0;
+        const fill=document.getElementById('zono-music-progress-fill');
+        if(fill) fill.style.width=`${pct}%`;
+
+        const cur=document.getElementById('zono-music-current-time');
+        const dur=document.getElementById('zono-music-duration');
+        if(cur) cur.textContent=this.formatMediaTime(current);
+        if(dur) dur.textContent=this.formatMediaTime(duration);
+    }
+
+    renderRoomMusicList() {
+        const box=document.getElementById('zono-room-music-list');
+        if(!box) return;
+        const currentId=Number(this.roomMusicState?.song_id||0);
+
+        box.innerHTML=this.roomMusicSongs.map(song=>`
+            <div class="zono-music-song ${Number(song.id)===currentId?'is-current':''}">
+                <div class="zono-music-song-icon">🎵</div>
+                <div class="min-w-0 flex-1">
+                    <b>${this.escapeHtml(song.title||'أغنية')}</b>
+                    <span>${this.formatMediaTime(song.duration_seconds||0)}</span>
+                </div>
+                ${this.roomMusicIsStaff
+                    ? `<button onclick="window.zonoApp.roomMusicPlaySong(${Number(song.id)})">تشغيل</button>`
+                    : ''}
+            </div>
+        `).join('') || '<div class="text-center text-stone-500 text-[10px] py-4">لم يضف مالك الروم أغاني بعد.</div>';
+    }
+
+    renderRoomMusicAdminList() {
+        const box=document.getElementById('zono-room-music-admin-list');
+        if(!box) return;
+
+        box.innerHTML=this.roomMusicSongs.map(song=>`
+            <div class="zono-music-admin-row">
+                <div class="min-w-0">
+                    <b>${this.escapeHtml(song.title||'أغنية')}</b>
+                    <span>${this.formatMediaTime(song.duration_seconds||0)}</span>
+                </div>
+                <button onclick="window.zonoApp.deleteRoomMusic(${Number(song.id)})">حذف</button>
+            </div>
+        `).join('') || '<div class="text-[10px] text-stone-500">لا توجد أغاني مرفوعة.</div>';
+    }
+
+    getAudioFileDuration(file) {
+        return new Promise((resolve,reject)=>{
+            const url=URL.createObjectURL(file);
+            const audio=document.createElement('audio');
+            audio.preload='metadata';
+            audio.onloadedmetadata=()=>{
+                const duration=Math.max(1,Math.round(audio.duration||0));
+                URL.revokeObjectURL(url);
+                resolve(duration);
+            };
+            audio.onerror=()=>{
+                URL.revokeObjectURL(url);
+                reject(new Error('تعذر قراءة ملف MP3'));
+            };
+            audio.src=url;
+        });
+    }
+
+    async uploadRoomMusic() {
+        if(!this.activeRoom?.is_owner) return this.showToast('رفع الأغاني لمالك الروم فقط','error');
+
+        const input=document.getElementById('zono-room-music-file');
+        const file=input?.files?.[0];
+        if(!file) return this.showToast('اختر ملف MP3','error');
+
+        const isMp3=file.type==='audio/mpeg' || /\.mp3$/i.test(file.name);
+        if(!isMp3) return this.showToast('المسموح ملفات MP3 فقط','error');
+        if(file.size>15*1024*1024) return this.showToast('حجم الأغنية يجب ألا يتجاوز 15MB','error');
+
+        const client=this.getRoomClient();
+        try{
+            this.showToast('جاري رفع الأغنية...','info');
+            const duration=await this.getAudioFileDuration(file);
+            const uid=window.zonoAuth?.user?.id;
+            if(!uid) throw new Error('الحساب غير متصل');
+
+            const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,'_');
+            const path=`${uid}/${Number(this.activeRoom.public_id)}/${Date.now()}-${safe}`;
+
+            const {error:uploadError}=await client.storage.from('room-music').upload(path,file,{
+                upsert:false,
+                contentType:'audio/mpeg',
+                cacheControl:'3600'
+            });
+            if(uploadError) throw uploadError;
+
+            const publicUrl=client.storage.from('room-music').getPublicUrl(path).data.publicUrl;
+            const title=file.name.replace(/\.mp3$/i,'').trim()||'أغنية';
+
+            const {error}=await client.rpc('zono_room_music_add',{
+                p_room_public_id:Number(this.activeRoom.public_id),
+                p_title:title,
+                p_url:publicUrl,
+                p_storage_path:path,
+                p_duration_seconds:duration
+            });
+            if(error){
+                // Avoid leaving an orphaned upload when registration fails.
+                client.storage.from('room-music').remove([path]).catch(()=>{});
+                throw error;
+            }
+
+            if(input) input.value='';
+            await this.loadRoomMusicState(true);
+            this.showToast('تمت إضافة الأغنية','success');
+        }catch(e){
+            this.showToast(e.message||'تعذر رفع الأغنية','error');
+        }
+    }
+
+    async deleteRoomMusic(songId) {
+        if(!this.activeRoom?.is_owner) return;
+        if(!confirm('حذف هذه الأغنية من الروم؟')) return;
+        const client=this.getRoomClient();
+
+        try{
+            const {data,error}=await client.rpc('zono_room_music_delete',{
+                p_room_public_id:Number(this.activeRoom.public_id),
+                p_song_id:Number(songId)
+            });
+            if(error) throw error;
+
+            if(data?.storage_path){
+                client.storage.from('room-music').remove([data.storage_path]).catch(()=>{});
+            }
+
+            await this.loadRoomMusicState(true);
+            if(window.zonoLiveVoice) window.zonoLiveVoice.broadcastRoomMusicChange?.().catch(()=>{});
+        }catch(e){
+            this.showToast(e.message||'تعذر حذف الأغنية','error');
+        }
+    }
+
+    async roomMusicControl(action,songId=null) {
+        if(!this.roomMusicIsStaff) return this.showToast('التحكم للمالك والمشرفين فقط','error');
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom) return;
+
+        try{
+            const {error}=await client.rpc('zono_room_music_control',{
+                p_room_public_id:Number(this.activeRoom.public_id),
+                p_action:String(action),
+                p_song_id:songId==null?null:Number(songId)
+            });
+            if(error) throw error;
+
+            await this.loadRoomMusicState(true);
+            if(window.zonoLiveVoice) window.zonoLiveVoice.broadcastRoomMusicChange?.().catch(()=>{});
+        }catch(e){
+            this.showToast(e.message||'تعذر التحكم بالموسيقى','error');
+        }
+    }
+
+    roomMusicPlaySong(songId) { return this.roomMusicControl('play_song',songId); }
+    roomMusicNext() { return this.roomMusicControl('next'); }
+    roomMusicPrevious() { return this.roomMusicControl('previous'); }
+    roomMusicTogglePlay() {
+        return this.roomMusicControl(this.roomMusicState?.status==='playing'?'pause':'resume');
+    }
+    roomMusicToggleRepeat() {
+        return this.roomMusicControl(this.roomMusicState?.repeat_mode==='one'?'repeat_all':'repeat_one');
+    }
+
+    setRoomMusicVolume(value) {
+        const amount=Math.max(0,Math.min(100,Number(value)||0));
+        this.roomMusicVolume=amount/100;
+        localStorage.setItem('zono_room_music_volume',String(amount));
+
+        if(this.roomMusicAudio){
+            this.roomMusicAudio.volume=this.roomMusicMuted?0:this.roomMusicVolume;
+        }
+
+        const label=document.getElementById('zono-music-volume-label');
+        if(label) label.textContent=`${amount}%`;
+    }
+
+    toggleRoomMusicMute() {
+        this.roomMusicMuted=!this.roomMusicMuted;
+        localStorage.setItem('zono_room_music_muted',String(this.roomMusicMuted));
+
+        if(this.roomMusicAudio){
+            this.roomMusicAudio.volume=this.roomMusicMuted?0:this.roomMusicVolume;
+        }
+
+        const button=document.getElementById('zono-music-mute-btn');
+        if(button) button.textContent=this.roomMusicMuted?'🔇':'🔊';
+    }
+
+    stopRoomMusic() {
+        if(this.roomMusicAudio){
+            try{
+                this.roomMusicAudio.pause();
+                this.roomMusicAudio.currentTime=0;
+                this.roomMusicAudio.removeAttribute('src');
+                this.roomMusicAudio.load();
+                delete this.roomMusicAudio.dataset.songId;
+            }catch(_){}
+        }
+
+        document.getElementById('zono-room-music-fab')?.classList.remove('is-playing');
+        document.getElementById('zono-room-music-panel')?.classList.add('hidden');
     }
 
     async deleteRoomMessage(messageId) {
@@ -2410,6 +2814,28 @@ class ZonoApp {
         }catch(e){this.showToast(e.message||'تعذر حذف الرسالة','error')}
     }
 
+    requestRoomExit() {
+        if(!this.activeRoom) return this.closeRoomModal();
+
+        const modal=document.getElementById('zono-room-exit-modal');
+        const name=document.getElementById('zono-room-exit-name');
+        if(name) name.textContent=this.activeRoom.name||'الغرفة';
+
+        modal?.classList.remove('hidden');
+        modal?.classList.add('flex');
+    }
+
+    closeRoomExitModal() {
+        const modal=document.getElementById('zono-room-exit-modal');
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+    }
+
+    confirmRoomExit() {
+        this.closeRoomExitModal();
+        this.closeRoomModal();
+    }
+
     closeRoomModal() {
         const modal=document.getElementById('room-chat-modal');
         if(modal) modal.classList.add('hidden');
@@ -2419,6 +2845,11 @@ class ZonoApp {
         this.roomPresenceTimer=null;
         if(this.voiceRecorder?.state==='recording') this.stopVoiceRecording();
         this.cancelRecordedVoice();
+        this.stopActiveVoicePlayback();
+        this.stopRoomMusic();
+        this.roomMusicState=null;
+        this.roomMusicSongs=[];
+        this.roomInitialMessagesLoaded=false;
         this.roomMicState=null;
         if(window.zonoLiveVoice) window.zonoLiveVoice.leaveRoom().catch(()=>{});
 

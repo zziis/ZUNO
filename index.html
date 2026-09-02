@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260902-roomui3">
+    <link rel="stylesheet" href="css/style.css?v=20260902-music5">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -858,7 +858,7 @@
                     <button id="zono-room-favorite-btn" onclick="window.zonoApp.toggleRoomFavorite()" class="zono-room-favorite-btn" title="حفظ في المفضلة">♡</button>
                     <button onclick="window.zonoApp.openRoomGiftModal()" class="zono-room-header-btn gift" title="إرسال هدية">🌹</button>
                     <button id="room-admin-button" onclick="window.zonoApp.openRoomAdmin()" class="hidden zono-room-header-btn admin" title="إدارة الروم">⚙️</button>
-                    <button onclick="window.zonoApp.closeRoomModal()" class="zono-room-header-btn">✕</button>
+                    <button onclick="window.zonoApp.requestRoomExit()" class="zono-room-header-btn">✕</button>
                 </div>
             </div>
 
@@ -875,6 +875,42 @@
                     <span id="zono-room-entry-name" class="zono-name-capsule zono-name-basic">عضو Zono</span>
                     <span id="zono-room-entry-text">دخل الروم</span>
                 </div>
+            </div>
+
+            <button id="zono-room-music-fab" onclick="window.zonoApp.toggleRoomMusicPanel()" class="zono-room-music-fab" title="موسيقى الروم">
+                <span class="zono-music-pulse-ring"></span>
+                <span id="zono-room-music-fab-icon">🎵</span>
+            </button>
+
+            <div id="zono-room-music-panel" class="hidden zono-room-music-panel">
+                <div class="zono-music-panel-head">
+                    <div class="min-w-0">
+                        <b>🎵 موسيقى الروم</b>
+                        <span id="zono-music-now-title">لا توجد أغنية تعمل</span>
+                    </div>
+                    <button onclick="window.zonoApp.toggleRoomMusicPanel()">✕</button>
+                </div>
+
+                <div class="zono-music-progress-row">
+                    <span id="zono-music-current-time">0:00</span>
+                    <div class="zono-music-progress"><i id="zono-music-progress-fill"></i></div>
+                    <span id="zono-music-duration">0:00</span>
+                </div>
+
+                <div id="zono-music-staff-controls" class="hidden zono-music-staff-controls">
+                    <button onclick="window.zonoApp.roomMusicPrevious()">⏮</button>
+                    <button id="zono-music-main-control" onclick="window.zonoApp.roomMusicTogglePlay()">▶</button>
+                    <button onclick="window.zonoApp.roomMusicNext()">⏭</button>
+                    <button id="zono-music-repeat-btn" onclick="window.zonoApp.roomMusicToggleRepeat()">🔁 التالي</button>
+                </div>
+
+                <div class="zono-music-listener-controls">
+                    <button id="zono-music-mute-btn" onclick="window.zonoApp.toggleRoomMusicMute()">🔊</button>
+                    <input id="zono-music-volume" type="range" min="0" max="100" value="70" oninput="window.zonoApp.setRoomMusicVolume(this.value)">
+                    <span id="zono-music-volume-label">70%</span>
+                </div>
+
+                <div id="zono-room-music-list" class="zono-room-music-list"></div>
             </div>
 
             <div id="room-messages-flow" class="relative z-[2] flex-1 p-4 overflow-y-auto space-y-2 bg-stone-950/25">
@@ -1003,6 +1039,14 @@
                 <button onclick="window.zonoApp.saveRoomBackground()" class="zono-admin-action w-full mt-2">حفظ خلفية الغرفة</button>
                 <button onclick="window.zonoApp.clearRoomBackground()" class="zono-admin-action w-full mt-2">إرجاع الخلفية الافتراضية</button>
 
+                <div class="mt-4 pt-4 border-t border-stone-800">
+                    <h4 class="text-xs font-black text-stone-200 mb-2">🎵 موسيقى الروم</h4>
+                    <p class="text-[9px] text-stone-500 mb-2">رفع MP3 لمالك الروم فقط. التشغيل والتبديل للمالك والمشرفين.</p>
+                    <input id="zono-room-music-file" type="file" accept="audio/mpeg,.mp3" class="zono-room-file-input">
+                    <button onclick="window.zonoApp.uploadRoomMusic()" class="zono-admin-action w-full mt-2">إضافة أغنية MP3</button>
+                    <div id="zono-room-music-admin-list" class="space-y-2 mt-3"></div>
+                </div>
+
                 <h4 class="text-xs font-black text-stone-200 mt-4 mb-2">🛡️ إرشادات المجتمع</h4>
                 <textarea id="zono-room-guidelines-input" maxlength="500" class="zono-room-form-input min-h-[100px] py-3" placeholder="اكتب إرشادات الروم..."></textarea>
                 <button onclick="window.zonoApp.saveRoomGuidelines()" class="zono-admin-action w-full mt-2">حفظ الإرشادات</button>
@@ -1047,6 +1091,20 @@
             </div>
 
             <button onclick="window.zonoApp.sendRoomGift()" class="zono-room-submit-btn mt-4">إرسال الوردة 🌹</button>
+        </div>
+    </div>
+
+    <!-- Room Exit Confirmation -->
+    <div id="zono-room-exit-modal" class="fixed inset-0 z-[120] hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+        <div class="zono-room-exit-card">
+            <div class="zono-room-exit-icon">🚪</div>
+            <h3>الخروج من الغرفة</h3>
+            <div id="zono-room-exit-name" class="zono-room-exit-name">اسم الغرفة</div>
+            <p>هل أنت متأكد من الخروج؟ سيتم إيقاف المايك والموسيقى ومغادرة الغرفة.</p>
+            <div class="zono-room-exit-actions">
+                <button onclick="window.zonoApp.closeRoomExitModal()" class="stay">البقاء</button>
+                <button onclick="window.zonoApp.confirmRoomExit()" class="leave">خروج 🚪</button>
+            </div>
         </div>
     </div>
 
@@ -1129,8 +1187,8 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/voice_webrtc.js?v=20260902-roomui3"></script>
-    <script src="js/app.js?v=20260902-roomui3"></script>
+    <script src="js/voice_webrtc.js?v=20260902-music5"></script>
+    <script src="js/app.js?v=20260902-music5"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
