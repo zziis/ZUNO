@@ -1524,9 +1524,49 @@ class ZonoApp {
         }
     }
 
+    showSelectedRoomPlanInfo() {
+        const plan = String(document.querySelector('input[name="zono-room-plan"]:checked')?.value || 'permanent');
+        const modal = document.getElementById('zono-permanent-room-info-modal');
+        const title = document.getElementById('zono-plan-info-title');
+        const content = document.getElementById('zono-plan-info-content');
+        if (!modal || !title || !content) return;
+
+        if (plan === 'trial') {
+            title.textContent = 'الروم المجاني';
+            content.innerHTML = `
+                <p class="zono-plan-info-lead">الروم المجاني متاح لمدة <b>60 يومًا</b> ومرة واحدة فقط لكل حساب.</p>
+                <p class="zono-plan-info-muted">سيتم إضافة تفاصيل الروم المجاني هنا لاحقًا.</p>`;
+        } else {
+            const ownerName = this.escapeHtml(this.currentUser?.displayName || 'عضو ZONO');
+            title.textContent = '👑 امتلك غرفتك الدائمة 🌍';
+            content.innerHTML = `
+                <p class="zono-plan-info-lead">مرحباً بك يا <b>${ownerName}</b> 💜</p>
+                <p>هل ترغب في امتلاك غرفة دردشة عالمية دائمة تكون ملكاً لك؟ 🌎✨</p>
+                <p>🌱 عند شراء الغرفة باستخدام البذور، تصبح الغرفة دائمة ومملوكة لك، وتفتح لك مجموعة من المزايا الخاصة والحصرية. 👑</p>
+                <h4>💎 مزايا الغرفة الدائمة</h4>
+                <p>🏆 <b>1. مستوى الغرفة</b><br>📈 يبدأ مستوى الغرفة من Lv.1 ويصل حتى Lv.300.<br>🎁 كلما ارتفع مستوى الغرفة، تحصل على مزايا وتطويرات إضافية وحصرية.</p>
+                <p>🖼️ <b>2. تغيير صورة الغرفة</b><br>✨ يمكنك تغيير صورة الغرفة مرة كل 7 أيام.</p>
+                <p>✏️ <b>3. تغيير اسم الغرفة</b><br>🏷️ يمكنك تغيير اسم الغرفة مرة واحدة كل 7 أيام.</p>
+                <p>🌌 <b>4. خلفية خاصة</b><br>🎨 اختر خلفية مميزة لغرفتك من الخلفيات الجاهزة، أو استخدم خلفية خاصة حسب النظام المتاح.</p>
+                <p>🎁 <b>5. أرباح صاحب الغرفة</b><br>💰 يحصل مالك الغرفة الدائم على نسبة 20% من الهدايا التي يتم إرسالها داخل الغرفة أثناء وجوده فيها.<br>🚪 عند خروج مالك الغرفة، تنتقل النسبة المخصصة له إلى الشركة.<br>🎁 يتم توزيع قيمة الهدية وفق نظام المنصة وتقسيمها على الأطراف المحددة بالنظام.</p>
+                <p>🎤 <b>6. تأجير المايكات</b><br>🎙️ إمكانية تأجير المايكات داخل الغرفة، وإتاحة استخدامها للمستخدمين حسب نظام الغرفة.</p>
+                <p>🎵 <b>7. تشغيل الأغاني</b><br>🎶 يمكنك تشغيل وإضافة الأغاني داخل الغرفة لإضفاء جو ممتع على الدردشة.</p>
+                <p>👆 <b>8. البصمات</b><br>🔥 فتح خاصية البصمات والتفاعلات داخل الغرفة.</p>
+                <p>👑 <b>9. دخول ملكي</b><br>✨ دخول خاص ومميز لمالك الغرفة مع مظهر ملكي يظهر للمستخدمين.</p>
+                <p>🛡️ <b>10. إدارة المشرفين</b><br>👮‍♂️ يستطيع مالك الغرفة:<br>⬆️ تعيين مشرف<br>⬇️ إزالة المشرف<br>🔒 إدارة صلاحيات المشرفين<br>⚙️ التحكم بإدارة الغرفة</p>
+                <p>🌙 <b>11. الغرفة مفتوحة دائماً</b><br>🕐 الغرفة الدائمة تعمل 24 ساعة / 7 أيام ولا تنتهي مدتها.</p>
+                <p>🔐 <b>12. حماية الغرفة</b><br>🔑 إمكانية وضع كلمة مرور للغرفة والتحكم بمن يستطيع الدخول إليها.</p>
+                <h4>👑 امتلكها... ولا تستأجرها!</h4>
+                <p>🌱 غرفة دائمة = ملكية + مزايا + إدارة + تميز</p>
+                <p>✨ اجعل غرفتك مكانك الخاص<br>🎁 استقبل الهدايا<br>🎙️ استمتع بالمايكات<br>🎵 شغّل الأغاني<br>👑 احصل على دخول ملكي<br>🛡️ عيّن مشرفيك<br>🌎 واجعل غرفتك متاحة للجميع على مدار الساعة</p>
+                <p class="zono-plan-info-lead">💜 هل أنت مستعد لامتلاك غرفتك؟</p>`;
+        }
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
     showPermanentRoomInfo() {
-        const modal=document.getElementById('zono-permanent-room-info-modal');
-        if(modal){modal.classList.remove('hidden');modal.classList.add('flex');}
+        this.showSelectedRoomPlanInfo();
     }
 
     hidePermanentRoomInfo() {
@@ -1575,7 +1615,9 @@ class ZonoApp {
         if (!file) return this.showToast('اختر صورة للروم', 'error');
         if (!['general','poetry','songs','music','challenges','contests'].includes(category)) return this.showToast('اختر قسمًا صحيحًا للروم', 'error');
         if (!['permanent','trial'].includes(plan)) return this.showToast('اختر نوع الروم', 'error');
-        if (plan === 'permanent' && Number(this.currentUser.seeds || 0) < 30000) return this.showToast('تحتاج 30,000 بذرة لشراء روم دائم', 'error');
+        if (plan === 'permanent' && Number(this.currentUser.seeds || 0) < 50000) {
+            return this.showToast('عذراً، بذورك غير كافية — 50,000 بذرة', 'error');
+        }
 
         try {
             this.showToast('جاري رفع صورة الروم...', 'info');
@@ -1592,7 +1634,7 @@ class ZonoApp {
 
             // توافق مؤقت مع قاعدة البيانات القديمة حتى يتم تشغيل ملف SQL المرفق.
             if (error && /zono_create_room_v23|function|schema cache|could not find/i.test(String(error.message||error))) {
-                if (plan === 'trial') throw new Error('فعّل ملف Supabase المرفق أولًا لاستخدام الروم التجريبي 60 يوم');
+                if (plan === 'trial') throw new Error('تعذر إنشاء الغرفة المجانية حاليًا. يلزم تحديث قاعدة البيانات.');
                 ({data,error}=await client.rpc('zono_create_room', {p_name:name,p_bio:bio,p_image_url:imageUrl}));
             }
             if (error) throw error;
@@ -1611,7 +1653,7 @@ class ZonoApp {
 
             this.closeCreateRoomModal();
             await this.loadRooms();
-            this.showToast(plan==='trial' ? `تم إنشاء الروم التجريبي لمدة 60 يوم — ID ${data?.public_id || ''}` : `تم إنشاء الروم الدائم — ID ${data?.public_id || ''}`, 'success');
+            this.showToast('تم شراء غرفة بنجاح', 'success');
         } catch (e) {
             this.showToast(e.message || 'تعذر إنشاء الروم', 'error');
         }
@@ -2123,7 +2165,7 @@ class ZonoApp {
 
     async deleteCurrentRoom() {
         if (!this.activeRoom?.is_owner) return;
-        const ok=window.confirm('سيتم حذف الروم نهائيًا ولن تعود 30,000 بذرة. هل أنت متأكد؟');
+        const ok=window.confirm('سيتم حذف الروم نهائيًا ولن تعود 50,000 بذرة. هل أنت متأكد؟');
         if(!ok) return;
 
         const client=this.getRoomClient();
