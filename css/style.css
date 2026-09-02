@@ -3483,3 +3483,58 @@ html[class*="theme"] .zono-room-message-capsule{
     text-align:right!important;
     direction:rtl!important;
 }
+
+/* ===== ZONO V22.2 VERIFIED RIGHT-SIDE FIX =====
+   Final physical alignment override for every room message. */
+#room-messages-flow {
+  direction: rtl !important;
+}
+
+#room-messages-flow > .zono-force-right {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  align-self: stretch !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+#room-messages-flow > .zono-force-right > .zono-room-msg-head,
+#room-messages-flow > .zono-force-right > .zono-room-text-actions,
+#room-messages-flow > .zono-force-right > .zono-voice-message {
+  align-self: flex-end !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+#room-messages-flow > .zono-force-right > .zono-room-text-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: flex-end !important;
+  width: auto !important;
+  max-width: 88% !important;
+}
+
+#room-messages-flow > .zono-force-right .zono-glass-message,
+#room-messages-flow > .zono-force-right .bubble-sent,
+#room-messages-flow > .zono-force-right .bubble-rcvd {
+  width: max-content !important;
+  max-width: 72vw !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+#room-messages-flow > .zono-force-right.zono-room-gift-event {
+  width: max-content !important;
+  max-width: 90% !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
