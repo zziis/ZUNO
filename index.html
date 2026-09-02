@@ -840,21 +840,23 @@
             <div class="zono-room-dark-layer"></div>
 
             <div class="zono-room-topbar relative z-[4]">
-                <button id="zono-room-main-card" onclick="window.zonoApp.openRoomOwnerInfo()" class="zono-room-main-card">
-                    <img id="room-modal-image" src="" alt="Room" class="zono-room-main-image">
-                    <div class="zono-room-main-meta">
-                        <div class="zono-room-main-title-row">
-                            <h3 id="room-modal-title">اسم الروم</h3>
-                            <span id="room-modal-lock" class="hidden">🔒</span>
-                        </div>
-                        <div class="zono-room-main-subrow">
-                            <span id="room-modal-level" class="zono-room-level-badge">LV. 1 ⭐</span>
-                            <button id="room-modal-count" onclick="event.stopPropagation();window.zonoApp.openRoomMembersPanel()" class="zono-room-member-count">👥 0</button>
+                <div id="zono-room-main-card" class="zono-room-main-card">
+                    <div onclick="window.zonoApp.openRoomOwnerInfo()" class="flex flex-1 min-w-0 items-center gap-2 cursor-pointer">
+                        <img id="room-modal-image" src="" alt="Room" class="zono-room-main-image">
+                        <div class="zono-room-main-meta">
+                            <div class="zono-room-main-title-row">
+                                <h3 id="room-modal-title">اسم الروم</h3>
+                                <span id="room-modal-lock" class="hidden">🔒</span>
+                            </div>
+                            <div class="zono-room-main-subrow">
+                                <span id="room-modal-level" class="zono-room-level-badge">LV. 1 ⭐</span>
+                                <button type="button" id="room-modal-count" onclick="event.stopPropagation();window.zonoApp.openRoomMembersPanel()" class="zono-room-member-count">👥 0</button>
+                            </div>
                         </div>
                     </div>
-                    <button id="zono-room-favorite-btn" onclick="event.stopPropagation();window.zonoApp.toggleRoomFavorite()" class="zono-room-favorite-btn" title="حفظ في المفضلة">♡</button>
-                </button>
-                <button id="room-admin-button" onclick="window.zonoApp.openRoomAdmin()" class="hidden zono-room-menu-btn" title="إدارة الروم">☰</button>
+                    <button type="button" id="zono-room-favorite-btn" onclick="event.stopPropagation();window.zonoApp.toggleRoomFavorite()" class="zono-room-favorite-btn" title="حفظ في المفضلة">♡</button>
+                </div>
+                <button type="button" id="room-admin-button" onclick="window.zonoApp.openRoomAdmin()" class="hidden zono-room-menu-btn" title="إدارة الروم">☰</button>
                 <span id="room-mic-expiry-badge" class="hidden">🎙️</span>
             </div>
 
