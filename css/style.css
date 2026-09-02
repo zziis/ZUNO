@@ -2112,3 +2112,186 @@ html[data-theme="imperial"] .glass-panel{
 @media(max-width:520px){
   .zono-name-theme-grid,.zono-bird-theme-grid{grid-template-columns:1fr}
 }
+
+
+/* =========================================================
+   ZONO CUSTOMIZATION CENTER
+   ========================================================= */
+.zono-theme-center{
+  padding:1rem;border-radius:1.25rem;border:1px solid rgba(245,158,11,.24);
+  background:linear-gradient(145deg,rgba(27,23,18,.86),rgba(11,14,19,.88))
+}
+.zono-theme-center-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.zono-theme-center-kicker{font-size:.62rem;color:#fbbf24;font-weight:900}
+.zono-theme-center-title{font-size:1rem;color:#fafaf9;font-weight:950;margin-top:.1rem}
+.zono-theme-center-desc{font-size:.65rem;color:#a8a29e;margin-top:.15rem}
+.zono-theme-center-open{
+  flex:0 0 auto;padding:.65rem .8rem;border-radius:.8rem;background:rgba(245,158,11,.13);
+  border:1px solid rgba(245,158,11,.35);color:#fcd34d;font-size:.65rem;font-weight:950
+}
+.zono-customization-tabs{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem;padding:.35rem;
+  border-radius:1rem;background:rgba(0,0,0,.24);border:1px solid rgba(120,113,108,.22)
+}
+.zono-customization-tab{
+  min-height:2.7rem;padding:.45rem .25rem;border-radius:.72rem;color:#a8a29e;
+  font-size:.58rem;font-weight:900;border:1px solid transparent
+}
+.zono-customization-tab.is-active{
+  color:#fde68a;background:linear-gradient(135deg,rgba(146,64,14,.58),rgba(92,57,10,.48));
+  border-color:rgba(245,158,11,.35);box-shadow:0 0 16px rgba(245,158,11,.08)
+}
+.zono-customization-panel{
+  margin-top:.75rem;padding:.75rem;border-radius:1rem;background:rgba(0,0,0,.16);
+  border:1px solid rgba(120,113,108,.18)
+}
+.zono-panel-title{font-size:.82rem;font-weight:950;color:#f5f5f4}
+.zono-panel-desc{font-size:.6rem;color:#a8a29e;margin-top:.15rem}
+.zono-frame-theme-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+
+/* =========================================================
+   ANIMATED AVATAR FRAMES
+   ========================================================= */
+.zono-avatar-frame{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  width:100%;height:100%;border-radius:50%;isolation:isolate
+}
+.zono-avatar-frame img{
+  width:88%;height:88%;object-fit:cover;border-radius:50%;position:relative;z-index:4;
+  background:#111827
+}
+.zono-avatar-frame::before,
+.zono-avatar-frame::after{
+  content:"";position:absolute;border-radius:50%;pointer-events:none
+}
+.zono-frame-crown{
+  display:none;position:absolute;z-index:7;left:50%;top:-16%;
+  transform:translateX(-50%);font-size:1.15rem;filter:drop-shadow(0 0 7px rgba(250,204,21,.7))
+}
+.zono-frame-basic::before{inset:1%;border:2px solid rgba(245,158,11,.72)}
+.zono-frame-basic::after{inset:6%;border:1px solid rgba(251,191,36,.30)}
+
+.zono-frame-royal::before{
+  inset:-2%;border:3px double #facc15;box-shadow:0 0 16px #facc1566,inset 0 0 12px #facc1533;
+  animation:zonoFrameRoyal 5s linear infinite
+}
+.zono-frame-royal::after{
+  inset:4%;border:1px solid #fde68a;box-shadow:0 0 12px rgba(250,204,21,.32)
+}
+.zono-frame-royal .zono-frame-crown{display:block}
+.zono-frame-royal .zono-frame-crown::before{content:"👑"}
+@keyframes zonoFrameRoyal{50%{filter:brightness(1.28)}100%{transform:rotate(360deg)}}
+
+.zono-frame-demon::before{
+  inset:-4%;border:3px solid #ef4444;
+  box-shadow:0 0 12px #ef4444,0 0 28px #dc262666,inset 0 0 18px #7f1d1d;
+  animation:zonoFrameDemon 1.15s ease-in-out infinite alternate
+}
+.zono-frame-demon::after{
+  inset:-10%;border:2px dotted rgba(249,115,22,.7);animation:zonoFrameSpin 4s linear infinite
+}
+.zono-frame-demon .zono-frame-crown{display:block}
+.zono-frame-demon .zono-frame-crown::before{content:"😈"}
+@keyframes zonoFrameDemon{to{transform:scale(1.055);filter:hue-rotate(-12deg) brightness(1.2)}}
+
+.zono-frame-ghost::before{
+  inset:-4%;border:2px solid rgba(226,232,240,.9);
+  box-shadow:0 0 15px #e2e8f077,0 0 34px #cbd5e144;
+  animation:zonoFrameGhost 2.4s ease-in-out infinite
+}
+.zono-frame-ghost::after{
+  inset:-8%;border:4px solid transparent;border-top-color:rgba(255,255,255,.5);
+  border-bottom-color:rgba(148,163,184,.28);animation:zonoFrameSpin 7s linear infinite
+}
+.zono-frame-ghost .zono-frame-crown{display:block}
+.zono-frame-ghost .zono-frame-crown::before{content:"👻"}
+@keyframes zonoFrameGhost{50%{opacity:.48;transform:scale(1.04)}}
+
+.zono-frame-turquoise::before{
+  inset:-4%;border:3px solid #2dd4bf;
+  box-shadow:0 0 14px #2dd4bf,0 0 34px #22d3ee66,inset 0 0 14px #14b8a644;
+  animation:zonoFrameTurq 2.2s linear infinite
+}
+.zono-frame-turquoise::after{
+  inset:2%;border:1px dashed #99f6e4;animation:zonoFrameSpinReverse 5s linear infinite
+}
+@keyframes zonoFrameTurq{50%{filter:hue-rotate(22deg) brightness(1.25)}100%{transform:rotate(360deg)}}
+
+.zono-frame-orbit::before{
+  inset:-5%;border:2px solid #a78bfa;border-left-color:#38bdf8;border-right-color:#f472b6;
+  box-shadow:0 0 22px #8b5cf655;animation:zonoFrameSpin 3.8s linear infinite
+}
+.zono-frame-orbit::after{
+  inset:-10%;border:2px dashed rgba(244,114,182,.65);animation:zonoFrameSpinReverse 6s linear infinite
+}
+.zono-frame-orbit .zono-frame-crown{display:block}
+.zono-frame-orbit .zono-frame-crown::before{content:"✦";color:#f0abfc}
+@keyframes zonoFrameSpin{to{transform:rotate(360deg)}}
+@keyframes zonoFrameSpinReverse{to{transform:rotate(-360deg)}}
+
+.zono-frame-preview{
+  min-height:6.6rem;display:flex;align-items:center;justify-content:center;
+  border-radius:.85rem;background:radial-gradient(circle,rgba(245,158,11,.08),rgba(0,0,0,.30))
+}
+.zono-frame-preview .zono-avatar-frame{width:4.7rem;height:4.7rem}
+
+.zono-chat-avatar{width:1.9rem;height:1.9rem;flex:0 0 auto}
+.zono-room-message-avatar{width:1.45rem;height:1.45rem;flex:0 0 auto}
+.zono-dm-avatar{width:2rem;height:2rem;flex:0 0 auto}
+.zono-dm-self-head{
+  display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem
+}
+
+/* =========================================================
+   UNIQUE ROOM ENTRANCE
+   ========================================================= */
+.zono-room-entry-wrap{
+  position:relative;align-items:center;justify-content:flex-start;gap:.65rem;
+  margin:.55rem .65rem;padding:.65rem .75rem;overflow:visible;
+  border:1px solid rgba(245,158,11,.32);border-radius:1rem 1rem 1rem .3rem;
+  background:linear-gradient(105deg,rgba(9,9,11,.96),rgba(43,31,14,.91),rgba(20,12,34,.92));
+  box-shadow:0 8px 28px rgba(0,0,0,.32),0 0 20px rgba(245,158,11,.10);
+  direction:rtl
+}
+.zono-room-entry-glow{
+  position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(245,158,11,.08),transparent);
+  animation:zonoEntryGlow 1.8s ease-in-out infinite
+}
+.zono-room-entry-avatar{width:3.1rem;height:3.1rem;flex:0 0 auto;z-index:2}
+.zono-room-entry-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:.33rem}
+.zono-room-entry-comment{
+  display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .65rem .25rem .5rem;
+  border-radius:.25rem .75rem .75rem .75rem;background:rgba(0,0,0,.38);
+  border:1px solid rgba(255,255,255,.08);font-size:.58rem;color:#d6d3d1;font-weight:800
+}
+.zono-room-entry-pin{color:#fbbf24;font-size:.48rem;animation:zonoPinPulse 1.15s ease-in-out infinite}
+.zono-room-entry-show{
+  display:flex!important;
+  animation:zonoRoomEnterFromLeft .72s cubic-bezier(.16,.8,.22,1),zonoEntryFloat 2.8s .75s ease-in-out infinite
+}
+@keyframes zonoRoomEnterFromLeft{
+  0%{opacity:0;transform:translateX(-110%) rotate(-2deg) scale(.94)}
+  72%{opacity:1;transform:translateX(5%) rotate(.4deg) scale(1.012)}
+  100%{opacity:1;transform:translateX(0) rotate(0) scale(1)}
+}
+@keyframes zonoEntryFloat{50%{transform:translateY(-2px)}}
+@keyframes zonoEntryGlow{50%{filter:brightness(1.65);opacity:.45}}
+@keyframes zonoPinPulse{50%{transform:scale(1.35);opacity:.65}}
+
+/* Room entry adapts to the active NAME theme */
+.zono-room-entry-wrap[data-name-theme="celestial"]{border-color:#38bdf8;box-shadow:0 0 24px #38bdf833;background:linear-gradient(105deg,#06151e,#082f49,#172554)}
+.zono-room-entry-wrap[data-name-theme="royal"]{border-color:#facc15;box-shadow:0 0 26px #facc1533;background:linear-gradient(105deg,#080704,#3b2a08,#0a0803)}
+.zono-room-entry-wrap[data-name-theme="legendary"]{border-color:#c084fc;box-shadow:0 0 26px #a855f744;background:linear-gradient(105deg,#120820,#4c1d95,#1e1b4b)}
+.zono-room-entry-wrap[data-name-theme="emerald_name"]{border-color:#34d399;background:linear-gradient(105deg,#03130e,#064e3b,#052e16)}
+.zono-room-entry-wrap[data-name-theme="crimson_name"]{border-color:#fb7185;background:linear-gradient(105deg,#160407,#7f1d1d,#290508)}
+.zono-room-entry-wrap[data-name-theme="electric_name"]{border-color:#22d3ee;box-shadow:0 0 28px #22d3ee33,0 0 40px #d946ef22;background:linear-gradient(105deg,#03111b,#312e81,#4a044e)}
+.zono-room-entry-wrap[data-name-theme="aurora_name"]{border-color:#86efac;background:linear-gradient(105deg,#052e16,#312e81,#581c87)}
+.zono-room-entry-wrap[data-name-theme="dragon_name"]{border-color:#fb923c;background:linear-gradient(105deg,#160803,#7c2d12,#450a0a)}
+.zono-room-entry-wrap[data-name-theme="phantom_name"]{border-color:#cbd5e1;background:linear-gradient(105deg,#111827,#334155,#0f172a);box-shadow:0 0 25px rgba(226,232,240,.17)}
+.zono-room-entry-wrap[data-name-theme="imperial_name"]{border:2px double #facc15;background:linear-gradient(105deg,#020202,#3a2b0a,#020202);box-shadow:0 0 28px rgba(250,204,21,.22)}
+
+@media(max-width:520px){
+  .zono-customization-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .zono-frame-theme-grid{grid-template-columns:1fr}
+}

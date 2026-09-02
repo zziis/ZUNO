@@ -17,6 +17,8 @@ class ZonoApp {
         this.ownedNameThemes = new Set();
         this.activeBirdTheme = 'bird_basic';
         this.ownedBirdThemes = new Set();
+        this.activeAvatarFrame = 'frame_basic';
+        this.ownedAvatarFrames = new Set();
         this.soundEnabled = localStorage.getItem('zono_sound') !== 'false';
         this.init();
     }
@@ -113,6 +115,7 @@ class ZonoApp {
             activeTheme: p.active_theme || 'classic_night',
             activeNameTheme: p.active_name_theme || 'basic',
             activeBirdTheme: p.active_bird_theme || 'bird_basic',
+            activeAvatarFrame: p.active_avatar_frame || 'frame_basic',
             badge: p.role === 'developer' ? '✓ 👑 المطور' : (p.role === 'agent' ? '✓ 🛡️ الوكيل' : 'عضو Zono 🕊️'),
             frame: 'vintage-avatar-frame',
             joinedDate: joined,
@@ -158,6 +161,156 @@ class ZonoApp {
         ];
     }
 
+    toggleCustomizationCenter() {
+        const center = document.getElementById('zono-customization-center');
+        if (!center) return;
+        center.classList.toggle('hidden');
+        if (!center.classList.contains('hidden')) {
+            this.openCustomizationTab('app');
+            this.renderThemeGallery();
+            this.renderBirdThemes();
+            this.renderNameThemes();
+            this.renderAvatarFrames();
+        }
+    }
+
+    openCustomizationTab(tab) {
+        const tabs = ['app','bird','name','frame'];
+        tabs.forEach(key => {
+            document.getElementById(`zono-custom-panel-${key}`)?.classList.toggle('hidden', key !== tab);
+            document.getElementById(`zono-custom-tab-${key}`)?.classList.toggle('is-active', key === tab);
+        });
+
+        if (tab === 'app') this.renderThemeGallery();
+        if (tab === 'bird') this.renderBirdThemes();
+        if (tab === 'name') this.renderNameThemes();
+        if (tab === 'frame') this.renderAvatarFrames();
+    }
+
+    // Compatibility with older cached buttons.
+    toggleNameThemes() {
+        this.switchTab('settings');
+        const center = document.getElementById('zono-customization-center');
+        if (center) center.classList.remove('hidden');
+        this.openCustomizationTab('name');
+    }
+
+    toggleBirdThemes() {
+        this.switchTab('settings');
+        const center = document.getElementById('zono-customization-center');
+        if (center) center.classList.remove('hidden');
+        this.openCustomizationTab('bird');
+    }
+
+    getAvatarFrameCatalog() {
+        return [
+            { key:'frame_royal', name:'الإطار الملكي', icon:'👑', price:4500, cls:'zono-frame-royal', desc:'تاج ذهبي وحلقة ملكية دوّارة حول الصورة.' },
+            { key:'frame_demon', name:'الإطار الشيطاني', icon:'😈', price:4500, cls:'zono-frame-demon', desc:'لهب قرمزي داكن وحركة نابضة قوية.' },
+            { key:'frame_ghost', name:'الإطار الشبحي', icon:'👻', price:4500, cls:'zono-frame-ghost', desc:'ضباب فضي متحرك وهالة شبحية ناعمة.' },
+            { key:'frame_turquoise', name:'الإطار الفيروزي', icon:'🩵', price:4500, cls:'zono-frame-turquoise', desc:'حلقة فيروزية مضيئة تدور بانسيابية.' },
+            { key:'frame_orbit', name:'الإطار المداري', icon:'💫', price:4500, cls:'zono-frame-orbit', desc:'حلقتان دائريتان متعاكستان مع نجمة متحركة.' }
+        ];
+    }
+
+    renderAvatarFrames() {
+        const grid = document.getElementById('zono-avatar-frame-grid');
+        if (!grid || !this.currentUser) return;
+
+        const base = `
+            <div class="zono-cosmetic-card ${this.activeAvatarFrame === 'frame_basic' ? 'is-active' : ''}">
+                <div class="zono-frame-preview">
+                    <div class="zono-avatar-frame zono-frame-basic">
+                        <div class="zono-frame-crown"></div>
+                        <img src="${this.currentUser.avatar}" alt="">
+                    </div>
+                </div>
+                <div class="zono-cosmetic-card-info"><b>الإطار الأساسي</b><span>مجاني</span></div>
+                <button onclick="window.zonoApp.applyOwnedAvatarFrame('frame_basic')" class="zono-cosmetic-action">
+                    ${this.activeAvatarFrame === 'frame_basic' ? '✓ مفعّل' : 'تطبيق'}
+                </button>
+            </div>`;
+
+        grid.innerHTML = base + this.getAvatarFrameCatalog().map(f => {
+            const owned = this.ownedAvatarFrames.has(f.key);
+            const active = this.activeAvatarFrame === f.key;
+            return `
+                <div class="zono-cosmetic-card ${active ? 'is-active' : ''}">
+                    <div class="zono-frame-preview">
+                        <div class="zono-avatar-frame ${f.cls}">
+                            <div class="zono-frame-crown"></div>
+                            <img src="${this.currentUser.avatar}" alt="">
+                        </div>
+                    </div>
+                    <div class="zono-cosmetic-card-info"><b>${f.icon} ${f.name}</b><span>${f.price.toLocaleString('en-US')} 🌾</span></div>
+                    <p>${f.desc}</p>
+                    <button onclick="window.zonoApp.${owned ? 'applyOwnedAvatarFrame' : 'buyAvatarFrame'}('${f.key}')" class="zono-cosmetic-action">
+                        ${active ? '✓ مفعّل' : (owned ? 'تطبيق' : 'شراء بـ 4,500 بذرة')}
+                    </button>
+                </div>`;
+        }).join('');
+    }
+
+    async buyAvatarFrame(key) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        const item = this.getAvatarFrameCatalog().find(x => x.key === key);
+        if (!client || !item) return;
+
+        if (Number(this.currentUser?.seeds || 0) < 4500) {
+            return this.showToast('تحتاج 4,500 بذرة لشراء هذا الإطار', 'error');
+        }
+
+        try {
+            const { error } = await client.rpc('zono_buy_avatar_frame', { p_frame_key:key });
+            if (error) throw error;
+
+            this.ownedAvatarFrames.add(key);
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            await this.applyOwnedAvatarFrame(key);
+        } catch (e) {
+            this.showToast(e.message || 'تعذر شراء إطار الصورة', 'error');
+        }
+    }
+
+    async applyOwnedAvatarFrame(key) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client) return;
+        try {
+            const { error } = await client.rpc('zono_apply_avatar_frame', { p_frame_key:key });
+            if (error) throw error;
+
+            this.activeAvatarFrame = key;
+            this.applyAvatarFrame(key);
+            this.renderAvatarFrames();
+            this.showToast('تم تطبيق إطار الصورة', 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تطبيق الإطار', 'error');
+        }
+    }
+
+    getAvatarFrameClass(key = this.activeAvatarFrame) {
+        return this.getAvatarFrameCatalog().find(x => x.key === key)?.cls || 'zono-frame-basic';
+    }
+
+    applyAvatarFrame(key) {
+        this.activeAvatarFrame = key || 'frame_basic';
+        const cls = this.getAvatarFrameClass();
+
+        const profile = document.getElementById('profile-avatar-frame');
+        if (profile) {
+            [...profile.classList].filter(c => c.startsWith('zono-frame-')).forEach(c => profile.classList.remove(c));
+            profile.classList.add('zono-avatar-frame', cls);
+        }
+    }
+
+    avatarFrameHTML(sizeClass = 'zono-chat-avatar') {
+        const avatar = this.currentUser?.avatar || '';
+        return `<div class="zono-avatar-frame ${this.getAvatarFrameClass()} ${sizeClass}">
+            <div class="zono-frame-crown"></div>
+            <img src="${avatar}" alt="">
+        </div>`;
+    }
+
     getNameThemeCatalog() {
         return [
             { key:'celestial', name:'السماوي', icon:'☁️', price:1000, cls:'zono-name-celestial', desc:'كبسولة سماوية مضيئة بهالة زرقاء.' },
@@ -200,14 +353,19 @@ class ZonoApp {
             this.activeBirdTheme = data?.active_bird_theme || this.currentUser.activeBirdTheme || 'bird_basic';
             this.ownedNameThemes = new Set(Array.isArray(data?.owned_name_themes) ? data.owned_name_themes : []);
             this.ownedBirdThemes = new Set(Array.isArray(data?.owned_bird_themes) ? data.owned_bird_themes : []);
+            this.activeAvatarFrame = data?.active_avatar_frame || this.currentUser.activeAvatarFrame || 'frame_basic';
+            this.ownedAvatarFrames = new Set(Array.isArray(data?.owned_avatar_frames) ? data.owned_avatar_frames : []);
 
             this.applyNameTheme(this.activeNameTheme);
             this.applyBirdTheme(this.activeBirdTheme, false);
+            this.applyAvatarFrame(this.activeAvatarFrame);
         } catch (_) {
             this.activeNameTheme = this.currentUser.activeNameTheme || 'basic';
             this.activeBirdTheme = this.currentUser.activeBirdTheme || 'bird_basic';
+            this.activeAvatarFrame = this.currentUser.activeAvatarFrame || 'frame_basic';
             this.applyNameTheme(this.activeNameTheme);
             this.applyBirdTheme(this.activeBirdTheme, false);
+            this.applyAvatarFrame(this.activeAvatarFrame);
         }
     }
 
@@ -617,6 +775,8 @@ class ZonoApp {
         this.renderBirdThemes();
         this.applyNameTheme(this.activeNameTheme);
         this.applyBirdTheme(this.activeBirdTheme, false);
+        this.applyAvatarFrame(this.activeAvatarFrame);
+        this.renderAvatarFrames();
         this.refreshVerificationBadge();
     }
 
@@ -1360,15 +1520,28 @@ class ZonoApp {
         if (this.currentUser) {
             const wrap = document.getElementById('zono-room-entry-capsule');
             const name = document.getElementById('zono-room-entry-name');
+            const avatar = document.getElementById('zono-room-entry-avatar');
+            const frame = document.getElementById('zono-room-entry-avatar-frame');
+            const textEl = document.getElementById('zono-room-entry-text');
+
             if (wrap && name) {
                 name.textContent = this.currentUser.displayName;
                 name.className = `zono-name-capsule ${this.getNameThemeClass()}`;
+
+                if (avatar) avatar.src = this.currentUser.avatar || '';
+                if (frame) {
+                    frame.className = `zono-avatar-frame ${this.getAvatarFrameClass()} zono-room-entry-avatar`;
+                }
+                if (textEl) textEl.textContent = 'دخل إلى الروم';
+
+                wrap.setAttribute('data-name-theme', this.activeNameTheme || 'basic');
                 wrap.classList.remove('hidden');
                 wrap.classList.remove('zono-room-entry-show');
                 void wrap.offsetWidth;
                 wrap.classList.add('zono-room-entry-show');
+
                 clearTimeout(this._roomEntryTimer);
-                this._roomEntryTimer = setTimeout(() => wrap.classList.add('hidden'), 3200);
+                this._roomEntryTimer = setTimeout(() => wrap.classList.add('hidden'), 3800);
             }
         }
     }
@@ -1383,7 +1556,7 @@ class ZonoApp {
                 <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3">
                     <div class="flex items-center space-x-1.5 space-x-reverse text-[11px] text-amber-400/90 mb-1 px-1 font-semibold">
                         ${isMe
-                            ? `<span class="zono-name-capsule ${this.getNameThemeClass()}">${this.escapeHtml(msg.sender)}</span>`
+                            ? `${this.avatarFrameHTML('zono-room-message-avatar')}<span class="zono-name-capsule ${this.getNameThemeClass()}">${this.escapeHtml(msg.sender)}</span>`
                             : `<span>${this.escapeHtml(msg.sender)}</span>`}
                         <span class="text-stone-400 text-[9px] font-normal">${msg.time}</span>
                     </div>
@@ -1566,6 +1739,7 @@ class ZonoApp {
             const isMe = msg.sender === 'me';
             return `
                 <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3">
+                    ${isMe ? `<div class="zono-dm-self-head">${this.avatarFrameHTML('zono-dm-avatar')}<span class="zono-name-capsule ${this.getNameThemeClass()}">${this.escapeHtml(this.currentUser?.displayName || 'أنا')}</span></div>` : ''}
                     <div class="p-3.5 rounded-2xl max-w-[80%] text-sm ${isMe ? 'bubble-sent text-emerald-100' : 'bubble-rcvd text-stone-200'} shadow-md relative">
                         <p class="leading-relaxed">${msg.text}</p>
                         <div class="flex items-center justify-end space-x-1.5 space-x-reverse mt-1 text-[9px] ${isMe ? 'text-emerald-300/80' : 'text-stone-400'}">
