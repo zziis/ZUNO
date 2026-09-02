@@ -3764,3 +3764,25 @@ html[class*="theme"] .zono-room-message-capsule{
 .zono-plan-info-icon{margin:0 auto;width:2.4rem;height:2.4rem;border-radius:999px;display:grid;place-items:center;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);color:#fbbf24;font-weight:900;font-size:1.2rem}
 .zono-plan-info-close{position:absolute;left:.7rem;top:.7rem}
 @media(max-width:520px){.zono-room-search-row{gap:.48rem}.zono-room-create-circle{flex-basis:2.95rem;width:2.95rem;height:2.95rem}.zono-room-search-capsule{height:2.95rem}}
+
+
+/* === ZONO V23.1 room purchase UI === */
+.zono-room-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}
+.zono-room-plan-card{justify-content:center;min-height:2.85rem;padding:.62rem .75rem;text-align:center}
+.zono-room-plan-card input{position:absolute;opacity:0;pointer-events:none;width:0;height:0}
+.zono-room-plan-main{display:block;flex:0 1 auto;text-align:center}
+.zono-room-plan-main b{font-size:.78rem}
+.zono-room-plan-card:has(input:checked){transform:translateY(-1px)}
+.zono-room-submit-row{display:flex;align-items:center;justify-content:center;gap:.45rem;margin-top:.82rem;direction:ltr}
+.zono-room-submit-btn{width:auto;min-width:7.8rem;min-height:2.45rem;margin-top:0;padding:0 1.25rem;border-radius:999px;font-size:.7rem}
+.zono-plan-help-bottom{flex:0 0 1.55rem;width:1.55rem;height:1.55rem;opacity:.58;background:rgba(255,255,255,.035);border-color:rgba(255,255,255,.2);color:#ddd;font-size:.7rem}
+.zono-plan-help-bottom:hover,.zono-plan-help-bottom:focus{opacity:.95}
+.zono-plan-info-card{width:min(94vw,430px);max-height:82vh;overflow-y:auto;text-align:right;padding:1.15rem 1.05rem}
+.zono-plan-info-card h3{text-align:center;padding:0 2rem}
+.zono-plan-info-content{display:flex;flex-direction:column;gap:.65rem;margin-top:.8rem}
+.zono-plan-info-content p{margin:0;font-size:.7rem;color:#d6d3d1;line-height:1.9}
+.zono-plan-info-content h4{margin:.25rem 0 0;font-size:.78rem;font-weight:950;color:#fbbf24}
+.zono-plan-info-content b{color:#f5f5f4}
+.zono-plan-info-content .zono-plan-info-lead{color:#f5f5f4;font-weight:800}
+.zono-plan-info-content .zono-plan-info-muted{color:#a8a29e}
+@media(max-width:420px){.zono-room-plan-grid{gap:.42rem}.zono-room-plan-card{min-height:2.65rem}.zono-room-submit-btn{min-width:7.2rem}}
