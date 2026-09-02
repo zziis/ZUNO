@@ -13,6 +13,10 @@ class ZonoApp {
         this.theme = localStorage.getItem('zono_theme') || 'classic_night';
         this.ownedThemes = new Set(['classic_night','daylight']);
         this.readReceiptsEnabled = true;
+        this.activeNameTheme = 'basic';
+        this.ownedNameThemes = new Set();
+        this.activeBirdTheme = 'bird_basic';
+        this.ownedBirdThemes = new Set();
         this.soundEnabled = localStorage.getItem('zono_sound') !== 'false';
         this.init();
     }
@@ -31,6 +35,7 @@ class ZonoApp {
             if (logged) {
                 await this.syncUserFromSupabase();
                 await this.loadThemeState();
+                await this.loadCosmeticThemeState();
                 this.showMainApp();
                 await this.loadNotifications(true);
                 this.startNotificationWatcher();
@@ -106,6 +111,8 @@ class ZonoApp {
             role: p.role || 'user',
             readReceiptsEnabled: p.read_receipts_enabled !== false,
             activeTheme: p.active_theme || 'classic_night',
+            activeNameTheme: p.active_name_theme || 'basic',
+            activeBirdTheme: p.active_bird_theme || 'bird_basic',
             badge: p.role === 'developer' ? '✓ 👑 المطور' : (p.role === 'agent' ? '✓ 🛡️ الوكيل' : 'عضو Zono 🕊️'),
             frame: 'vintage-avatar-frame',
             joinedDate: joined,
@@ -149,6 +156,304 @@ class ZonoApp {
             { key:'galaxy', name:'المجرة', icon:'🪐', price:1800, desc:'فضاء داكن ونجوم بنفسجية ولمعات كونية.', preview:'theme-preview-galaxy' },
             { key:'imperial', name:'الإمبراطوري', icon:'👑', price:2000, desc:'أسود ملكي، ذهبي عميق وإطار فاخر لأعلى فئة.', preview:'theme-preview-imperial' }
         ];
+    }
+
+    getNameThemeCatalog() {
+        return [
+            { key:'celestial', name:'السماوي', icon:'☁️', price:1000, cls:'zono-name-celestial', desc:'كبسولة سماوية مضيئة بهالة زرقاء.' },
+            { key:'royal', name:'الملكي', icon:'👑', price:2000, cls:'zono-name-royal', desc:'ذهبي ملكي مع تاج وحواف فاخرة.' },
+            { key:'legendary', name:'الأسطوري', icon:'⚜️', price:3000, cls:'zono-name-legendary', desc:'أرجواني أسطوري بلمعة قوية.' },
+            { key:'emerald_name', name:'الزمردي', icon:'💚', price:4000, cls:'zono-name-emerald', desc:'زمرد داكن مع وهج أخضر.' },
+            { key:'crimson_name', name:'القرمزي', icon:'🔴', price:5000, cls:'zono-name-crimson', desc:'أحمر قرمزي بلمسة نارية.' },
+            { key:'electric_name', name:'الإلكتروني', icon:'⚡', price:6000, cls:'zono-name-electric', desc:'نيون إلكتروني أزرق وبنفسجي.' },
+            { key:'aurora_name', name:'الشفق', icon:'🌌', price:7000, cls:'zono-name-aurora', desc:'تدرج شفق سماوي وبنفسجي.' },
+            { key:'dragon_name', name:'التنين', icon:'🐉', price:8000, cls:'zono-name-dragon', desc:'داكن قوي مع أطراف نارية.' },
+            { key:'phantom_name', name:'الشبح', icon:'👻', price:9000, cls:'zono-name-phantom', desc:'ضباب فضي وهالة خفية.' },
+            { key:'imperial_name', name:'الإمبراطوري', icon:'🏆', price:10000, cls:'zono-name-imperial', desc:'أعلى فئة: أسود وذهبي ملكي.' }
+        ];
+    }
+
+    getBirdThemeCatalog() {
+        return [
+            { key:'bird_ember', name:'العنقاء النارية', icon:'🔥', price:500, skin:'crimson_phoenix', cls:'bird-theme-ember', sound:'ember' },
+            { key:'bird_frost', name:'الصقر الجليدي', icon:'❄️', price:1000, skin:'royal_blue', cls:'bird-theme-frost', sound:'frost' },
+            { key:'bird_storm', name:'طائر العاصفة', icon:'⚡', price:1500, skin:'obsidian_gold', cls:'bird-theme-storm', sound:'storm' },
+            { key:'bird_moon', name:'طائر القمر', icon:'🌙', price:2000, skin:'ivory_cockatiel', cls:'bird-theme-moon', sound:'moon' },
+            { key:'bird_sun', name:'طائر الشمس', icon:'☀️', price:2500, skin:'emerald', cls:'bird-theme-sun', sound:'sun' },
+            { key:'bird_neon', name:'الطائر الإلكتروني', icon:'🧬', price:3000, skin:'royal_blue', cls:'bird-theme-neon', sound:'neon' },
+            { key:'bird_phantom', name:'الطائر الشبح', icon:'👻', price:3500, skin:'ivory_cockatiel', cls:'bird-theme-phantom', sound:'phantom' },
+            { key:'bird_dragon', name:'جناح التنين', icon:'🐉', price:4000, skin:'crimson_phoenix', cls:'bird-theme-dragon', sound:'dragon' },
+            { key:'bird_royal', name:'الطائر الملكي', icon:'👑', price:4500, skin:'obsidian_gold', cls:'bird-theme-royal', sound:'royal' },
+            { key:'bird_celestial', name:'الطائر السماوي', icon:'🌌', price:5000, skin:'classic_gold', cls:'bird-theme-celestial', sound:'celestial' }
+        ];
+    }
+
+    async loadCosmeticThemeState() {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client || !this.currentUser) return;
+
+        try {
+            const { data, error } = await client.rpc('zono_cosmetic_theme_state');
+            if (error) throw error;
+
+            this.activeNameTheme = data?.active_name_theme || this.currentUser.activeNameTheme || 'basic';
+            this.activeBirdTheme = data?.active_bird_theme || this.currentUser.activeBirdTheme || 'bird_basic';
+            this.ownedNameThemes = new Set(Array.isArray(data?.owned_name_themes) ? data.owned_name_themes : []);
+            this.ownedBirdThemes = new Set(Array.isArray(data?.owned_bird_themes) ? data.owned_bird_themes : []);
+
+            this.applyNameTheme(this.activeNameTheme);
+            this.applyBirdTheme(this.activeBirdTheme, false);
+        } catch (_) {
+            this.activeNameTheme = this.currentUser.activeNameTheme || 'basic';
+            this.activeBirdTheme = this.currentUser.activeBirdTheme || 'bird_basic';
+            this.applyNameTheme(this.activeNameTheme);
+            this.applyBirdTheme(this.activeBirdTheme, false);
+        }
+    }
+
+    toggleNameThemes() {
+        const el = document.getElementById('zono-name-theme-gallery');
+        if (!el) return;
+        el.classList.toggle('hidden');
+        this.renderNameThemes();
+    }
+
+    toggleBirdThemes() {
+        const el = document.getElementById('zono-bird-theme-gallery');
+        if (!el) return;
+        el.classList.toggle('hidden');
+        this.renderBirdThemes();
+    }
+
+    renderNameThemes() {
+        const grid = document.getElementById('zono-name-theme-grid');
+        if (!grid || !this.currentUser) return;
+
+        const base = `
+            <div class="zono-cosmetic-card">
+                <div class="zono-name-preview"><span class="zono-name-capsule zono-name-basic">${this.escapeHtml(this.currentUser.displayName)}</span></div>
+                <div class="zono-cosmetic-card-info"><b>الأساسي</b><span>مجاني</span></div>
+                <button onclick="window.zonoApp.applyOwnedNameTheme('basic')" class="zono-cosmetic-action">${this.activeNameTheme === 'basic' ? '✓ مفعّل' : 'تطبيق'}</button>
+            </div>`;
+
+        grid.innerHTML = base + this.getNameThemeCatalog().map(t => {
+            const owned = this.ownedNameThemes.has(t.key);
+            const active = this.activeNameTheme === t.key;
+            return `
+                <div class="zono-cosmetic-card ${active ? 'is-active' : ''}">
+                    <div class="zono-name-preview"><span class="zono-name-capsule ${t.cls}">${t.icon} ${this.escapeHtml(this.currentUser.displayName)}</span></div>
+                    <div class="zono-cosmetic-card-info"><b>${t.name}</b><span>${t.price.toLocaleString('en-US')} 🪶</span></div>
+                    <p>${t.desc}</p>
+                    <button onclick="window.zonoApp.${owned ? 'applyOwnedNameTheme' : 'buyNameTheme'}('${t.key}')" class="zono-cosmetic-action">
+                        ${active ? '✓ مفعّل' : (owned ? 'تطبيق' : `شراء بـ ${t.price.toLocaleString('en-US')} ريشة`)}
+                    </button>
+                </div>`;
+        }).join('');
+    }
+
+    async buyNameTheme(key) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        const theme = this.getNameThemeCatalog().find(x => x.key === key);
+        if (!client || !theme) return;
+        if (Number(this.currentUser?.feathers || 0) < theme.price) {
+            return this.showToast(`تحتاج ${theme.price.toLocaleString('en-US')} ريشة`, 'error');
+        }
+        try {
+            const { error } = await client.rpc('zono_buy_name_theme', { p_theme_key:key });
+            if (error) throw error;
+            this.ownedNameThemes.add(key);
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            await this.applyOwnedNameTheme(key);
+        } catch (e) {
+            this.showToast(e.message || 'تعذر شراء ثيم الاسم', 'error');
+        }
+    }
+
+    async applyOwnedNameTheme(key) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client) return;
+        try {
+            const { error } = await client.rpc('zono_apply_name_theme', { p_theme_key:key });
+            if (error) throw error;
+            this.activeNameTheme = key;
+            this.applyNameTheme(key);
+            this.renderNameThemes();
+            this.showToast('تم تطبيق ثيم الاسم', 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تطبيق ثيم الاسم', 'error');
+        }
+    }
+
+    applyNameTheme(key) {
+        const profile = document.getElementById('profile-display-name');
+        const header = document.getElementById('header-user-name');
+        const found = this.getNameThemeCatalog().find(x => x.key === key);
+        const cls = found?.cls || 'zono-name-basic';
+
+        [profile, header].forEach(el => {
+            if (!el) return;
+            [...el.classList].filter(c => c.startsWith('zono-name-')).forEach(c => el.classList.remove(c));
+            el.classList.add('zono-name-live', cls);
+        });
+    }
+
+    getNameThemeClass(key = this.activeNameTheme) {
+        return this.getNameThemeCatalog().find(x => x.key === key)?.cls || 'zono-name-basic';
+    }
+
+    renderBirdThemes() {
+        const paidGrid = document.getElementById('zono-bird-theme-grid');
+        const ownedGrid = document.getElementById('zono-owned-bird-theme-grid');
+        if (!paidGrid || !ownedGrid || !this.currentUser) return;
+
+        const items = this.getStoreItems();
+        const inventory = new Set(this.currentUser.inventory || []);
+
+        ownedGrid.innerHTML = items.filter(x => inventory.has(x.id)).map(item => {
+            const pseudoKey = `owned:${item.id}`;
+            const active = this.activeBirdTheme === pseudoKey;
+            return `
+                <div class="zono-cosmetic-card ${active ? 'is-active' : ''}">
+                    <div class="zono-bird-theme-preview owned-bird-preview">${item.icon}</div>
+                    <div class="zono-cosmetic-card-info"><b>${item.name}</b><span>مفتوح مجاناً</span></div>
+                    <button onclick="window.zonoApp.applyOwnedBirdSkinTheme('${item.id}')" class="zono-cosmetic-action">${active ? '✓ مفعّل' : 'تطبيق'}</button>
+                </div>`;
+        }).join('') || '<div class="zono-empty-cosmetic">لا توجد طيور مشتراة بعد.</div>';
+
+        paidGrid.innerHTML = this.getBirdThemeCatalog().map(t => {
+            const owned = this.ownedBirdThemes.has(t.key);
+            const active = this.activeBirdTheme === t.key;
+            return `
+                <div class="zono-cosmetic-card ${active ? 'is-active' : ''}">
+                    <div class="zono-bird-theme-preview ${t.cls}">${t.icon}</div>
+                    <div class="zono-cosmetic-card-info"><b>${t.name}</b><span>${t.price.toLocaleString('en-US')} 🌾</span></div>
+                    <button onclick="window.zonoApp.${owned ? 'applyOwnedBirdTheme' : 'buyBirdTheme'}('${t.key}')" class="zono-cosmetic-action">
+                        ${active ? '✓ مفعّل' : (owned ? 'تطبيق' : `شراء بـ ${t.price.toLocaleString('en-US')} بذرة`)}
+                    </button>
+                </div>`;
+        }).join('');
+    }
+
+    async buyBirdTheme(key) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        const theme = this.getBirdThemeCatalog().find(x => x.key === key);
+        if (!client || !theme) return;
+        if (Number(this.currentUser?.seeds || 0) < theme.price) {
+            return this.showToast(`تحتاج ${theme.price.toLocaleString('en-US')} بذرة`, 'error');
+        }
+        try {
+            const { error } = await client.rpc('zono_buy_bird_theme', { p_theme_key:key });
+            if (error) throw error;
+            this.ownedBirdThemes.add(key);
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            await this.applyOwnedBirdTheme(key);
+        } catch (e) {
+            this.showToast(e.message || 'تعذر شراء ثيم الطائر', 'error');
+        }
+    }
+
+    async applyOwnedBirdTheme(key) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client) return;
+        try {
+            const { error } = await client.rpc('zono_apply_bird_theme', { p_theme_key:key });
+            if (error) throw error;
+            this.activeBirdTheme = key;
+            this.applyBirdTheme(key, true);
+            this.renderBirdThemes();
+            this.showToast('تم تطبيق ثيم الطائر', 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تطبيق ثيم الطائر', 'error');
+        }
+    }
+
+    async applyOwnedBirdSkinTheme(skinId) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client) return;
+        try {
+            const { error } = await client.rpc('zono_apply_owned_bird_skin_theme', { p_skin_id:skinId });
+            if (error) throw error;
+            this.activeBirdTheme = `owned:${skinId}`;
+            this.applyBirdTheme(this.activeBirdTheme, true);
+            this.renderBirdThemes();
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تطبيق ثيم الطائر', 'error');
+        }
+    }
+
+    applyBirdTheme(key, playSound = false) {
+        const stage = document.getElementById('zono-bird-theme-stage');
+        const clock = document.getElementById('zono-bird-theme-clock');
+        if (!stage) return;
+
+        [...stage.classList].filter(c => c.startsWith('bird-theme-')).forEach(c => stage.classList.remove(c));
+        if (clock) [...clock.classList].filter(c => c.startsWith('bird-theme-')).forEach(c => clock.classList.remove(c));
+
+        let skin = this.currentUser?.activeBird || 'classic_gold';
+        let cls = 'bird-theme-basic';
+        let sound = 'basic';
+
+        if (String(key).startsWith('owned:')) {
+            skin = String(key).split(':')[1] || skin;
+            cls = `bird-theme-owned-${skin.replace(/[^a-z0-9_-]/gi,'')}`;
+        } else {
+            const theme = this.getBirdThemeCatalog().find(x => x.key === key);
+            if (theme) {
+                skin = theme.skin;
+                cls = theme.cls;
+                sound = theme.sound;
+            }
+        }
+
+        stage.classList.add(cls);
+        if (clock) clock.classList.add(cls);
+        document.documentElement.setAttribute('data-bird-theme', key);
+
+        if (this.birdEngine?.setSkin) {
+            try { this.birdEngine.setSkin(skin); } catch (_) {}
+        }
+
+        if (playSound) this.playBirdThemeSound(sound);
+    }
+
+    playBirdThemeSound(type='basic') {
+        if (!this.soundEnabled) return;
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const map = {
+                basic:[620,'sine'], ember:[390,'sawtooth'], frost:[880,'sine'], storm:[180,'square'],
+                moon:[520,'triangle'], sun:[740,'sine'], neon:[980,'square'], phantom:[300,'sine'],
+                dragon:[140,'sawtooth'], royal:[660,'triangle'], celestial:[1040,'sine']
+            };
+            const cfg = map[type] || map.basic;
+            osc.type = cfg[1];
+            osc.frequency.setValueAtTime(cfg[0], ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(Math.max(80,cfg[0]*1.35), ctx.currentTime + .22);
+            gain.gain.setValueAtTime(.035, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .28);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + .3);
+            setTimeout(() => ctx.close().catch(()=>{}), 500);
+        } catch (_) {}
+    }
+
+    toggleBirdFlightThemed() {
+        const theme = this.getBirdThemeCatalog().find(x => x.key === this.activeBirdTheme);
+        this.playBirdThemeSound(theme?.sound || 'basic');
+        const stage = document.getElementById('zono-bird-theme-stage');
+        if (stage) {
+            stage.classList.remove('zono-theme-flight-burst');
+            void stage.offsetWidth;
+            stage.classList.add('zono-theme-flight-burst');
+        }
+        if (window.zonoBirdEngine?.toggleFlight) window.zonoBirdEngine.toggleFlight();
     }
 
     applyTheme(theme) {
@@ -308,6 +613,10 @@ class ZonoApp {
         this.updateProfileUI();
         this.renderStore();
         this.renderThemeGallery();
+        this.renderNameThemes();
+        this.renderBirdThemes();
+        this.applyNameTheme(this.activeNameTheme);
+        this.applyBirdTheme(this.activeBirdTheme, false);
         this.refreshVerificationBadge();
     }
 
@@ -346,6 +655,7 @@ class ZonoApp {
             );
             await this.syncUserFromSupabase();
             await this.loadThemeState();
+            await this.loadCosmeticThemeState();
             this.showMainApp();
             await this.loadNotifications(true);
             this.startNotificationWatcher();
@@ -1046,6 +1356,21 @@ class ZonoApp {
 
         this.renderRoomMessages();
         if (modal) modal.classList.remove('hidden');
+
+        if (this.currentUser) {
+            const wrap = document.getElementById('zono-room-entry-capsule');
+            const name = document.getElementById('zono-room-entry-name');
+            if (wrap && name) {
+                name.textContent = this.currentUser.displayName;
+                name.className = `zono-name-capsule ${this.getNameThemeClass()}`;
+                wrap.classList.remove('hidden');
+                wrap.classList.remove('zono-room-entry-show');
+                void wrap.offsetWidth;
+                wrap.classList.add('zono-room-entry-show');
+                clearTimeout(this._roomEntryTimer);
+                this._roomEntryTimer = setTimeout(() => wrap.classList.add('hidden'), 3200);
+            }
+        }
     }
 
     renderRoomMessages() {
@@ -1057,7 +1382,9 @@ class ZonoApp {
             return `
                 <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-3">
                     <div class="flex items-center space-x-1.5 space-x-reverse text-[11px] text-amber-400/90 mb-1 px-1 font-semibold">
-                        <span>${msg.sender}</span>
+                        ${isMe
+                            ? `<span class="zono-name-capsule ${this.getNameThemeClass()}">${this.escapeHtml(msg.sender)}</span>`
+                            : `<span>${this.escapeHtml(msg.sender)}</span>`}
                         <span class="text-stone-400 text-[9px] font-normal">${msg.time}</span>
                     </div>
                     <div class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe ? 'bubble-sent text-emerald-100' : 'bubble-rcvd text-stone-200'} shadow">

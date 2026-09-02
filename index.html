@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260902-themes15">
+    <link rel="stylesheet" href="css/style.css?v=20260902-namebird1">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -189,12 +189,13 @@
                 </div>
 
                 <!-- Interactive Canvas Centerpiece -->
-                <div class="relative w-full max-w-[440px] mx-auto aspect-square flex items-center justify-center my-4">
+                <div id="zono-bird-theme-stage" class="relative w-full max-w-[440px] mx-auto aspect-square flex items-center justify-center my-4">
+                    <div id="zono-bird-theme-orbit" class="zono-bird-theme-orbit"></div>
                     <canvas id="bird-canvas" width="440" height="440" class="w-full h-full max-w-[440px] max-h-[440px] rounded-full cursor-pointer transition-transform hover:scale-[1.01] active:scale-95 shadow-2xl border-4 border-amber-500/30 bg-stone-950"></canvas>
                 </div>
 
                 <!-- Digital Antique Countdown Timer -->
-                <div class="max-w-md mx-auto my-6 p-4 rounded-2xl bg-stone-900/90 border border-amber-500/30 shadow-inner">
+                <div id="zono-bird-theme-clock" class="max-w-md mx-auto my-6 p-4 rounded-2xl bg-stone-900/90 border border-amber-500/30 shadow-inner">
                     <span class="text-[11px] font-bold text-amber-400/90 uppercase tracking-widest block mb-1">الوقت المتبقي لرحلة الـ 24 ساعة</span>
                     <div id="bird-timer-display" class="text-4xl sm:text-5xl font-mono font-black gold-gradient-text tracking-wider">
                         24:00:00
@@ -218,7 +219,7 @@
 
                 <!-- Controls -->
                 <div class="max-w-md mx-auto space-y-3">
-                    <button id="bird-trigger-btn" onclick="window.zonoBirdEngine && window.zonoBirdEngine.toggleFlight()" class="w-full py-3.5 px-6 rounded-2xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 hover:from-amber-500 hover:to-yellow-500 text-stone-950 border border-yellow-300/60 shadow-xl shadow-amber-600/30 flex items-center justify-center transition-all duration-300 active:scale-95 text-base">
+                    <button id="bird-trigger-btn" onclick="window.zonoApp && window.zonoApp.toggleBirdFlightThemed()" class="w-full py-3.5 px-6 rounded-2xl font-bold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 hover:from-amber-500 hover:to-yellow-500 text-stone-950 border border-yellow-300/60 shadow-xl shadow-amber-600/30 flex items-center justify-center transition-all duration-300 active:scale-95 text-base">
                         <svg class="w-5 h-5 ml-2 text-stone-950 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         <span>إطلاق العصفور للتحليق (24 ساعة)</span>
                     </button>
@@ -377,6 +378,43 @@
                                 <span>المحفظة</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+
+
+                <!-- Name Theme -->
+                <div id="zono-name-theme-section" class="zono-cosmetic-section mt-5">
+                    <button onclick="window.zonoApp.toggleNameThemes()" class="zono-cosmetic-head">
+                        <div>
+                            <div class="zono-cosmetic-kicker">✨ تخصيص الاسم</div>
+                            <h4 class="zono-cosmetic-title">ثيم الاسم</h4>
+                            <p class="zono-cosmetic-desc">زخرفة وكبسولة فخمة تظهر باسمك داخل الرومات وعند الدخول.</p>
+                        </div>
+                        <span class="zono-cosmetic-open">عرض الثيمات ←</span>
+                    </button>
+                    <div id="zono-name-theme-gallery" class="hidden mt-3">
+                        <div id="zono-name-theme-grid" class="zono-name-theme-grid"></div>
+                    </div>
+                </div>
+
+                <!-- Bird Theme -->
+                <div id="zono-bird-theme-section" class="zono-cosmetic-section mt-4">
+                    <button onclick="window.zonoApp.toggleBirdThemes()" class="zono-cosmetic-head">
+                        <div>
+                            <div class="zono-cosmetic-kicker">🪶 تخصيص العداد</div>
+                            <h4 class="zono-cosmetic-title">ثيم الطائر</h4>
+                            <p class="zono-cosmetic-desc">يغيّر الطائر والدائرة والساعة والحركة والصوت داخل العداد.</p>
+                        </div>
+                        <span class="zono-cosmetic-open">عرض الثيمات ←</span>
+                    </button>
+
+                    <div id="zono-bird-theme-gallery" class="hidden mt-3">
+                        <div class="zono-owned-bird-skins">
+                            <div class="zono-cosmetic-subtitle">الثيمات المفتوحة من الطيور التي اشتريتها</div>
+                            <div id="zono-owned-bird-theme-grid" class="zono-bird-theme-grid mt-2"></div>
+                        </div>
+                        <div class="zono-cosmetic-subtitle mt-4">ثيمات إضافية بالبذور</div>
+                        <div id="zono-bird-theme-grid" class="zono-bird-theme-grid mt-2"></div>
                     </div>
                 </div>
 
@@ -696,7 +734,7 @@
             <button data-tab="counter" onclick="window.zonoApp.switchTab('counter')" class="nav-btn flex flex-col items-center justify-center p-2 rounded-xl text-stone-400 hover:text-stone-200 transition-all relative group -translate-y-2">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-xl shadow-amber-500/30 group-hover:scale-110 transition-transform flex items-center justify-center">
                     <div class="w-full h-full bg-stone-950 rounded-full flex items-center justify-center text-xl">
-                        🕊️
+                        🪶
                     </div>
                 </div>
                 <span class="text-[10px] font-bold mt-0.5 text-amber-300">العداد</span>
@@ -815,6 +853,11 @@
                 </button>
             </div>
 
+            <div id="zono-room-entry-capsule" class="hidden zono-room-entry-wrap">
+                <div id="zono-room-entry-name" class="zono-name-capsule zono-name-basic">عضو Zono</div>
+                <span class="zono-room-entry-text">دخل إلى الروم</span>
+            </div>
+
             <!-- Messages Flow -->
             <div id="room-messages-flow" class="flex-1 p-4 overflow-y-auto space-y-2 bg-stone-950/40">
                 <!-- Messages populate here -->
@@ -899,7 +942,7 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/app.js?v=20260902-themes15"></script>
+    <script src="js/app.js?v=20260902-namebird1"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">

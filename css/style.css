@@ -1968,3 +1968,147 @@ html[data-theme="imperial"] nav.fixed,
 html[data-theme="imperial"] .glass-panel{
   box-shadow:inset 0 0 0 1px rgba(255,224,138,.06),0 18px 42px rgba(0,0,0,.44)!important
 }
+
+
+/* =========================================================
+   ZONO NAME THEMES + BIRD THEMES
+   ========================================================= */
+.zono-cosmetic-section{
+  border:1px solid rgba(245,158,11,.24);
+  border-radius:1.45rem;
+  background:rgba(12,12,12,.45);
+  padding:.8rem
+}
+.zono-cosmetic-head{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  text-align:right;padding:.6rem .65rem;border-radius:1rem
+}
+.zono-cosmetic-kicker{font-size:.6rem;font-weight:900;color:#fbbf24}
+.zono-cosmetic-title{font-size:1rem;font-weight:950;color:#fafaf9;margin-top:.1rem}
+.zono-cosmetic-desc{font-size:.65rem;color:#a8a29e;margin-top:.15rem}
+.zono-cosmetic-open{font-size:.62rem;color:#fcd34d;white-space:nowrap}
+.zono-cosmetic-subtitle{font-size:.68rem;font-weight:900;color:#d6d3d1}
+
+.zono-name-theme-grid,.zono-bird-theme-grid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem
+}
+.zono-cosmetic-card{
+  border:1px solid rgba(120,113,108,.35);border-radius:1rem;background:rgba(28,25,23,.72);
+  padding:.65rem;overflow:hidden
+}
+.zono-cosmetic-card.is-active{border-color:rgba(245,158,11,.7);box-shadow:0 0 18px rgba(245,158,11,.12)}
+.zono-cosmetic-card-info{display:flex;justify-content:space-between;gap:.4rem;align-items:center;margin-top:.5rem}
+.zono-cosmetic-card-info b{font-size:.68rem;color:#f5f5f4}
+.zono-cosmetic-card-info span{font-size:.55rem;color:#fbbf24;font-weight:900}
+.zono-cosmetic-card p{font-size:.56rem;line-height:1.5;color:#a8a29e;margin-top:.3rem}
+.zono-cosmetic-action{
+  width:100%;min-height:2.35rem;margin-top:.5rem;border-radius:.7rem;
+  background:linear-gradient(90deg,#92400e,#d97706);color:#fff7ed;font-size:.62rem;font-weight:950
+}
+.zono-empty-cosmetic{grid-column:1/-1;text-align:center;padding:1rem;color:#78716c;font-size:.66rem}
+
+.zono-name-preview{
+  min-height:3.6rem;border-radius:.8rem;background:rgba(0,0,0,.28);
+  display:flex;align-items:center;justify-content:center;padding:.4rem
+}
+.zono-name-capsule{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:1.8rem;padding:.28rem .72rem;border-radius:999px;
+  font-size:.68rem;font-weight:950;white-space:nowrap;position:relative
+}
+.zono-name-live{padding:.12rem .4rem;border-radius:999px}
+
+/* name styles */
+.zono-name-basic{color:#f5f5f4;background:rgba(68,64,60,.48);border:1px solid rgba(120,113,108,.5)}
+.zono-name-celestial{color:#e0f2fe;background:linear-gradient(90deg,rgba(14,116,144,.55),rgba(30,64,175,.55));border:1px solid #7dd3fc;box-shadow:0 0 14px rgba(56,189,248,.28)}
+.zono-name-royal{color:#fff3b0;background:linear-gradient(90deg,#271a06,#6a4606,#271a06);border:1px solid #f4c95d;box-shadow:0 0 16px rgba(234,179,8,.22)}
+.zono-name-legendary{color:#f3e8ff;background:linear-gradient(90deg,#2e1065,#6b21a8,#312e81);border:1px solid #c084fc;box-shadow:0 0 18px rgba(168,85,247,.25)}
+.zono-name-emerald{color:#d1fae5;background:linear-gradient(90deg,#064e3b,#047857);border:1px solid #34d399}
+.zono-name-crimson{color:#ffe4e6;background:linear-gradient(90deg,#450a0a,#991b1b);border:1px solid #fb7185;box-shadow:0 0 14px rgba(244,63,94,.22)}
+.zono-name-electric{color:#ecfeff;background:linear-gradient(90deg,#061a2b,#4c1d95);border:1px solid #22d3ee;box-shadow:0 0 16px #22d3ee55,inset 0 0 12px #d946ef33}
+.zono-name-aurora{color:#f0fdf4;background:linear-gradient(90deg,#064e3b,#312e81,#581c87);border:1px solid #86efac;box-shadow:0 0 16px rgba(192,132,252,.25)}
+.zono-name-dragon{color:#ffedd5;background:linear-gradient(90deg,#1c0a05,#7c2d12,#450a0a);border:1px solid #fb923c;box-shadow:0 0 16px rgba(249,115,22,.25)}
+.zono-name-phantom{color:#f8fafc;background:linear-gradient(90deg,rgba(30,41,59,.74),rgba(100,116,139,.35));border:1px solid #cbd5e1;box-shadow:0 0 18px rgba(226,232,240,.18)}
+.zono-name-imperial{color:#fff7d6;background:linear-gradient(90deg,#020202,#3a2b0a,#020202);border:1px double #facc15;box-shadow:0 0 20px rgba(250,204,21,.28)}
+
+.zono-room-entry-wrap{
+  display:flex;align-items:center;justify-content:center;gap:.55rem;padding:.65rem;
+  background:linear-gradient(90deg,rgba(0,0,0,.06),rgba(245,158,11,.08),rgba(0,0,0,.06));
+  border-bottom:1px solid rgba(245,158,11,.16)
+}
+.zono-room-entry-text{font-size:.62rem;color:#a8a29e;font-weight:800}
+.zono-room-entry-show{animation:zonoRoomEntry .55s cubic-bezier(.2,.8,.2,1)}
+@keyframes zonoRoomEntry{0%{opacity:0;transform:translateY(-12px) scale(.94)}100%{opacity:1;transform:none}}
+
+/* Bird theme stage */
+#zono-bird-theme-stage{isolation:isolate}
+.zono-bird-theme-orbit{
+  position:absolute;inset:2.5%;border-radius:50%;pointer-events:none;z-index:2;
+  border:2px solid rgba(245,158,11,.16);box-shadow:0 0 20px rgba(245,158,11,.10),inset 0 0 20px rgba(245,158,11,.06)
+}
+#bird-canvas{position:relative;z-index:1}
+#zono-bird-theme-clock{transition:.35s ease}
+.zono-bird-theme-preview{
+  height:4.7rem;border-radius:.9rem;display:flex;align-items:center;justify-content:center;
+  font-size:2rem;background:radial-gradient(circle,#2c2110,#070707);border:1px solid rgba(245,158,11,.25)
+}
+.owned-bird-preview{background:radial-gradient(circle,#26301f,#070707)}
+
+.zono-theme-flight-burst{animation:zonoBirdBurst .48s ease}
+@keyframes zonoBirdBurst{0%{transform:scale(.97)}55%{transform:scale(1.025)}100%{transform:scale(1)}}
+
+/* Cosmetic bird themes: circle, timer and movement */
+#zono-bird-theme-stage[class*="bird-theme-"] #bird-canvas{transition:filter .4s ease,transform .4s ease}
+.bird-theme-ember .zono-bird-theme-orbit{border-color:#fb7185;box-shadow:0 0 28px #ef444466,inset 0 0 28px #f9731644;animation:birdOrbitPulse 1.5s infinite}
+.bird-theme-ember#zono-bird-theme-clock,.bird-theme-ember #zono-bird-theme-clock{border-color:#ef4444!important;background:linear-gradient(135deg,#210707,#3b0a0a)!important}
+.bird-theme-ember #bird-canvas{filter:saturate(1.35) hue-rotate(-8deg);animation:birdFloatFast 2.4s ease-in-out infinite}
+
+.bird-theme-frost .zono-bird-theme-orbit{border-color:#7dd3fc;box-shadow:0 0 28px #38bdf855,inset 0 0 28px #bae6fd33}
+.bird-theme-frost#zono-bird-theme-clock{border-color:#7dd3fc!important;background:linear-gradient(135deg,#082f49,#0c4a6e)!important}
+.bird-theme-frost #bird-canvas{filter:saturate(.9) brightness(1.08);animation:birdFloatSlow 4.2s ease-in-out infinite}
+
+.bird-theme-storm .zono-bird-theme-orbit{border-color:#fde047;box-shadow:0 0 30px #facc1566;animation:birdOrbitSpin 3.5s linear infinite}
+.bird-theme-storm#zono-bird-theme-clock{border-color:#facc15!important;background:linear-gradient(135deg,#111827,#312e81)!important}
+.bird-theme-storm #bird-canvas{filter:contrast(1.15) saturate(1.1);animation:birdStorm .7s ease-in-out infinite alternate}
+
+.bird-theme-moon .zono-bird-theme-orbit{border-color:#cbd5e1;box-shadow:0 0 34px #94a3b855,inset 0 0 24px #e2e8f022}
+.bird-theme-moon#zono-bird-theme-clock{border-color:#94a3b8!important;background:linear-gradient(135deg,#0f172a,#1e293b)!important}
+.bird-theme-moon #bird-canvas{filter:grayscale(.12) brightness(1.12);animation:birdFloatSlow 4.8s ease-in-out infinite}
+
+.bird-theme-sun .zono-bird-theme-orbit{border-color:#fbbf24;box-shadow:0 0 38px #f59e0b66,inset 0 0 30px #fbbf2433;animation:birdOrbitPulse 2s infinite}
+.bird-theme-sun#zono-bird-theme-clock{border-color:#f59e0b!important;background:linear-gradient(135deg,#451a03,#78350f)!important}
+.bird-theme-sun #bird-canvas{filter:saturate(1.2) brightness(1.08);animation:birdFloatFast 2.8s ease-in-out infinite}
+
+.bird-theme-neon .zono-bird-theme-orbit{border-color:#22d3ee;box-shadow:0 0 25px #22d3ee88,0 0 45px #d946ef55;animation:birdOrbitSpin 5s linear infinite}
+.bird-theme-neon#zono-bird-theme-clock{border-color:#22d3ee!important;background:linear-gradient(135deg,#031525,#34115d)!important;box-shadow:0 0 22px #22d3ee33!important}
+.bird-theme-neon #bird-canvas{filter:saturate(1.45) hue-rotate(20deg);animation:birdNeon 1.7s ease-in-out infinite}
+
+.bird-theme-phantom .zono-bird-theme-orbit{border-color:#e2e8f0;box-shadow:0 0 28px #e2e8f044;opacity:.72}
+.bird-theme-phantom#zono-bird-theme-clock{border-color:#cbd5e1!important;background:linear-gradient(135deg,#111827,#334155)!important}
+.bird-theme-phantom #bird-canvas{filter:grayscale(.55) brightness(1.18);animation:birdPhantom 3.8s ease-in-out infinite}
+
+.bird-theme-dragon .zono-bird-theme-orbit{border-color:#fb923c;box-shadow:0 0 34px #f9731666,inset 0 0 28px #dc262633;animation:birdOrbitPulse 1.2s infinite}
+.bird-theme-dragon#zono-bird-theme-clock{border-color:#f97316!important;background:linear-gradient(135deg,#1c0a05,#450a0a)!important}
+.bird-theme-dragon #bird-canvas{filter:saturate(1.55) contrast(1.12);animation:birdDragon 1.9s ease-in-out infinite}
+
+.bird-theme-royal .zono-bird-theme-orbit{border:3px double #facc15;box-shadow:0 0 34px #facc1555,inset 0 0 30px #facc1522}
+.bird-theme-royal#zono-bird-theme-clock{border:1px double #facc15!important;background:linear-gradient(135deg,#050505,#332407)!important}
+.bird-theme-royal #bird-canvas{filter:contrast(1.1) saturate(1.15);animation:birdFloatSlow 3.2s ease-in-out infinite}
+
+.bird-theme-celestial .zono-bird-theme-orbit{border-color:#a78bfa;box-shadow:0 0 38px #8b5cf666,0 0 70px #38bdf844;animation:birdOrbitSpin 8s linear infinite}
+.bird-theme-celestial#zono-bird-theme-clock{border-color:#a78bfa!important;background:linear-gradient(135deg,#0b1025,#2e1065)!important}
+.bird-theme-celestial #bird-canvas{filter:saturate(1.25) hue-rotate(10deg);animation:birdCelestial 4s ease-in-out infinite}
+
+@keyframes birdOrbitPulse{50%{transform:scale(1.025);opacity:.7}}
+@keyframes birdOrbitSpin{to{transform:rotate(360deg)}}
+@keyframes birdFloatFast{50%{transform:translateY(-8px) scale(1.01)}}
+@keyframes birdFloatSlow{50%{transform:translateY(-5px)}}
+@keyframes birdStorm{to{transform:translateX(3px) rotate(.5deg)}}
+@keyframes birdNeon{50%{filter:saturate(1.65) hue-rotate(55deg) brightness(1.1);transform:scale(1.012)}}
+@keyframes birdPhantom{50%{opacity:.76;transform:translateY(-6px)}}
+@keyframes birdDragon{50%{transform:translateY(-7px) rotate(-1deg) scale(1.012)}}
+@keyframes birdCelestial{50%{transform:translateY(-8px) rotate(.6deg)}}
+
+@media(max-width:520px){
+  .zono-name-theme-grid,.zono-bird-theme-grid{grid-template-columns:1fr}
+}
