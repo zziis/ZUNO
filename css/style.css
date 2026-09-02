@@ -2467,3 +2467,25 @@ html[data-theme="imperial"] .glass-panel{
   position:absolute!important;width:1px!important;height:1px!important;
   overflow:hidden!important;opacity:0!important;pointer-events:none!important
 }
+
+
+/* ===== ZONO LIVE AUDIO DIAGNOSTICS ===== */
+.zono-live-diag-btn{
+  width:2rem;height:2rem;border-radius:.65rem;display:flex;align-items:center;justify-content:center;
+  background:rgba(30,41,59,.75);border:1px solid rgba(56,189,248,.22);font-size:.75rem
+}
+.zono-live-audio-diagnostics{
+  margin-top:.55rem;padding:.65rem;border-radius:.9rem;background:rgba(2,6,23,.88);
+  border:1px solid rgba(56,189,248,.22);box-shadow:0 10px 25px rgba(0,0,0,.18)
+}
+.zono-live-diag-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.zono-live-diag-head b{font-size:.6rem;color:#e0f2fe}
+.zono-live-diag-head button{padding:.3rem .48rem;border-radius:.5rem;background:#075985;color:#e0f2fe;font-size:.48rem;font-weight:900}
+.zono-live-diag-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem;margin-top:.55rem}
+.zono-live-diag-grid>div{padding:.45rem;border-radius:.65rem;background:rgba(15,23,42,.8);border:1px solid rgba(100,116,139,.16)}
+.zono-live-diag-grid span{display:block;font-size:.43rem;color:#94a3b8}
+.zono-live-diag-grid b{display:block;margin-top:.1rem;font-size:.5rem;color:#cbd5e1;word-break:break-word}
+.zono-live-diag-grid b.ok{color:#86efac}
+.zono-live-diag-grid b.warn{color:#fde68a}
+.zono-live-diag-grid b.bad{color:#fca5a5}
+.zono-live-diag-message{margin-top:.5rem;padding:.45rem .55rem;border-radius:.6rem;background:rgba(8,47,73,.32);color:#bae6fd;font-size:.5rem;line-height:1.6}

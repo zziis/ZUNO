@@ -2149,6 +2149,35 @@ class ZonoApp {
         el.textContent=`● ${text}`;
     }
 
+    toggleLiveAudioDiagnostics() {
+        const panel=document.getElementById('zono-live-audio-diagnostics');
+        if(!panel) return;
+        panel.classList.toggle('hidden');
+        if(!panel.classList.contains('hidden')) this.runLiveAudioDiagnostics();
+    }
+
+    async runLiveAudioDiagnostics() {
+        if(!window.zonoLiveVoice) return;
+        const result=await window.zonoLiveVoice.getDiagnostics();
+
+        const set=(id,text,cls='')=>{
+            const el=document.getElementById(id);
+            if(!el) return;
+            el.textContent=text;
+            el.className=cls;
+        };
+
+        set('diag-mic',result.microphone.label,result.microphone.ok?'ok':'bad');
+        set('diag-realtime',result.realtime.label,result.realtime.ok?'ok':'bad');
+        set('diag-webrtc',result.webrtc.label,result.webrtc.ok?'ok':'warn');
+        set('diag-ice',result.ice.label,result.ice.ok?'ok':'warn');
+        set('diag-remote-audio',result.remoteAudio.label,result.remoteAudio.ok?'ok':'warn');
+        set('diag-peer-count',String(result.peerCount),result.peerCount>0?'ok':'warn');
+
+        const msg=document.getElementById('diag-live-message');
+        if(msg) msg.textContent=result.summary;
+    }
+
     async toggleLiveMicMute() {
         if(!window.zonoLiveVoice) return;
         const muted=window.zonoLiveVoice.toggleMute();

@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260902-liveaudio1">
+    <link rel="stylesheet" href="css/style.css?v=20260902-liveaudio2">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -871,11 +871,28 @@
                         <span id="zono-room-mic-mode-label">مفتوحة</span>
                     </div>
                     <div class="flex items-center gap-2">
+                        <button onclick="window.zonoApp.toggleLiveAudioDiagnostics()" class="zono-live-diag-btn" title="فحص الصوت">📡</button>
                         <button id="zono-live-mic-toggle" onclick="window.zonoApp.toggleLiveMicMute()" class="hidden zono-live-mic-toggle">🔊 مفتوح</button>
                         <button id="zono-room-mic-request-btn" onclick="window.zonoApp.requestRoomMic()" class="zono-mic-request-btn">طلب مايك</button>
                     </div>
                 </div>
                 <div id="zono-room-mic-seats" class="zono-room-mic-seats"></div>
+
+                <div id="zono-live-audio-diagnostics" class="hidden zono-live-audio-diagnostics">
+                    <div class="zono-live-diag-head">
+                        <b>📡 تشخيص الصوت المباشر</b>
+                        <button onclick="window.zonoApp.runLiveAudioDiagnostics()">فحص الآن</button>
+                    </div>
+                    <div class="zono-live-diag-grid">
+                        <div><span>الميكروفون</span><b id="diag-mic">—</b></div>
+                        <div><span>Realtime</span><b id="diag-realtime">—</b></div>
+                        <div><span>WebRTC</span><b id="diag-webrtc">—</b></div>
+                        <div><span>ICE</span><b id="diag-ice">—</b></div>
+                        <div><span>صوت مستلم</span><b id="diag-remote-audio">—</b></div>
+                        <div><span>عدد الاتصالات</span><b id="diag-peer-count">0</b></div>
+                    </div>
+                    <div id="diag-live-message" class="zono-live-diag-message">اضغط «فحص الآن» لإظهار حالة الاتصال.</div>
+                </div>
             </div>
 
             <div id="zono-room-guidelines" class="relative z-[2] zono-room-guidelines">
@@ -1146,8 +1163,8 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/voice_webrtc.js?v=20260902-liveaudio1"></script>
-    <script src="js/app.js?v=20260902-liveaudio1"></script>
+    <script src="js/voice_webrtc.js?v=20260902-liveaudio2"></script>
+    <script src="js/app.js?v=20260902-liveaudio2"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
