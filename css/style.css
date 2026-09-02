@@ -2440,3 +2440,30 @@ html[data-theme="imperial"] .glass-panel{
   .zono-room-mic-seats{grid-template-columns:repeat(4,minmax(0,1fr));gap:.3rem}
   .zono-mic-seat{min-height:3.8rem;border-radius:.8rem}
 }
+
+
+/* ===== ZONO LIVE WEBRTC AUDIO ===== */
+.zono-live-audio-status{
+  display:inline-flex;align-items:center;gap:.25rem;
+  padding:.12rem .38rem;border-radius:999px;font-size:.44rem;font-weight:900;
+  border:1px solid rgba(120,113,108,.28);background:rgba(0,0,0,.25)
+}
+.zono-live-audio-status.is-off{color:#a8a29e}
+.zono-live-audio-status.is-connecting{color:#fde68a;border-color:rgba(245,158,11,.28)}
+.zono-live-audio-status.is-on{color:#86efac;border-color:rgba(34,197,94,.30);box-shadow:0 0 10px rgba(34,197,94,.08)}
+.zono-live-audio-status.is-error{color:#fca5a5;border-color:rgba(239,68,68,.30)}
+
+.zono-live-mic-toggle{
+  padding:.42rem .58rem;border-radius:.65rem;
+  background:rgba(6,78,59,.42);border:1px solid rgba(16,185,129,.30);
+  color:#a7f3d0;font-size:.52rem;font-weight:950
+}
+.zono-live-mic-toggle.is-muted{
+  background:rgba(127,29,29,.40);
+  border-color:rgba(239,68,68,.30);
+  color:#fecaca
+}
+.zono-live-audio-sinks{
+  position:absolute!important;width:1px!important;height:1px!important;
+  overflow:hidden!important;opacity:0!important;pointer-events:none!important
+}

@@ -1569,6 +1569,11 @@ class ZonoApp {
             await this.loadRoomMembers();
             await this.loadRoomMicState();
 
+            if (window.zonoLiveVoice) {
+                await window.zonoLiveVoice.joinRoom(Number(data.public_id));
+                await window.zonoLiveVoice.syncMicState();
+            }
+
             clearInterval(this.roomPollTimer);
             clearInterval(this.roomPresenceTimer);
             this.roomPollTimer = setInterval(() => {
@@ -2069,6 +2074,9 @@ class ZonoApp {
             this.renderRoomMics();
             this.renderRoomMicRequests();
             this.renderMicPackageStatus();
+            if (window.zonoLiveVoice) {
+                window.zonoLiveVoice.syncMicState().catch(()=>{});
+            }
             if(showToast) this.showToast('تم تحديث المايكات','success');
         }catch(e){ if(showToast) this.showToast(e.message||'تعذر تحديث المايكات','error') }
     }
@@ -2110,6 +2118,16 @@ class ZonoApp {
             btn.disabled=s.mic_mode==='closed'&&!mySeat;
         }
 
+        const liveMuteBtn=document.getElementById('zono-live-mic-toggle');
+        if(liveMuteBtn){
+            liveMuteBtn.classList.toggle('hidden',!mySeat);
+            if(mySeat){
+                const muted=!!window.zonoLiveVoice?.isMuted;
+                liveMuteBtn.textContent=muted?'🔇 مكتوم':'🔊 مفتوح';
+                liveMuteBtn.classList.toggle('is-muted',muted);
+            }
+        }
+
         const seats=Array.isArray(s.seats)?s.seats:[];
         box.innerHTML=Array.from({length:Number(s.mic_count)},(_,i)=>{
             const seatNo=i+1;
@@ -2121,6 +2139,25 @@ class ZonoApp {
                            :`<div class="zono-mic-seat-icon">${locked?'🔒':'🎙️'}</div><b>مايك ${seatNo}</b><span>${locked?'مقفل':'فارغ'}</span>`}
             </button>`;
         }).join('');
+    }
+
+    updateLiveAudioStatus(state='off', text='غير متصل') {
+        const el=document.getElementById('zono-live-audio-status');
+        if(!el) return;
+        el.classList.remove('is-off','is-connecting','is-on','is-error');
+        el.classList.add(`is-${state}`);
+        el.textContent=`● ${text}`;
+    }
+
+    async toggleLiveMicMute() {
+        if(!window.zonoLiveVoice) return;
+        const muted=window.zonoLiveVoice.toggleMute();
+        const btn=document.getElementById('zono-live-mic-toggle');
+        if(btn){
+            btn.textContent=muted?'🔇 مكتوم':'🔊 مفتوح';
+            btn.classList.toggle('is-muted',muted);
+        }
+        this.showToast(muted?'تم كتم مايكك':'تم فتح مايكك','success');
     }
 
     async requestRoomMic() {
@@ -2299,6 +2336,7 @@ class ZonoApp {
         if(this.voiceRecorder?.state==='recording') this.stopVoiceRecording();
         this.cancelRecordedVoice();
         this.roomMicState=null;
+        if(window.zonoLiveVoice) window.zonoLiveVoice.leaveRoom().catch(()=>{});
 
         const roomId=this.activeRoom?.public_id;
         this.activeRoom=null;
