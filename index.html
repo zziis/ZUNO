@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=23.0-rooms-discovery">
+    <link rel="stylesheet" href="css/style.css?v=23.1-room-purchase-ui">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -1004,27 +1004,28 @@
             <div class="zono-room-plan-grid">
                 <label class="zono-room-plan-card">
                     <input type="radio" name="zono-room-plan" value="permanent" checked>
-                    <span class="zono-room-plan-main"><b>شراء دائم</b><small>الروم الدائم مع مزايا المالك</small></span>
-                    <button type="button" class="zono-plan-help" onclick="event.preventDefault();event.stopPropagation();window.zonoApp.showPermanentRoomInfo()" title="مزايا الروم الدائم">؟</button>
+                    <span class="zono-room-plan-main"><b>مدفوع</b></span>
                 </label>
                 <label class="zono-room-plan-card zono-room-trial-card">
                     <input type="radio" name="zono-room-plan" value="trial">
-                    <span class="zono-room-plan-main"><b>تجريبي — 60 يوم</b><small>متاح مرة واحدة فقط لكل حساب</small></span>
+                    <span class="zono-room-plan-main"><b>مجاني</b></span>
                 </label>
             </div>
-            <div class="zono-trial-rules">التجريبي: لا شراء مايكات، لا رفع أغاني، ولفل الروم مقفل. بعد 60 يوم ينتهي الروم تلقائيًا.</div>
 
-            <button onclick="window.zonoApp.createRoom()" class="zono-room-submit-btn">متابعة إنشاء الروم</button>
+            <div class="zono-room-submit-row">
+                <button onclick="window.zonoApp.createRoom()" class="zono-room-submit-btn">متابعة</button>
+                <button type="button" class="zono-plan-help zono-plan-help-bottom" onclick="window.zonoApp.showSelectedRoomPlanInfo()" title="معلومات الخيار">؟</button>
+            </div>
         </div>
     </div>
 
-    <!-- Permanent Room Info -->
+    <!-- Room Plan Info -->
     <div id="zono-permanent-room-info-modal" class="fixed inset-0 z-[90] modal-backdrop hidden items-center justify-center p-4">
         <div class="zono-plan-info-card">
             <button type="button" onclick="window.zonoApp.hidePermanentRoomInfo()" class="zono-room-header-btn zono-plan-info-close">✕</button>
             <div class="zono-plan-info-icon">?</div>
-            <h3>مزايا الروم الدائم</h3>
-            <p>قريبًا سيتم إضافة تفاصيل مزايا صاحب الروم الدائم.</p>
+            <h3 id="zono-plan-info-title">معلومات الروم</h3>
+            <div id="zono-plan-info-content" class="zono-plan-info-content"></div>
         </div>
     </div>
 
@@ -1271,7 +1272,7 @@
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
     <script src="js/voice_webrtc.js?v=20260902-ui7"></script>
-    <script src="js/app.js?v=23.0-rooms-discovery"></script>
+    <script src="js/app.js?v=23.1-room-purchase-ui"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
