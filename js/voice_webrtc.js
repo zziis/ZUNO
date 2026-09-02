@@ -42,7 +42,7 @@
             this.remoteAudioNodes = new Map();
             this.speakerMeters = new Map();
             this.localMeterStop = null;
-            this.listenerGain = 1.85;
+            this.listenerGain = 1.0;
 
             this.installAudioUnlock();
         }
@@ -273,6 +273,7 @@
 
                 for(const track of stream.getAudioTracks()){
                     track.enabled=true;
+                    try{track.contentHint='speech'}catch(_){}
                     track.onended=()=>this.stopPublishing().catch(()=>{});
                 }
 
@@ -570,7 +571,7 @@
             try{
                 const source=ctx.createMediaStreamSource(stream);
                 const analyser=ctx.createAnalyser();
-                analyser.fftSize=256;
+                analyser.fftSize=64;
                 analyser.smoothingTimeConstant=.72;
                 source.connect(analyser);
                 const data=new Uint8Array(analyser.frequencyBinCount);
@@ -589,12 +590,12 @@
                         speaking=next;
                         this.setSeatSpeaking(publicId,speaking);
                     }
-                    raf=requestAnimationFrame(tick);
+                    raf=setTimeout(tick,90);
                 };
                 tick();
                 const stop=()=>{
                     stopped=true;
-                    cancelAnimationFrame(raf);
+                    clearTimeout(raf);
                     try{source.disconnect();analyser.disconnect()}catch(_){}
                     this.setSeatSpeaking(publicId,false);
                 };
@@ -610,6 +611,7 @@
                 audio.autoplay=true;
                 audio.playsInline=true;
                 audio.setAttribute('playsinline','');
+                audio.setAttribute('webkit-playsinline','');
                 audio.setAttribute('data-zono-peer',peerId);
                 audio.volume=1;
                 const sinks=document.getElementById('zono-live-audio-sinks')||document.body;
@@ -617,47 +619,26 @@
                 this.remoteAudios.set(peerId,audio);
             }
 
-            audio.srcObject=stream;
-            const publicId=this.receiverPeers.get(peerId)?._zonoPublicId || 0;
-            const ctx=this.ensureAudioContext();
-
-            if(ctx){
-                try{
-                    const previous=this.remoteAudioNodes.get(peerId);
-                    if(previous){
-                        try{previous.source.disconnect();previous.gain.disconnect()}catch(_){}
-                    }
-                    const source=ctx.createMediaStreamSource(stream);
-                    const gain=ctx.createGain();
-                    gain.gain.value=this.listenerGain;
-                    source.connect(gain);
-                    gain.connect(ctx.destination);
-                    audio.muted=true;
-                    this.remoteAudioNodes.set(peerId,{source,gain});
-
-                    const stopMeter=this.startSpeakerMeter(publicId,stream,false);
-                    const oldMeter=this.speakerMeters.get(peerId);
-                    if(oldMeter) try{oldMeter()}catch(_){}
-                    this.speakerMeters.set(peerId,stopMeter);
-                    this._lastRemoteAudioAt=Date.now();
-
-                    if(ctx.state==='suspended') ctx.resume().catch(()=>{});
-                    return;
-                }catch(_){}
-            }
-
+            // Direct MediaStream -> HTMLAudio is more stable on Android than routing
+            // live WebRTC audio through a WebAudio GainNode.
             audio.muted=false;
-            const tryPlay=()=>{
-                const p=audio.play?.();
-                if(p?.catch) p.catch(()=>this.setStatus('on','اضغط داخل الروم للصوت'));
-            };
-            tryPlay();
-            if(this._audioUnlocked) setTimeout(tryPlay,100);
+            audio.volume=1;
+            audio.srcObject=stream;
 
-            const stopMeter=this.startSpeakerMeter(publicId,stream,false);
+            const publicId=this.receiverPeers.get(peerId)?._zonoPublicId || 0;
             const oldMeter=this.speakerMeters.get(peerId);
             if(oldMeter) try{oldMeter()}catch(_){}
-            this.speakerMeters.set(peerId,stopMeter);
+            this.speakerMeters.set(peerId,this.startSpeakerMeter(publicId,stream,false));
+            this._lastRemoteAudioAt=Date.now();
+
+            const tryPlay=()=>{
+                const p=audio.play?.();
+                if(p?.catch){
+                    p.catch(()=>this.setStatus('on','اضغط داخل الروم للصوت'));
+                }
+            };
+            tryPlay();
+            if(this._audioUnlocked) setTimeout(tryPlay,120);
         }
 
         closeReceiver(peerId) {

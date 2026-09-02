@@ -23,6 +23,9 @@ class ZonoApp {
         this.recordedVoiceUrl = null;
         this.voiceStartedAt = null;
         this.voiceMaxTimer = null;
+        this.previewVoiceAudio = null;
+        this.sendingRecordedVoice = false;
+
         this.roomMusicState = null;
         this.roomMusicSongs = [];
         this.roomMusicIsStaff = false;
@@ -2386,30 +2389,98 @@ class ZonoApp {
 
     previewRecordedVoice() {
         if(!this.recordedVoiceUrl) return;
-        const a=new Audio(this.recordedVoiceUrl); a.play().catch(()=>{});
+        try{
+            if(this.previewVoiceAudio){
+                this.previewVoiceAudio.pause();
+                this.previewVoiceAudio.currentTime=0;
+            }
+        }catch(_){}
+        const audio=new Audio(this.recordedVoiceUrl);
+        this.previewVoiceAudio=audio;
+        audio.play().catch(()=>this.showToast('تعذر تشغيل المعاينة','error'));
     }
 
     cancelRecordedVoice() {
+        try{
+            if(this.previewVoiceAudio){
+                this.previewVoiceAudio.pause();
+                this.previewVoiceAudio.currentTime=0;
+            }
+        }catch(_){}
+        this.previewVoiceAudio=null;
         if(this.recordedVoiceUrl) URL.revokeObjectURL(this.recordedVoiceUrl);
         this.recordedVoiceUrl=null;this.recordedVoiceBlob=null;this.voiceChunks=[];
         document.getElementById('zono-room-voice-preview')?.classList.add('hidden');
     }
 
     async sendRecordedVoice() {
+        if(this.sendingRecordedVoice) return;
         const client=this.getRoomClient();
-        if(!client||!this.activeRoom||!this.recordedVoiceBlob) return;
+        if(!client||!this.activeRoom||!this.recordedVoiceBlob) {
+            return this.showToast('لا توجد بصمة جاهزة للإرسال','error');
+        }
+
+        this.sendingRecordedVoice=true;
         try{
-            const ext=this.recordedVoiceBlob.type.includes('mp4')?'m4a':'webm';
-            const path=`${window.zonoAuth?.user?.id}/${this.activeRoom.public_id}/${Date.now()}.${ext}`;
-            const {error:upErr}=await client.storage.from('room-voice').upload(path,this.recordedVoiceBlob,{upsert:false,contentType:this.recordedVoiceBlob.type||'audio/webm'});
+            // Stop preview first. Keep the Blob alive until upload + DB insert finish.
+            try{
+                if(this.previewVoiceAudio){
+                    this.previewVoiceAudio.pause();
+                    this.previewVoiceAudio.currentTime=0;
+                }
+            }catch(_){}
+
+            const original=this.recordedVoiceBlob;
+            if(!original.size) throw new Error('ملف البصمة فارغ');
+
+            const rawType=String(original.type||'audio/webm').toLowerCase();
+            let mime='audio/webm',ext='webm';
+            if(rawType.includes('mp4')||rawType.includes('m4a')){mime='audio/mp4';ext='m4a'}
+            else if(rawType.includes('ogg')){mime='audio/ogg';ext='ogg'}
+            else if(rawType.includes('mpeg')||rawType.includes('mp3')){mime='audio/mpeg';ext='mp3'}
+
+            // Normalize MIME (remove codecs suffix) because Storage allowed_mime_types
+            // rejects values such as "audio/webm;codecs=opus" on some browsers.
+            const uploadBlob=original.type===mime ? original : new Blob([original],{type:mime});
+            const uid=window.zonoAuth?.user?.id;
+            if(!uid) throw new Error('الحساب غير متصل');
+
+            const roomId=Number(this.activeRoom.public_id);
+            const path=`${uid}/${roomId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+            const {error:upErr}=await client.storage.from('room-voice').upload(path,uploadBlob,{
+                upsert:false,
+                contentType:mime,
+                cacheControl:'3600'
+            });
             if(upErr) throw upErr;
+
             const url=client.storage.from('room-voice').getPublicUrl(path).data.publicUrl;
-            const {error}=await client.rpc('zono_send_room_voice',{p_room_public_id:Number(this.activeRoom.public_id),p_media_url:url,p_duration:Number(this.recordedVoiceDuration||1)});
-            if(error) throw error;
+            const duration=Math.max(1,Math.min(60,Number(this.recordedVoiceDuration||1)));
+
+            const {data,error}=await client.rpc('zono_send_room_voice_v2',{
+                p_room_public_id:roomId,
+                p_media_url:url,
+                p_duration:duration
+            });
+
+            if(error){
+                client.storage.from('room-voice').remove([path]).catch(()=>{});
+                throw error;
+            }
+            if(!data?.ok){
+                client.storage.from('room-voice').remove([path]).catch(()=>{});
+                throw new Error('لم يتم حفظ البصمة في الروم');
+            }
+
             this.cancelRecordedVoice();
             await this.loadRoomMessages(true);
             this.showToast('تم إرسال البصمة الصوتية','success');
-        }catch(e){this.showToast(e.message||'تعذر إرسال البصمة الصوتية','error')}
+        }catch(e){
+            this.showToast(e.message||'تعذر إرسال البصمة الصوتية','error');
+        }finally{
+            this.sendingRecordedVoice=false;
+        }
     }
 
     toggleVoicePlayback(button,url) {
@@ -2495,7 +2566,7 @@ class ZonoApp {
         if(!client || !this.activeRoom) return;
         try{
             const roomId=Number(this.activeRoom.public_id);
-            const {data,error}=await client.rpc('zono_room_music_state',{p_room_public_id:roomId});
+            const {data,error}=await client.rpc('zono_music_library_v2',{p_room_public_id:roomId});
             if(error) throw error;
             // Ignore a late response belonging to a room that was already closed/switched.
             if(!this.activeRoom || Number(this.activeRoom.public_id)!==roomId) return;
@@ -2662,23 +2733,28 @@ class ZonoApp {
         if(!this.activeRoom?.is_owner) return this.showToast('رفع الأغاني لمالك الروم فقط','error');
 
         const input=document.getElementById('zono-room-music-file');
+        const status=document.getElementById('zono-room-music-upload-status');
         const file=input?.files?.[0];
         if(!file) return this.showToast('اختر ملف MP3','error');
 
-        const isMp3=file.type==='audio/mpeg' || /\.mp3$/i.test(file.name);
+        const isMp3=/\.mp3$/i.test(file.name) || ['audio/mpeg','audio/mp3','audio/x-mpeg'].includes(String(file.type||'').toLowerCase());
         if(!isMp3) return this.showToast('المسموح ملفات MP3 فقط','error');
         if(file.size>15*1024*1024) return this.showToast('حجم الأغنية يجب ألا يتجاوز 15MB','error');
 
         const client=this.getRoomClient();
+        let uploadedPath=null;
         try{
-            this.showToast('جاري رفع الأغنية...','info');
+            if(status){status.textContent='جاري قراءة ملف MP3...';status.className='zono-music-upload-status is-working'}
             const duration=await this.getAudioFileDuration(file);
+
             const uid=window.zonoAuth?.user?.id;
             if(!uid) throw new Error('الحساب غير متصل');
+            const roomId=Number(this.activeRoom.public_id);
+            const safe=(file.name||'song.mp3').replace(/[^a-zA-Z0-9._-]+/g,'_');
+            const path=`${uid}/${roomId}/${Date.now()}-${safe}`;
+            uploadedPath=path;
 
-            const safe=file.name.replace(/[^a-zA-Z0-9._-]+/g,'_');
-            const path=`${uid}/${Number(this.activeRoom.public_id)}/${Date.now()}-${safe}`;
-
+            if(status) status.textContent='جاري رفع الأغنية...';
             const {error:uploadError}=await client.storage.from('room-music').upload(path,file,{
                 upsert:false,
                 contentType:'audio/mpeg',
@@ -2689,23 +2765,32 @@ class ZonoApp {
             const publicUrl=client.storage.from('room-music').getPublicUrl(path).data.publicUrl;
             const title=file.name.replace(/\.mp3$/i,'').trim()||'أغنية';
 
-            const {error}=await client.rpc('zono_room_music_add',{
-                p_room_public_id:Number(this.activeRoom.public_id),
+            if(status) status.textContent='جاري حفظ الأغنية في الروم...';
+            const {data,error}=await client.rpc('zono_music_add_track_v2',{
+                p_room_public_id:roomId,
                 p_title:title,
                 p_url:publicUrl,
                 p_storage_path:path,
-                p_duration_seconds:duration
+                p_duration_seconds:Math.max(1,duration)
             });
-            if(error){
-                // Avoid leaving an orphaned upload when registration fails.
-                client.storage.from('room-music').remove([path]).catch(()=>{});
-                throw error;
-            }
+            if(error) throw error;
+            if(!data?.ok || !data?.song_id) throw new Error('تم رفع الملف لكن لم يتم تسجيل الأغنية');
+
+            await this.loadRoomMusicState(true);
+
+            const saved=this.roomMusicSongs.some(s=>Number(s.id)===Number(data.song_id));
+            if(!saved) throw new Error('لم تظهر الأغنية بعد الحفظ، أعد فتح الروم مرة واحدة');
 
             if(input) input.value='';
-            await this.loadRoomMusicState(true);
+            if(status){status.textContent='✓ تم حفظ الأغنية في الروم';status.className='zono-music-upload-status is-ok'}
             this.showToast('تمت إضافة الأغنية','success');
+
+            if(window.zonoLiveVoice) window.zonoLiveVoice.broadcastRoomMusicChange?.().catch(()=>{});
         }catch(e){
+            if(uploadedPath){
+                client.storage.from('room-music').remove([uploadedPath]).catch(()=>{});
+            }
+            if(status){status.textContent=`خطأ: ${e.message||'تعذر الحفظ'}`;status.className='zono-music-upload-status is-error'}
             this.showToast(e.message||'تعذر رفع الأغنية','error');
         }
     }
@@ -2716,7 +2801,7 @@ class ZonoApp {
         const client=this.getRoomClient();
 
         try{
-            const {data,error}=await client.rpc('zono_room_music_delete',{
+            const {data,error}=await client.rpc('zono_music_delete_track_v2',{
                 p_room_public_id:Number(this.activeRoom.public_id),
                 p_song_id:Number(songId)
             });
@@ -2739,7 +2824,7 @@ class ZonoApp {
         if(!client||!this.activeRoom) return;
 
         try{
-            const {error}=await client.rpc('zono_room_music_control',{
+            const {error}=await client.rpc('zono_music_control_v2',{
                 p_room_public_id:Number(this.activeRoom.public_id),
                 p_action:String(action),
                 p_song_id:songId==null?null:Number(songId)

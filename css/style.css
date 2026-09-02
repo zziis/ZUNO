@@ -2621,3 +2621,13 @@ html[data-theme="imperial"] .glass-panel{
   .zono-room-music-fab{left:.35rem;width:3rem;height:3rem}
   .zono-room-music-panel{left:3.75rem;width:calc(100% - 4.35rem)}
 }
+
+
+/* ===== ZONO FIX V6 ===== */
+.zono-music-upload-status{
+  min-height:1rem;margin-top:.45rem;padding:.35rem .5rem;border-radius:.55rem;
+  font-size:.5rem;color:#78716c
+}
+.zono-music-upload-status.is-working{color:#fde68a;background:rgba(120,53,15,.16)}
+.zono-music-upload-status.is-ok{color:#86efac;background:rgba(20,83,45,.18)}
+.zono-music-upload-status.is-error{color:#fca5a5;background:rgba(127,29,29,.18)}
