@@ -1745,19 +1745,23 @@ class ZonoApp {
                 const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
                 const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
                 const isMeVoice = Number(msg.sender_public_id) === Number(this.currentUser?.publicId);
-                return `<div class="flex flex-col mb-3 zono-force-right" style="align-items:flex-end!important;width:100%!important;margin-left:0!important;margin-right:0!important;text-align:right!important;direction:ltr!important;">
-                    <div class="zono-room-msg-head" style="align-self:flex-end!important;justify-content:flex-start!important;direction:rtl!important;text-align:right!important;">
+                return `<div class="flex flex-col mb-3 zono-force-right">
+                    <div class="zono-room-message-layout">
                         <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
                             <div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                         </div>
-                        <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
-                        <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
-                    </div>
-                    <div class="zono-voice-message zono-glass-message" style="align-self:flex-end!important;margin-left:0!important;margin-right:0!important;text-align:right!important;direction:rtl!important;">
-                        <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url || '')}')" class="zono-voice-play">▶</button>
-                        <div class="zono-voice-waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                        <span>${this.formatVoiceDuration(Number(msg.media_duration || 0))}</span>
-                        ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-voice-delete">🗑️</button>` : ''}
+                        <div class="zono-room-message-body">
+                            <div class="zono-room-msg-head">
+                                <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
+                                <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
+                            </div>
+                            <div class="zono-voice-message zono-glass-message">
+                                <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url || '')}')" class="zono-voice-play">▶</button>
+                                <div class="zono-voice-waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                                <span>${this.formatVoiceDuration(Number(msg.media_duration || 0))}</span>
+                                ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-voice-delete">🗑️</button>` : ''}
+                            </div>
+                        </div>
                     </div>
                 </div>`;
             }
@@ -1765,21 +1769,25 @@ class ZonoApp {
             const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
             const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
 
-            return `<div class="flex flex-col mb-3 zono-force-right" style="align-items:flex-end!important;width:100%!important;margin-left:0!important;margin-right:0!important;text-align:right!important;direction:ltr!important;">
-                <div class="zono-room-msg-head" style="align-self:flex-end!important;justify-content:flex-start!important;direction:rtl!important;text-align:right!important;">
+            return `<div class="flex flex-col mb-3 zono-force-right">
+                <div class="zono-room-message-layout">
                     <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
                         <div class="zono-frame-crown"></div>
                         <img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                     </div>
-                    <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
-                    <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
-                    <span class="text-stone-400 text-[9px]">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
-                </div>
-                <div class="zono-room-text-actions ${isMe?'is-me':''}" style="align-self:flex-end!important;justify-content:flex-start!important;flex-direction:row!important;margin-left:0!important;margin-right:0!important;direction:rtl!important;">
-                    <div class="p-3 rounded-2xl max-w-[85%] text-sm zono-glass-message ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow" style="width:max-content!important;max-width:72vw!important;text-align:right!important;direction:rtl!important;">
-                        ${this.escapeHtml(msg.content || '')}
+                    <div class="zono-room-message-body">
+                        <div class="zono-room-msg-head">
+                            <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
+                            <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
+                            <span class="zono-room-msg-time">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
+                        </div>
+                        <div class="zono-room-text-actions ${isMe?'is-me':''}">
+                            <div class="p-3 rounded-2xl max-w-[85%] text-sm zono-glass-message ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow">
+                                ${this.escapeHtml(msg.content || '')}
+                            </div>
+                            ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف الرسالة">🗑️</button>` : ''}
+                        </div>
                     </div>
-                    ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف الرسالة">🗑️</button>` : ''}
                 </div>
             </div>`;
         }).join('');

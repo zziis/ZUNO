@@ -3598,3 +3598,135 @@ html[class*="theme"] .zono-room-message-capsule{
   margin-right: 0 !important;
   text-align: right !important;
 }
+
+/* =========================================================
+   ZONO V22.4 — AVATAR + NAME/LV + MESSAGE COMPACT RIGHT LAYOUT
+   Physical message position stays RIGHT. Avatar is on the far right;
+   name comes before LV.1, and the message sits directly below them
+   beside the avatar (never underneath the avatar).
+   ========================================================= */
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event){
+  direction:ltr!important;
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-end!important;
+  margin:0 0 .48rem 0!important;
+  padding-inline:.22rem!important;
+}
+
+#room-messages-flow > .zono-force-right > .zono-room-message-layout{
+  display:flex!important;
+  flex-direction:row!important;
+  direction:rtl!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+  gap:.34rem!important;
+  width:max-content!important;
+  max-width:94%!important;
+  margin-left:auto!important;
+  margin-right:0!important;
+}
+
+#room-messages-flow .zono-room-message-layout > .zono-room-message-avatar{
+  order:0!important;
+  flex:0 0 auto!important;
+  width:2.18rem!important;
+  height:2.18rem!important;
+  min-width:2.18rem!important;
+  min-height:2.18rem!important;
+  margin:0!important;
+}
+
+#room-messages-flow .zono-room-message-body{
+  order:1!important;
+  min-width:0!important;
+  max-width:calc(72vw - .2rem)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-end!important;
+  direction:ltr!important;
+  padding-top:0!important;
+}
+
+#room-messages-flow .zono-room-message-body > .zono-room-msg-head{
+  display:flex!important;
+  flex-direction:row!important;
+  direction:rtl!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  align-self:flex-end!important;
+  gap:.22rem!important;
+  width:max-content!important;
+  max-width:100%!important;
+  min-height:1rem!important;
+  margin:-.16rem 0 .10rem 0!important;
+  padding:0!important;
+  white-space:nowrap!important;
+  text-align:right!important;
+}
+
+/* Visual order from the avatar side: NAME, then LV.1, then time. */
+#room-messages-flow .zono-room-message-body .zono-name-text{
+  order:0!important;
+  font-size:.55rem!important;
+  line-height:1!important;
+  font-weight:900!important;
+}
+#room-messages-flow .zono-room-message-body .zono-account-level{
+  order:1!important;
+  font-size:.37rem!important;
+  line-height:1!important;
+  padding:.06rem .22rem!important;
+}
+#room-messages-flow .zono-room-msg-time{
+  order:2!important;
+  color:rgba(203,213,225,.58)!important;
+  font-size:.38rem!important;
+  line-height:1!important;
+}
+
+#room-messages-flow .zono-room-message-body > .zono-room-text-actions{
+  display:flex!important;
+  flex-direction:row!important;
+  direction:rtl!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  align-self:flex-end!important;
+  gap:.22rem!important;
+  width:auto!important;
+  max-width:100%!important;
+  margin:0!important;
+}
+
+#room-messages-flow .zono-room-message-body .zono-glass-message,
+#room-messages-flow .zono-room-message-body .bubble-sent,
+#room-messages-flow .zono-room-message-body .bubble-rcvd{
+  width:max-content!important;
+  max-width:64vw!important;
+  margin:0!important;
+  padding:.36rem .55rem!important;
+  border-radius:.72rem!important;
+  font-size:.64rem!important;
+  line-height:1.42!important;
+  direction:rtl!important;
+  text-align:right!important;
+  overflow-wrap:anywhere!important;
+}
+
+#room-messages-flow .zono-room-message-body > .zono-voice-message{
+  align-self:flex-end!important;
+  width:max-content!important;
+  max-width:64vw!important;
+  margin:0!important;
+  direction:rtl!important;
+  text-align:right!important;
+}
+
+@media(max-width:520px){
+  #room-messages-flow .zono-room-message-body{max-width:calc(76vw - .2rem)!important}
+  #room-messages-flow .zono-room-message-body .zono-glass-message,
+  #room-messages-flow .zono-room-message-body .bubble-sent,
+  #room-messages-flow .zono-room-message-body .bubble-rcvd,
+  #room-messages-flow .zono-room-message-body > .zono-voice-message{max-width:62vw!important}
+}
