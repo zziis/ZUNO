@@ -25,7 +25,6 @@ class ZonoApp {
         this.voiceMaxTimer = null;
         this.previewVoiceAudio = null;
         this.sendingRecordedVoice = false;
-        this.roomReplyTo = null;
 
         this.roomMusicState = null;
         this.roomMusicSongs = [];
@@ -1701,7 +1700,7 @@ class ZonoApp {
         try {
             // The server deletes room messages older than 60 minutes.
             // On entry show only the latest 10; while the user stays, allow up to 100.
-            const { data, error } = await client.rpc('zono_room_messages_v9', {
+            const { data, error } = await client.rpc('zono_room_messages', {
                 p_room_public_id:Number(this.activeRoom.public_id)
             });
             if (error) throw error;
@@ -1712,44 +1711,6 @@ class ZonoApp {
             this.renderRoomMessages();
         } catch (e) {
             if (!silent) this.showToast(e.message || 'تعذر تحميل الرسائل', 'error');
-        }
-    }
-
-    ensureRoomReplyBar() {
-        const composer=document.querySelector('.zono-room-composer');
-        if(!composer) return null;
-        let bar=document.getElementById('zono-room-reply-bar');
-        if(!bar){
-            bar=document.createElement('div');
-            bar.id='zono-room-reply-bar';
-            bar.className='hidden zono-room-reply-bar';
-            composer.appendChild(bar);
-        }
-        return bar;
-    }
-
-    startRoomReply(messageId) {
-        const msg=(this.activeRoom?.messages||[]).find(x=>Number(x.id)===Number(messageId));
-        if(!msg) return;
-        this.roomReplyTo={
-            id:Number(msg.id),
-            sender_name:String(msg.sender_name||''),
-            content:String(msg.message_type==='voice'?'🎙️ بصمة صوتية':msg.content||'').slice(0,120)
-        };
-        const bar=this.ensureRoomReplyBar();
-        if(bar){
-            bar.innerHTML=`<div><b>↩ الرد على ${this.escapeHtml(this.roomReplyTo.sender_name)}</b><span>${this.escapeHtml(this.roomReplyTo.content)}</span></div><button onclick="window.zonoApp.cancelRoomReply()">✕</button>`;
-            bar.classList.remove('hidden');
-        }
-        document.getElementById('room-message-input')?.focus();
-    }
-
-    cancelRoomReply() {
-        this.roomReplyTo=null;
-        const bar=document.getElementById('zono-room-reply-bar');
-        if(bar){
-            bar.classList.add('hidden');
-            bar.innerHTML='';
         }
     }
 
@@ -1769,56 +1730,56 @@ class ZonoApp {
         }
 
         container.innerHTML=guidelines+messages.map(msg=>{
-            const nameCls=this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
-            const frameCls=this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
-            const replyBlock=msg.reply_to_id ? `
-                <div class="zono-room-reply-quote">
-                    <b>↩ ${this.escapeHtml(msg.reply_sender_name||'')}</b>
-                    <span>${this.escapeHtml(msg.reply_content||'')}</span>
-                </div>` : '';
-
-            if(msg.message_type==='gift'){
-                return `<div class="zono-room-message-row zono-room-message-right">
-                    <div class="zono-room-msg-head">
-                        <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar"><div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar||'')}" alt=""></div>
-                        <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name||'')}</span>
-                        <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
+            const isMe = Number(msg.sender_public_id) === Number(this.currentUser?.publicId);
+            if (msg.message_type === 'gift') {
+                return `<div class="zono-room-gift-event" style="margin-left:0!important;margin-right:auto!important;direction:rtl!important;text-align:right!important;">
+                    <div class="zono-room-gift-rose">🌹</div>
+                    <div>
+                        <b>${this.escapeHtml(msg.sender_name || '')}</b>
+                        <span>${this.escapeHtml(msg.content || '')}</span>
                     </div>
-                    <div class="zono-room-compact-bubble">🌹 ${this.escapeHtml(msg.content||'')}</div>
                 </div>`;
             }
 
-            if(msg.message_type==='voice'){
-                return `<div class="zono-room-message-row zono-room-message-right">
-                    <div class="zono-room-msg-head">
-                        <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar"><div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar||'')}" alt=""></div>
-                        <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name||'')}</span>
-                        <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
-                    </div>
-                    ${replyBlock}
-                    <div class="zono-room-message-actionline">
-                        <div class="zono-voice-message zono-glass-message zono-room-compact-bubble">
-                            <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url||'')}')" class="zono-voice-play">▶</button>
-                            <div class="zono-voice-waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-                            <span>${this.formatVoiceDuration(Number(msg.media_duration||0))}</span>
+            if (msg.message_type === 'voice') {
+                const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
+                const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
+                const isMeVoice = Number(msg.sender_public_id) === Number(this.currentUser?.publicId);
+                return `<div class="flex flex-col mb-3" style="align-items:flex-end!important;width:100%!important;text-align:right!important;direction:rtl!important;">
+                    <div class="zono-room-msg-head" style="align-self:flex-end!important;justify-content:flex-start!important;direction:rtl!important;text-align:right!important;">
+                        <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
+                            <div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                         </div>
-                        <button onclick="window.zonoApp.startRoomReply(${Number(msg.id)})" class="zono-room-reply-btn" title="رد">↩</button>
-                        ${(this.activeRoom?.is_owner||this.activeRoom?.is_moderator)?`<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف">🗑️</button>`:''}
+                        <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
+                        <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
+                    </div>
+                    <div class="zono-voice-message zono-glass-message" style="align-self:flex-end!important;margin-left:0!important;margin-right:0!important;text-align:right!important;direction:rtl!important;">
+                        <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url || '')}')" class="zono-voice-play">▶</button>
+                        <div class="zono-voice-waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                        <span>${this.formatVoiceDuration(Number(msg.media_duration || 0))}</span>
+                        ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-voice-delete">🗑️</button>` : ''}
                     </div>
                 </div>`;
             }
 
-            return `<div class="zono-room-message-row zono-room-message-right">
-                <div class="zono-room-msg-head">
-                    <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar"><div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar||'')}" alt=""></div>
-                    <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name||'')}</span>
+            const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
+            const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
+
+            return `<div class="flex flex-col mb-3" style="align-items:flex-end!important;width:100%!important;text-align:right!important;direction:rtl!important;">
+                <div class="zono-room-msg-head" style="align-self:flex-end!important;justify-content:flex-start!important;direction:rtl!important;text-align:right!important;">
+                    <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
+                        <div class="zono-frame-crown"></div>
+                        <img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
+                    </div>
+                    <span class="zono-name-text ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
                     <span class="zono-account-level">LV.${Number(msg.sender_level||1)}</span>
+                    <span class="text-stone-400 text-[9px]">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
                 </div>
-                ${replyBlock}
-                <div class="zono-room-message-actionline">
-                    <div class="zono-room-compact-bubble zono-glass-message">${this.escapeHtml(msg.content||'')}</div>
-                    <button onclick="window.zonoApp.startRoomReply(${Number(msg.id)})" class="zono-room-reply-btn" title="رد">↩</button>
-                    ${(this.activeRoom?.is_owner||this.activeRoom?.is_moderator)?`<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف">🗑️</button>`:''}
+                <div class="zono-room-text-actions ${isMe?'is-me':''}" style="align-self:flex-end!important;justify-content:flex-start!important;flex-direction:row!important;margin-left:0!important;margin-right:0!important;direction:rtl!important;">
+                    <div class="p-3 rounded-2xl max-w-[85%] text-sm zono-glass-message ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow" style="width:max-content!important;max-width:72vw!important;text-align:right!important;direction:rtl!important;">
+                        ${this.escapeHtml(msg.content || '')}
+                    </div>
+                    ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-msg-delete" title="حذف الرسالة">🗑️</button>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -1834,14 +1795,12 @@ class ZonoApp {
         if (!text) return;
 
         try {
-            const { error } = await client.rpc('zono_send_room_message_v9', {
+            const { error } = await client.rpc('zono_send_room_message', {
                 p_room_public_id:Number(this.activeRoom.public_id),
-                p_message:text,
-                p_reply_to_id:this.roomReplyTo?.id || null
+                p_message:text
             });
             if (error) throw error;
             input.value='';
-            this.cancelRoomReply();
             await this.loadRoomMessages(true);
             if (window.zonoAudio) window.zonoAudio.playKikSent();
         } catch (e) {
@@ -1879,93 +1838,20 @@ class ZonoApp {
         const card=document.getElementById('zono-room-owner-card');
         modal?.classList.remove('hidden'); modal?.classList.add('flex');
         if(!card) return;
-
-        card.innerHTML='<div class="text-center text-stone-500 py-5">جاري تحميل معلومات مالك الروم...</div>';
+        card.innerHTML='<div class="text-center text-stone-500 py-5">جاري تحميل مالك الروم...</div>';
         const client=this.getRoomClient();
         try{
-            const {data,error}=await client.rpc('zono_room_owner_social_v9',{
-                p_room_public_id:Number(this.activeRoom.public_id)
-            });
+            const {data,error}=await client.rpc('zono_room_owner_info_v8',{p_room_public_id:Number(this.activeRoom.public_id)});
             if(error) throw error;
-
             const frameCls=this.getAvatarFrameCatalog().find(x=>x.key===data.avatar_frame)?.cls || 'zono-frame-basic';
-            const levelProgress=Math.max(0,Math.min(100,Number(data.level_progress||0)));
-
-            card.innerHTML=`
-                <div class="zono-owner-social-card">
-                    <div class="zono-avatar-frame ${frameCls} zono-owner-social-avatar">
-                        <div class="zono-frame-crown"></div>
-                        <img src="${this.escapeHtml(data.avatar||'')}" alt="">
-                    </div>
-
-                    <div class="zono-owner-social-info">
-                        <b>${this.escapeHtml(data.display_name||'مالك الروم')}</b>
-                        <small>ID ${Number(data.public_id||0)}</small>
-
-                        <div class="zono-owner-level-line">
-                            <span>LV.${Number(data.account_level||1)}</span>
-                            <div class="zono-owner-level-track"><i style="width:${levelProgress}%"></i></div>
-                        </div>
-
-                        <span class="zono-owner-role">👑 مالك الروم</span>
-                    </div>
-                </div>
-
-                <div class="zono-owner-social-actions">
-                    <button id="zono-owner-follow-btn" onclick="window.zonoApp.toggleOwnerFollow(${Number(data.public_id||0)})" class="${data.is_following?'is-active':''}">
-                        ❤️ <span>${data.is_following?'متابَع':'متابعة'}</span>
-                        <b id="zono-owner-follow-count">${Number(data.followers_count||0)}</b>
-                    </button>
-
-                    <button onclick="window.zonoApp.sendOwnerFriendRequest(${Number(data.public_id||0)})" ${data.is_self?'disabled':''}>
-                        👥 ${data.friend_status==='accepted'?'صديق':data.friend_status==='pending'?'الطلب مرسل':'إضافة صديق'}
-                    </button>
-                </div>
-
-                <div class="zono-room-welcome-card">
-                    <b>👋 ترحيب الغرفة</b>
-                    <p>${this.escapeHtml(data.welcome_message||'أهلاً بك في الغرفة')}</p>
-                </div>`;
-        }catch(e){
-            card.innerHTML=`<div class="text-center text-red-300 py-5">${this.escapeHtml(e.message||'تعذر تحميل معلومات المالك')}</div>`;
-        }
-    }
-
-    async toggleOwnerFollow(publicId) {
-        const client=this.getRoomClient();
-        if(!client) return;
-        try{
-            const {data,error}=await client.rpc('zono_toggle_follow_v9',{p_target_public_id:Number(publicId)});
-            if(error) throw error;
-            const btn=document.getElementById('zono-owner-follow-btn');
-            const count=document.getElementById('zono-owner-follow-count');
-            if(count) count.textContent=String(Number(data.followers_count||0));
-            if(btn){
-                btn.classList.toggle('is-active',!!data.is_following);
-                const label=btn.querySelector('span');
-                if(label) label.textContent=data.is_following?'متابَع':'متابعة';
-            }
-        }catch(e){
-            this.showToast(e.message||'تعذر تحديث المتابعة','error');
-        }
-    }
-
-    async sendOwnerFriendRequest(publicId) {
-        const note=prompt('اكتب رسالة قصيرة مع طلب الصداقة (اختياري):','أهلاً، يسعدني أن نكون أصدقاء.');
-        if(note===null) return;
-        const client=this.getRoomClient();
-        if(!client) return;
-        try{
-            const {data,error}=await client.rpc('zono_send_friend_request_v9',{
-                p_target_public_id:Number(publicId),
-                p_note:String(note||'').trim().slice(0,250)
-            });
-            if(error) throw error;
-            this.showToast(data?.status==='accepted'?'أنتما أصدقاء بالفعل':'تم إرسال طلب الصداقة','success');
-            await this.openRoomOwnerInfo();
-        }catch(e){
-            this.showToast(e.message||'تعذر إرسال طلب الصداقة','error');
-        }
+            card.innerHTML=`<div class="zono-owner-profile">
+                <div class="zono-avatar-frame ${frameCls} zono-owner-avatar"><div class="zono-frame-crown"></div><img src="${this.escapeHtml(data.avatar||'')}" alt=""></div>
+                <div class="zono-owner-meta">
+                    <b>${this.escapeHtml(data.display_name||'مالك الروم')}</b>
+                    <span class="zono-account-level">LV.${Number(data.account_level||1)}</span>
+                    <small>ID ${Number(data.public_id||0)}</small>
+                    <em>👑 مالك الروم</em></div></div><div class="zono-room-welcome-card"><b>👋 ترحيب الغرفة</b><p>${this.escapeHtml(data.welcome_message||'أهلاً بك في الغرفة')}</p></div>`;
+        }catch(e){card.innerHTML=`<div class="text-center text-red-300 py-5">${this.escapeHtml(e.message||'تعذر تحميل معلومات المالك')}</div>`}
     }
 
     closeRoomOwnerInfo() {
@@ -3160,7 +3046,6 @@ class ZonoApp {
         this.roomMusicState=null;
         this.roomMusicSongs=[];
         this.roomInitialMessagesLoaded=false;
-        this.cancelRoomReply?.();
         this.roomMicState=null;
         if(window.zonoLiveVoice) window.zonoLiveVoice.leaveRoom().catch(()=>{});
 
