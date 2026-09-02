@@ -3730,3 +3730,37 @@ html[class*="theme"] .zono-room-message-capsule{
   #room-messages-flow .zono-room-message-body .bubble-rcvd,
   #room-messages-flow .zono-room-message-body > .zono-voice-message{max-width:62vw!important}
 }
+
+/* ===== ZONO v23.0 — Rooms discovery + creation plans ===== */
+.zono-rooms-discovery-head{padding:.9rem .15rem .15rem;direction:rtl}
+.zono-world-room-pill{width:max-content;max-width:100%;margin:0 auto .8rem;display:flex;align-items:center;gap:.38rem;padding:.34rem .72rem;border-radius:999px;border:1px solid rgba(245,158,11,.38);background:linear-gradient(180deg,rgba(75,37,12,.52),rgba(24,16,12,.7));color:#f7c96b;font-size:.68rem;font-weight:900;box-shadow:0 0 18px rgba(245,158,11,.12),inset 0 0 16px rgba(245,158,11,.05)}
+.zono-world-tag{display:inline-grid;place-items:center;width:1.35rem;height:1.35rem;border-radius:999px;background:rgba(245,158,11,.15);color:#ffd76d;text-shadow:0 0 8px #f59e0b;box-shadow:0 0 12px rgba(245,158,11,.25)}
+.zono-room-search-row{display:flex;direction:ltr;align-items:center;gap:.6rem;width:100%}
+.zono-room-create-circle{flex:0 0 3.15rem;width:3.15rem;height:3.15rem;border-radius:999px;border:1px solid rgba(196,112,255,.68);background:linear-gradient(145deg,#bd61ff,#7c3aed);color:white;font-size:1.8rem;line-height:1;font-weight:500;box-shadow:0 8px 24px rgba(124,58,237,.25),inset 0 0 14px rgba(255,255,255,.12);transition:.18s}
+.zono-room-create-circle:active{transform:scale(.94)}
+.zono-room-search-capsule{flex:1;min-width:0;height:3.15rem;border-radius:1.05rem;border:2px solid rgba(168,85,247,.72);background:rgba(22,17,40,.78);display:flex;direction:rtl;align-items:center;padding:0 .9rem;gap:.55rem;box-shadow:0 0 0 1px rgba(124,58,237,.15),inset 0 0 18px rgba(124,58,237,.08)}
+.zono-room-search-capsule:focus-within{border-color:#c084fc;box-shadow:0 0 20px rgba(168,85,247,.18)}
+.zono-room-search-capsule input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#f5f5f4;font-size:.82rem;font-weight:700;text-align:right;direction:rtl}
+.zono-room-search-capsule input::placeholder{color:#8b8497;font-weight:700}
+.zono-room-search-icon{color:#c4b5fd;font-size:1.35rem;line-height:1}
+.zono-room-filter-strip{display:flex;gap:.42rem;overflow-x:auto;padding:.68rem .08rem .2rem;scrollbar-width:none;direction:rtl}
+.zono-room-filter-strip::-webkit-scrollbar{display:none}
+.zono-room-filter-chip{white-space:nowrap;flex:0 0 auto;padding:.47rem .76rem;border-radius:999px;border:1px solid rgba(120,113,108,.36);background:rgba(20,20,23,.66);color:#c7c2cf;font-size:.66rem;font-weight:900;transition:.18s}
+.zono-room-filter-chip.active{background:linear-gradient(135deg,#8b5cf6,#c026d3);border-color:rgba(216,180,254,.75);color:#fff;box-shadow:0 7px 18px rgba(126,34,206,.22)}
+.zono-room-category-chip{position:absolute;right:.55rem;top:.55rem;z-index:4;padding:.22rem .45rem;border-radius:999px;background:rgba(10,10,12,.72);border:1px solid rgba(255,255,255,.14);color:#eee;font-size:.5rem;font-weight:900;backdrop-filter:blur(8px)}
+.zono-room-card-top.has-category{top:2.15rem}
+.zono-room-plan-grid{display:grid;grid-template-columns:1fr;gap:.55rem;margin-top:.85rem}
+.zono-room-plan-card{position:relative;display:flex;align-items:center;gap:.65rem;padding:.78rem .85rem;border-radius:1rem;border:1px solid rgba(120,113,108,.34);background:rgba(18,18,20,.7);cursor:pointer}
+.zono-room-plan-card:has(input:checked){border-color:rgba(245,158,11,.72);background:rgba(68,40,12,.42);box-shadow:0 0 18px rgba(245,158,11,.09)}
+.zono-room-plan-card input{accent-color:#f59e0b;width:1rem;height:1rem}
+.zono-room-plan-main{display:flex;flex:1;min-width:0;flex-direction:column;gap:.12rem;text-align:right}
+.zono-room-plan-main b{font-size:.78rem;color:#f5f5f4}.zono-room-plan-main small{font-size:.58rem;color:#a8a29e;line-height:1.5}
+.zono-plan-help{width:1.65rem;height:1.65rem;border-radius:999px;border:1px solid rgba(245,158,11,.5);color:#fbbf24;background:rgba(245,158,11,.08);font-weight:900}
+.zono-room-trial-card:has(input:checked){border-color:rgba(168,85,247,.72);background:rgba(72,38,103,.32)}
+.zono-trial-rules{margin-top:.55rem;padding:.58rem .7rem;border-radius:.85rem;background:rgba(59,7,100,.17);border:1px solid rgba(168,85,247,.2);color:#c4b5fd;font-size:.58rem;font-weight:700;line-height:1.65}
+.zono-room-select{appearance:auto}
+.zono-plan-info-card{position:relative;width:min(92vw,360px);padding:1.25rem;border-radius:1.35rem;border:1px solid rgba(245,158,11,.4);background:linear-gradient(180deg,#17120e,#0b0a0a);box-shadow:0 22px 65px rgba(0,0,0,.55);text-align:center;direction:rtl}
+.zono-plan-info-card h3{font-size:1rem;font-weight:900;color:#fbbf24;margin:.35rem 0}.zono-plan-info-card p{font-size:.72rem;color:#d6d3d1;line-height:1.8}
+.zono-plan-info-icon{margin:0 auto;width:2.4rem;height:2.4rem;border-radius:999px;display:grid;place-items:center;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.45);color:#fbbf24;font-weight:900;font-size:1.2rem}
+.zono-plan-info-close{position:absolute;left:.7rem;top:.7rem}
+@media(max-width:520px){.zono-room-search-row{gap:.48rem}.zono-room-create-circle{flex-basis:2.95rem;width:2.95rem;height:2.95rem}.zono-room-search-capsule{height:2.95rem}}
