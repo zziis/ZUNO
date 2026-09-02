@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260902-custom2">
+    <link rel="stylesheet" href="css/style.css?v=20260902-rooms1">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -98,43 +98,42 @@
     <!-- Main Content Body -->
     <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 pb-28">
 
-        <!-- ==================== TAB 1: الرومات (Chat Rooms) ==================== -->
-        <section id="tab-rooms" class="tab-content active space-y-6">
-            <!-- Hero Banner -->
-            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden border border-amber-500/30">
+        <!-- ==================== TAB 1: الرومات (Real Public Rooms) ==================== -->
+        <section id="tab-rooms" class="tab-content active space-y-5">
+            <div class="glass-panel p-5 sm:p-6 rounded-3xl relative overflow-hidden border border-amber-500/30">
                 <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <div class="inline-flex items-center space-x-2 space-x-reverse px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/30 mb-2">
-                            <span>🏛️</span>
-                            <span>مجالس ورومات زونو الكلاسيكية</span>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-bold border border-amber-500/30 mb-2">
+                            <span>🏛️</span><span>رومات Zono العامة</span>
                         </div>
-                        <h2 class="text-2xl sm:text-3xl font-black text-stone-100 mb-1">حيث يلتقي عشاق الزمن الجميل</h2>
+                        <h2 class="text-2xl sm:text-3xl font-black text-stone-100 mb-1">الرومات</h2>
                         <p class="text-xs sm:text-sm text-stone-300 max-w-xl leading-relaxed">
-                            انضم إلى غرف المحادثة المباشرة، شارك في الحوارات الصوتية والنصية بأسلوب تطبيقات المحادثة الكلاسيكية والنوستالجيا.
+                            رومات حقيقية ينشئها المستخدمون. تكلفة إنشاء الروم <b class="text-amber-300">30,000 بذرة</b>.
                         </p>
                     </div>
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <button onclick="window.zonoApp.showToast('ميزة إنشاء روم مخصص ستكون متاحة للمستخدمين المميزين قريباً! ✨')" class="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center space-x-1.5 space-x-reverse">
-                            <span>+</span>
-                            <span>إنشاء مجلس جديد</span>
-                        </button>
-                    </div>
+                    <button onclick="window.zonoApp.openCreateRoomModal()" class="zono-create-room-btn">
+                        <span class="text-lg">＋</span>
+                        <span>إنشاء روم</span>
+                        <span class="zono-create-room-price">30,000 🌾</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- Filter Categories -->
-            <div class="flex items-center space-x-2 space-x-reverse overflow-x-auto pb-2 text-xs font-bold scrollbar-none">
-                <button class="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 whitespace-nowrap shadow">الكل (6)</button>
-                <button class="px-4 py-2 rounded-xl bg-stone-900/80 text-stone-400 hover:text-stone-200 border border-stone-800 whitespace-nowrap">🎙️ بث صوتي مباشر</button>
-                <button class="px-4 py-2 rounded-xl bg-stone-900/80 text-stone-400 hover:text-stone-200 border border-stone-800 whitespace-nowrap">📜 أدب وفلسفة</button>
-                <button class="px-4 py-2 rounded-xl bg-stone-900/80 text-stone-400 hover:text-stone-200 border border-stone-800 whitespace-nowrap">☕ سوالف الكيك القديمة</button>
-                <button class="px-4 py-2 rounded-xl bg-stone-900/80 text-stone-400 hover:text-stone-200 border border-stone-800 whitespace-nowrap">⚙️ تقنية وابتكار</button>
+            <div class="flex items-center justify-between px-1">
+                <div>
+                    <h3 class="text-lg font-black text-stone-100">الرومات المتاحة</h3>
+                    <p id="zono-rooms-count" class="text-[10px] text-stone-500">0 روم</p>
+                </div>
+                <button onclick="window.zonoApp.loadRooms(true)" class="zono-room-refresh-btn">تحديث ↻</button>
             </div>
 
-            <!-- Rooms Grid -->
-            <div id="rooms-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Populated dynamically by app.js -->
+            <div id="rooms-list-container" class="zono-real-rooms-grid">
+                <div class="zono-rooms-empty">
+                    <div class="text-4xl mb-3">🏛️</div>
+                    <div class="font-black text-stone-200">لا توجد رومات حتى الآن</div>
+                    <div class="text-xs text-stone-500 mt-1">كن أول من ينشئ رومًا في Zono.</div>
+                </div>
             </div>
         </section>
 
@@ -836,21 +835,26 @@
 
     <!-- Room Chat Modal -->
     <div id="room-chat-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-2 sm:p-4">
-        <div class="glass-panel w-full max-w-2xl h-[85vh] rounded-3xl border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden">
-            <!-- Modal Header -->
-            <div class="p-4 border-b border-stone-800/80 flex items-center justify-between bg-stone-900/80">
-                <div class="flex items-center space-x-3 space-x-reverse">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl">
-                        🏛️
-                    </div>
-                    <div>
-                        <h3 id="room-modal-title" class="font-bold text-sm text-stone-100">اسم الروم</h3>
-                        <span id="room-modal-count" class="text-[11px] text-emerald-400 font-semibold">42 متواجد</span>
+        <div class="glass-panel w-full max-w-2xl h-[88vh] rounded-3xl border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden">
+            <div class="p-3.5 border-b border-stone-800/80 flex items-center justify-between bg-stone-900/80">
+                <div class="flex items-center gap-3 min-w-0">
+                    <img id="room-modal-image" src="" alt="Room" class="w-11 h-11 rounded-xl border border-amber-500/35 bg-stone-800 object-cover shrink-0">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h3 id="room-modal-title" class="font-black text-sm text-stone-100 truncate">اسم الروم</h3>
+                            <span id="room-modal-lock" class="hidden text-[10px]">🔒</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span id="room-modal-id" class="text-[10px] text-amber-400 font-mono">ID 50</span>
+                            <span id="room-modal-count" class="text-[10px] text-emerald-400 font-semibold">0 متواجد</span>
+                        </div>
                     </div>
                 </div>
-                <button onclick="window.zonoApp.closeRoomModal()" class="w-8 h-8 rounded-full bg-stone-800 hover:bg-stone-700 text-stone-300 flex items-center justify-center text-sm transition-colors">
-                    ✕
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.zonoApp.openRoomGiftModal()" class="zono-room-header-btn gift" title="إرسال هدية">🌹</button>
+                    <button id="room-admin-button" onclick="window.zonoApp.openRoomAdmin()" class="hidden zono-room-header-btn admin" title="إدارة الروم">⚙️</button>
+                    <button onclick="window.zonoApp.closeRoomModal()" class="zono-room-header-btn">✕</button>
+                </div>
             </div>
 
             <div id="zono-room-entry-capsule" class="hidden zono-room-entry-wrap">
@@ -868,18 +872,124 @@
                 </div>
             </div>
 
-            <!-- Messages Flow -->
             <div id="room-messages-flow" class="flex-1 p-4 overflow-y-auto space-y-2 bg-stone-950/40">
-                <!-- Messages populate here -->
+                <div class="text-center text-stone-600 text-xs py-10">لا توجد رسائل بعد.</div>
             </div>
 
-            <!-- Message Input -->
-            <div class="p-3 border-t border-stone-800/80 bg-stone-900/90 flex items-center space-x-2 space-x-reverse">
-                <input type="text" id="room-message-input" placeholder="اكتب رسالتك في المجلس..." class="flex-1 p-3 rounded-2xl bg-stone-950/80 border border-stone-700 text-stone-100 text-xs focus:border-amber-500 focus:outline-none">
-                <button onclick="window.zonoApp.sendRoomMessage()" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 font-bold text-xs shadow-md">
+            <div id="room-muted-notice" class="hidden px-4 py-2 text-center text-xs font-bold text-red-300 bg-red-950/40 border-t border-red-900/30">
+                🔇 أنت مكتوم داخل هذا الروم.
+            </div>
+
+            <div class="p-3 border-t border-stone-800/80 bg-stone-900/90 flex items-center gap-2">
+                <input type="text" id="room-message-input" maxlength="1000" placeholder="اكتب رسالتك العامة في الروم..." class="flex-1 p-3 rounded-2xl bg-stone-950/80 border border-stone-700 text-stone-100 text-xs focus:border-amber-500 focus:outline-none">
+                <button id="room-send-button" onclick="window.zonoApp.sendRoomMessage()" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 font-bold text-xs shadow-md">
                     إرسال
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- Create Room Modal -->
+    <div id="zono-create-room-modal" class="fixed inset-0 z-[70] modal-backdrop hidden items-center justify-center p-4">
+        <div class="zono-room-form-card">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-black text-stone-100">🏛️ إنشاء روم جديد</h3>
+                    <p class="text-[10px] text-amber-300 mt-1">التكلفة: 30,000 بذرة — لا تُسترجع عند حذف الروم.</p>
+                </div>
+                <button onclick="window.zonoApp.closeCreateRoomModal()" class="zono-room-header-btn">✕</button>
+            </div>
+
+            <label class="zono-room-form-label">اسم الروم</label>
+            <input id="zono-room-name-input" class="zono-room-form-input" maxlength="60" placeholder="اسم الروم">
+
+            <label class="zono-room-form-label">صورة الروم</label>
+            <input id="zono-room-image-input" class="zono-room-file-input" type="file" accept="image/*">
+            <div id="zono-room-image-preview-wrap" class="hidden mt-2">
+                <img id="zono-room-image-preview" class="w-full h-36 rounded-2xl object-cover border border-stone-700" alt="preview">
+            </div>
+
+            <label class="zono-room-form-label">نبذة</label>
+            <textarea id="zono-room-bio-input" class="zono-room-form-input min-h-[90px] py-3" maxlength="240" placeholder="نبذة قصيرة عن الروم"></textarea>
+
+            <button onclick="window.zonoApp.createRoom()" class="zono-room-submit-btn">إنشاء الروم مقابل 30,000 بذرة</button>
+        </div>
+    </div>
+
+    <!-- Protected Room Password Modal -->
+    <div id="zono-room-password-modal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
+        <div class="zono-protected-room-card">
+            <div class="zono-protected-lock">🔒</div>
+            <h3 class="text-xl font-black text-stone-100 mt-3">غرفة محمية</h3>
+            <div id="zono-protected-room-name" class="zono-protected-name">الروم</div>
+            <p class="text-xs text-stone-400 mt-3">أدخل رمز الروم للدخول</p>
+            <input id="zono-room-password-input" type="password" maxlength="12" class="zono-room-form-input mt-4 text-center tracking-[.35em]" placeholder="••••">
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <button onclick="window.zonoApp.submitRoomPassword()" class="zono-room-submit-btn mt-0">دخول ↪</button>
+                <button onclick="window.zonoApp.closeRoomPasswordModal()" class="zono-room-cancel-btn">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Admin Modal -->
+    <div id="zono-room-admin-modal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-3">
+        <div class="zono-room-admin-card">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="text-lg font-black text-stone-100">⚙️ إدارة الروم</h3>
+                    <p id="zono-room-admin-role" class="text-[10px] text-amber-300">مالك الروم</p>
+                </div>
+                <button onclick="window.zonoApp.closeRoomAdmin()" class="zono-room-header-btn">✕</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="window.zonoApp.setRoomLock(false)" class="zono-admin-action green">🔓 فتح الروم</button>
+                <button onclick="window.zonoApp.setRoomLock(true)" class="zono-admin-action amber">🔒 قفل برمز</button>
+            </div>
+
+            <div id="zono-room-delete-wrap" class="hidden mt-2">
+                <button onclick="window.zonoApp.deleteCurrentRoom()" class="zono-admin-action red w-full">🗑️ حذف الروم نهائيًا بدون استرجاع البذور</button>
+            </div>
+
+            <div class="mt-4 border-t border-stone-800 pt-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-black text-stone-200">المتواجدون والإدارة</h4>
+                    <button onclick="window.zonoApp.loadRoomMembers(true)" class="text-[10px] text-amber-300">تحديث ↻</button>
+                </div>
+                <div id="zono-room-admin-members" class="space-y-2 max-h-[50vh] overflow-y-auto"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Gifts Modal -->
+    <div id="zono-room-gift-modal" class="fixed inset-0 z-[85] modal-backdrop hidden items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="zono-gift-sheet">
+            <div class="zono-gift-handle"></div>
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-lg font-black text-stone-100">🎁 هدايا الروم</h3>
+                    <p class="text-[10px] text-stone-400">20% للشركة • 20% لمالك الروم • 60% للمستلم</p>
+                </div>
+                <button onclick="window.zonoApp.closeRoomGiftModal()" class="zono-room-header-btn">✕</button>
+            </div>
+
+            <div class="mt-4">
+                <label class="zono-room-form-label">إرسال إلى</label>
+                <select id="zono-gift-recipient" class="zono-room-form-input"></select>
+            </div>
+
+            <div class="zono-gift-grid mt-4">
+                <button onclick="window.zonoApp.selectGift('rose')" id="zono-gift-rose" class="zono-gift-card is-selected">
+                    <span class="zono-gift-emoji">🌹</span>
+                    <b>وردة</b>
+                    <span>100 🪶</span>
+                </button>
+                <div class="zono-gift-card is-locked"><span class="zono-gift-emoji">❤️</span><b>قريبًا</b></div>
+                <div class="zono-gift-card is-locked"><span class="zono-gift-emoji">🦋</span><b>قريبًا</b></div>
+                <div class="zono-gift-card is-locked"><span class="zono-gift-emoji">👑</span><b>قريبًا</b></div>
+            </div>
+
+            <button onclick="window.zonoApp.sendRoomGift()" class="zono-room-submit-btn mt-4">إرسال الوردة 🌹</button>
         </div>
     </div>
 
@@ -952,7 +1062,7 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/app.js?v=20260902-custom2"></script>
+    <script src="js/app.js?v=20260902-rooms1"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
