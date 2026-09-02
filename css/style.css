@@ -3538,3 +3538,63 @@ html[class*="theme"] .zono-room-message-capsule{
   margin-left: auto !important;
   margin-right: 0 !important;
 }
+
+
+/* =========================================================
+   ZONO V22.3 — TRUE PHYSICAL RIGHT ALIGNMENT
+   IMPORTANT: positioning direction is LTR so flex-end = RIGHT.
+   Message content itself remains RTL for Arabic.
+   ========================================================= */
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) {
+  direction: ltr !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+  padding-inline: .25rem !important;
+}
+
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) > .zono-room-msg-head,
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) > .zono-room-text-actions,
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) > .zono-voice-message {
+  direction: rtl !important;
+  align-self: flex-end !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  text-align: right !important;
+}
+
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) > .zono-room-msg-head {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+}
+
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) > .zono-room-text-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: flex-end !important;
+  width: auto !important;
+  max-width: 88% !important;
+}
+
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) .zono-glass-message,
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) .bubble-sent,
+#room-messages-flow > .zono-force-right:not(.zono-room-gift-event) .bubble-rcvd {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* Gift events are normal horizontal RTL cards, pushed physically right. */
+#room-messages-flow > .zono-room-gift-event.zono-force-right {
+  direction: rtl !important;
+  display: flex !important;
+  flex-direction: row !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  text-align: right !important;
+}

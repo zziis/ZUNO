@@ -1745,7 +1745,7 @@ class ZonoApp {
                 const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
                 const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
                 const isMeVoice = Number(msg.sender_public_id) === Number(this.currentUser?.publicId);
-                return `<div class="flex flex-col mb-3 zono-force-right" style="align-items:flex-end!important;width:100%!important;margin-left:auto!important;margin-right:0!important;text-align:right!important;direction:rtl!important;">
+                return `<div class="flex flex-col mb-3 zono-force-right" style="align-items:flex-end!important;width:100%!important;margin-left:0!important;margin-right:0!important;text-align:right!important;direction:ltr!important;">
                     <div class="zono-room-msg-head" style="align-self:flex-end!important;justify-content:flex-start!important;direction:rtl!important;text-align:right!important;">
                         <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
                             <div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
@@ -1765,7 +1765,7 @@ class ZonoApp {
             const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
             const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
 
-            return `<div class="flex flex-col mb-3 zono-force-right" style="align-items:flex-end!important;width:100%!important;margin-left:auto!important;margin-right:0!important;text-align:right!important;direction:rtl!important;">
+            return `<div class="flex flex-col mb-3 zono-force-right" style="align-items:flex-end!important;width:100%!important;margin-left:0!important;margin-right:0!important;text-align:right!important;direction:ltr!important;">
                 <div class="zono-room-msg-head" style="align-self:flex-end!important;justify-content:flex-start!important;direction:rtl!important;text-align:right!important;">
                     <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
                         <div class="zono-frame-crown"></div>
