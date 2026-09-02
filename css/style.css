@@ -2849,3 +2849,314 @@ html[data-theme="imperial"] .glass-panel{
   .zono-bottom-round-btn{width:2.72rem!important;height:2.72rem!important;flex-basis:2.72rem!important}
   .zono-room-message-capsule{height:3rem!important}
 }
+
+
+/* ===== MIC CIRCLE ONLY FIX =====
+   Empty mic seats = ONLY one transparent circle. No square, no extra plate.
+*/
+#zono-room-mic-zone,
+.zono-room-mic-seats-clean,
+.zono-mic-seat-circle,
+.zono-mic-seat-circle::before,
+.zono-mic-seat-circle::after{
+  background:transparent!important;
+  background-image:none!important;
+  box-shadow:none!important;
+  border:0!important;
+  outline:0!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+.zono-mic-seat-circle{
+  min-height:3.35rem!important;
+  height:3.35rem!important;
+  padding:0!important;
+  margin:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+
+/* Hide any empty-seat extra labels/wrappers. */
+.zono-mic-seat-circle:not(.occupied) > *{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+.zono-mic-seat-circle:not(.occupied) b,
+.zono-mic-seat-circle:not(.occupied) small,
+.zono-mic-seat-circle:not(.occupied) .zono-mic-seat-label{
+  display:none!important;
+}
+
+/* The ONLY visible empty-seat shape. */
+.zono-mic-seat-circle:not(.occupied) .zono-mic-seat-icon{
+  width:3rem!important;
+  height:3rem!important;
+  min-width:3rem!important;
+  min-height:3rem!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.018)!important;
+  background-image:none!important;
+  border:1px solid rgba(255,255,255,.11)!important;
+  outline:0!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(.6px)!important;
+  -webkit-backdrop-filter:blur(.6px)!important;
+  color:rgba(255,255,255,.66)!important;
+  font-size:1.25rem!important;
+  line-height:1!important;
+}
+
+/* Occupied seat: avatar itself is circular; no square container behind it. */
+.zono-mic-seat-circle.occupied{
+  background:transparent!important;
+}
+.zono-mic-seat-circle.occupied .zono-mic-avatar-wrap{
+  width:3rem!important;
+  height:3rem!important;
+  min-width:3rem!important;
+  min-height:3rem!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:0!important;
+}
+.zono-mic-seat-circle.occupied .zono-mic-avatar{
+  width:100%!important;
+  height:100%!important;
+  border-radius:50%!important;
+  object-fit:cover!important;
+}
+
+/* Keep 4 seats per row, but without visible rectangular cells. */
+.zono-room-mic-seats-clean{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:.55rem!important;
+  padding:.2rem .35rem!important;
+}
+
+
+/* ===== ROOM LEVEL POSITION + PURPLE PROGRESS ===== */
+/* LV فوق بيانات/اسم الروم، وتحته خط تقدم صغير بنفسجي */
+.zono-room-main-meta{
+  position:relative!important;
+  padding-top:1.45rem!important;
+}
+
+.zono-room-level-badge{
+  position:absolute!important;
+  top:0!important;
+  right:0!important;
+  min-width:3.45rem!important;
+  height:1.15rem!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:.12rem .42rem!important;
+  border-radius:.48rem!important;
+  background:rgba(124,58,237,.22)!important;
+  border:1px solid rgba(168,85,247,.28)!important;
+  color:#f5f3ff!important;
+  font-size:.52rem!important;
+  font-weight:900!important;
+  box-shadow:0 0 8px rgba(139,92,246,.12)!important;
+}
+
+/* شريط مستوى صغير أسفل LV */
+.zono-room-level-badge::after{
+  content:""!important;
+  position:absolute!important;
+  right:0!important;
+  top:1.38rem!important;
+  width:3.45rem!important;
+  height:.16rem!important;
+  border-radius:999px!important;
+  background:linear-gradient(
+    to left,
+    #a855f7 0%,
+    #7c3aed 38%,
+    rgba(139,92,246,.18) 38%,
+    rgba(139,92,246,.18) 100%
+  )!important;
+  box-shadow:0 0 5px rgba(168,85,247,.38)!important;
+}
+
+/* يمنع LV من أخذ مكان داخل السطر السفلي */
+.zono-room-main-subrow .zono-room-level-badge{
+  margin:0!important;
+}
+
+
+/* =========================================================
+   ZONO COMBINED 3 FIXES
+   1) Room LV position/progress kept from previous patch.
+   2) All room messages align LEFT + compact bubbles.
+   3) Remove inner colored/themed rectangle from composer.
+   ========================================================= */
+
+/* ---------- 2) ALL ROOM MESSAGES ON THE LEFT ---------- */
+#room-messages-flow{
+  direction:ltr!important;
+}
+
+#room-messages-flow > .flex,
+#room-messages-flow .zono-room-message-row,
+#room-messages-flow .zono-room-message-item{
+  width:100%!important;
+  justify-content:flex-start!important;
+  align-items:flex-start!important;
+  margin-left:0!important;
+  margin-right:auto!important;
+  text-align:left!important;
+  direction:ltr!important;
+}
+
+/* sender image stays visible on left */
+.zono-room-message-avatar,
+.zono-room-msg-avatar,
+#room-messages-flow .zono-avatar-frame{
+  flex:0 0 auto!important;
+  width:2.05rem!important;
+  height:2.05rem!important;
+  min-width:2.05rem!important;
+  min-height:2.05rem!important;
+  border-radius:50%!important;
+}
+
+/* name + LV compact and aligned left */
+.zono-room-msg-head{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:.28rem!important;
+  direction:ltr!important;
+  text-align:left!important;
+  margin-bottom:.14rem!important;
+}
+
+.zono-account-level{
+  padding:.05rem .25rem!important;
+  border-radius:999px!important;
+  font-size:.39rem!important;
+  line-height:1.2!important;
+}
+
+/* message bubble only as wide as text */
+.zono-room-text-wrap,
+.zono-room-text-actions,
+.zono-room-text-actions.is-me{
+  display:flex!important;
+  flex-direction:row!important;
+  justify-content:flex-start!important;
+  align-items:flex-end!important;
+  width:auto!important;
+  max-width:88%!important;
+  margin-left:0!important;
+  margin-right:auto!important;
+}
+
+.zono-glass-message,
+.bubble-sent,
+.bubble-rcvd,
+.zono-voice-message{
+  display:inline-block!important;
+  width:auto!important;
+  max-width:78vw!important;
+  min-width:0!important;
+  padding:.42rem .62rem!important;
+  border-radius:.78rem!important;
+  background:rgba(10,16,28,.22)!important;
+  border:1px solid rgba(255,255,255,.045)!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+  text-align:left!important;
+  direction:rtl!important;
+  line-height:1.45!important;
+  font-size:.66rem!important;
+  overflow-wrap:anywhere!important;
+}
+
+/* short voice notes stay compact too */
+.zono-voice-message{
+  min-width:9.5rem!important;
+  max-width:15rem!important;
+}
+
+/* ---------- 3) REMOVE THE THEME COLORED INNER SQUARE ---------- */
+/* outer capsule stays glass */
+.zono-room-message-capsule{
+  background:rgba(255,255,255,.035)!important;
+  background-image:none!important;
+  border:1px solid rgba(255,255,255,.055)!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+  overflow:hidden!important;
+}
+
+/* the actual input must NEVER inherit theme background */
+#room-message-input,
+.zono-room-message-capsule input,
+.zono-room-message-capsule input:focus,
+.zono-room-message-capsule input:hover,
+.zono-room-message-capsule input:active{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  color:rgba(255,255,255,.92)!important;
+  -webkit-appearance:none!important;
+  appearance:none!important;
+}
+
+/* remove pseudo overlays/inner blocks that themes may inject */
+.zono-room-message-capsule::before,
+.zono-room-message-capsule::after,
+.zono-room-message-capsule input::before,
+.zono-room-message-capsule input::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+}
+
+/* emoji + send are also transparent, no themed square */
+.zono-room-emoji-btn,
+.zono-room-inline-send,
+.zono-room-message-capsule button{
+  background:transparent!important;
+  background-color:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  outline:0!important;
+}
+
+/* theme variables/classes must not paint the room input */
+body[class*="theme"] #room-message-input,
+body[class*="theme"] .zono-room-message-capsule,
+html[class*="theme"] #room-message-input,
+html[class*="theme"] .zono-room-message-capsule{
+  background-image:none!important;
+}
+
+@media(max-width:520px){
+  .zono-glass-message,
+  .bubble-sent,
+  .bubble-rcvd{
+    max-width:72vw!important;
+    font-size:.64rem!important;
+    padding:.4rem .58rem!important;
+  }
+}
