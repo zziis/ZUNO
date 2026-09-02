@@ -3160,3 +3160,256 @@ html[class*="theme"] .zono-room-message-capsule{
     padding:.4rem .58rem!important;
   }
 }
+
+
+/* ===== ZONO V9 CHAT RIGHT + REPLY + OWNER SOCIAL ===== */
+
+/* Every message is on the RIGHT, regardless of role. */
+#room-messages-flow{
+  direction:rtl!important;
+}
+.zono-room-message-row,
+.zono-room-message-right{
+  width:100%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  margin:.28rem 0!important;
+  padding:0 .25rem!important;
+  direction:rtl!important;
+  text-align:right!important;
+}
+.zono-room-msg-head{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:.26rem!important;
+  width:auto!important;
+  margin:0 0 .12rem 0!important;
+  direction:rtl!important;
+}
+.zono-room-message-avatar{
+  width:2rem!important;
+  height:2rem!important;
+  min-width:2rem!important;
+  min-height:2rem!important;
+  border-radius:50%!important;
+}
+.zono-room-msg-head .zono-name-text{
+  font-size:.57rem!important;
+  font-weight:900!important;
+}
+.zono-room-msg-head .zono-account-level{
+  font-size:.38rem!important;
+  padding:.05rem .24rem!important;
+  border-radius:999px!important;
+}
+
+/* Compact bubbles, only as wide as content. */
+.zono-room-message-actionline{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  gap:.28rem!important;
+  width:auto!important;
+  max-width:86%!important;
+}
+.zono-room-compact-bubble{
+  display:inline-flex!important;
+  align-items:center!important;
+  width:max-content!important;
+  max-width:72vw!important;
+  min-width:0!important;
+  padding:.38rem .58rem!important;
+  border-radius:.78rem!important;
+  background:rgba(12,18,30,.24)!important;
+  border:1px solid rgba(255,255,255,.045)!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(3px)!important;
+  -webkit-backdrop-filter:blur(3px)!important;
+  color:rgba(255,255,255,.92)!important;
+  font-size:.64rem!important;
+  line-height:1.45!important;
+  text-align:right!important;
+  direction:rtl!important;
+  overflow-wrap:anywhere!important;
+}
+
+.zono-room-reply-btn{
+  width:1.65rem!important;
+  height:1.65rem!important;
+  flex:0 0 1.65rem!important;
+  border-radius:50%!important;
+  background:rgba(99,102,241,.12)!important;
+  border:1px solid rgba(129,140,248,.14)!important;
+  color:#c4b5fd!important;
+  font-size:.65rem!important;
+}
+
+/* Quoted message inside a reply. */
+.zono-room-reply-quote{
+  width:max-content!important;
+  max-width:68vw!important;
+  margin:0 2.25rem .14rem 0!important;
+  padding:.28rem .48rem!important;
+  border-right:2px solid rgba(139,92,246,.75)!important;
+  border-radius:.5rem!important;
+  background:rgba(76,29,149,.12)!important;
+  backdrop-filter:blur(2px)!important;
+}
+.zono-room-reply-quote b{
+  display:block!important;
+  color:#c4b5fd!important;
+  font-size:.48rem!important;
+}
+.zono-room-reply-quote span{
+  display:block!important;
+  color:rgba(255,255,255,.65)!important;
+  font-size:.47rem!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+
+/* Reply bar above composer, injected dynamically. */
+.zono-room-composer{
+  position:relative!important;
+}
+.zono-room-reply-bar{
+  position:absolute!important;
+  right:.65rem!important;
+  left:.65rem!important;
+  bottom:calc(100% + .28rem)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:.5rem!important;
+  padding:.42rem .58rem!important;
+  border-radius:.8rem!important;
+  background:rgba(15,23,42,.78)!important;
+  border:1px solid rgba(139,92,246,.22)!important;
+  backdrop-filter:blur(8px)!important;
+  z-index:25!important;
+}
+.zono-room-reply-bar.hidden{display:none!important}
+.zono-room-reply-bar div{min-width:0!important}
+.zono-room-reply-bar b{
+  display:block!important;
+  color:#c4b5fd!important;
+  font-size:.5rem!important;
+}
+.zono-room-reply-bar span{
+  display:block!important;
+  color:#cbd5e1!important;
+  font-size:.47rem!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+.zono-room-reply-bar button{
+  width:1.75rem!important;
+  height:1.75rem!important;
+  border-radius:50%!important;
+  background:rgba(255,255,255,.06)!important;
+  color:#fff!important;
+}
+
+/* Owner profile sheet. */
+.zono-owner-social-card{
+  display:flex!important;
+  align-items:center!important;
+  gap:.85rem!important;
+  padding:.85rem!important;
+  border-radius:1.1rem!important;
+  background:rgba(30,41,59,.34)!important;
+  border:1px solid rgba(56,189,248,.12)!important;
+}
+.zono-owner-social-avatar{
+  width:5rem!important;
+  height:5rem!important;
+  min-width:5rem!important;
+  min-height:5rem!important;
+}
+.zono-owner-social-info{
+  flex:1!important;
+  min-width:0!important;
+}
+.zono-owner-social-info>b{
+  display:block!important;
+  color:#fff!important;
+  font-size:.88rem!important;
+}
+.zono-owner-social-info>small{
+  display:block!important;
+  margin-top:.12rem!important;
+  color:#94a3b8!important;
+  font-size:.52rem!important;
+}
+.zono-owner-level-line{
+  margin-top:.45rem!important;
+}
+.zono-owner-level-line>span{
+  display:block!important;
+  color:#38bdf8!important;
+  font-size:.5rem!important;
+  font-weight:900!important;
+}
+.zono-owner-level-track{
+  width:6.2rem!important;
+  max-width:100%!important;
+  height:.2rem!important;
+  margin-top:.22rem!important;
+  border-radius:999px!important;
+  background:rgba(59,130,246,.16)!important;
+  overflow:hidden!important;
+}
+.zono-owner-level-track i{
+  display:block!important;
+  height:100%!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#0284c7,#38bdf8)!important;
+  box-shadow:0 0 7px rgba(56,189,248,.5)!important;
+}
+.zono-owner-role{
+  display:inline-block!important;
+  margin-top:.45rem!important;
+  padding:.15rem .38rem!important;
+  border-radius:999px!important;
+  background:rgba(245,158,11,.12)!important;
+  color:#fbbf24!important;
+  font-size:.46rem!important;
+  font-weight:900!important;
+}
+.zono-owner-social-actions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:.5rem!important;
+  margin-top:.65rem!important;
+}
+.zono-owner-social-actions button{
+  min-height:2.65rem!important;
+  border-radius:.85rem!important;
+  background:rgba(30,41,59,.42)!important;
+  border:1px solid rgba(148,163,184,.12)!important;
+  color:#e2e8f0!important;
+  font-size:.58rem!important;
+  font-weight:900!important;
+}
+.zono-owner-social-actions button.is-active{
+  color:#fb7185!important;
+  border-color:rgba(244,63,94,.24)!important;
+  background:rgba(136,19,55,.16)!important;
+}
+.zono-owner-social-actions button b{
+  margin-inline-start:.25rem!important;
+  color:#f8fafc!important;
+}
+
+@media(max-width:520px){
+  .zono-room-compact-bubble{max-width:68vw!important}
+  .zono-owner-social-avatar{
+    width:4.3rem!important;height:4.3rem!important;min-width:4.3rem!important;min-height:4.3rem!important
+  }
+}
