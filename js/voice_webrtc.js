@@ -38,6 +38,12 @@
             this._lastRemoteAudioAt = null;
             this._audioUnlocked = false;
 
+            this.audioContext = null;
+            this.remoteAudioNodes = new Map();
+            this.speakerMeters = new Map();
+            this.localMeterStop = null;
+            this.listenerGain = 1.85;
+
             this.installAudioUnlock();
         }
 
@@ -133,6 +139,10 @@
             ch.on('broadcast', { event:'voice-state' }, ({payload}) => {
                 this.handleVoiceState(payload).catch(()=>{});
             });
+            ch.on('broadcast', { event:'room-entry' }, ({payload}) => {
+                if(payload?.peer_id===this.peerId) return;
+                this.app?.showRoomEntryNotice?.(payload||{});
+            });
             ch.on('presence', { event:'sync' }, () => {
                 this.handlePresenceSync().catch(()=>{});
             });
@@ -168,6 +178,15 @@
             this.setStatus('on','الصوت متصل');
             await this.syncMicState();
             await this.handlePresenceSync();
+        }
+
+        async announceRoomEntry(payload={}) {
+            await this.sendBroadcast('room-entry',{
+                peer_id:this.peerId,
+                user_public_id:this.myPublicId(),
+                display_name:payload.display_name || this.myName(),
+                name_theme:payload.name_theme || 'basic'
+            });
         }
 
         async sendBroadcast(event,payload) {
@@ -247,6 +266,7 @@
                     track.onended=()=>this.stopPublishing().catch(()=>{});
                 }
 
+                this.startSpeakerMeter(this.myPublicId(),stream,true);
                 this.setStatus('on','مايك مباشر');
                 await this.updatePresence(true);
                 await this.handlePresenceSync();
@@ -265,6 +285,8 @@
             }
             this.localStream=null;
             this.isMuted=false;
+            if(this.localMeterStop){try{this.localMeterStop()}catch(_){} this.localMeterStop=null}
+            this.setSeatSpeaking(this.myPublicId(),false);
 
             for(const id of [...this.publisherPeers.keys()]) this.closePublisher(id);
             await this.updatePresence(true);
@@ -517,6 +539,60 @@
             }
         }
 
+        ensureAudioContext() {
+            if(this.audioContext && this.audioContext.state!=='closed') return this.audioContext;
+            const AC=window.AudioContext||window.webkitAudioContext;
+            if(!AC) return null;
+            this.audioContext=new AC();
+            return this.audioContext;
+        }
+
+        setSeatSpeaking(publicId,active) {
+            if(!publicId) return;
+            const seat=document.querySelector(`#zono-room-mic-seats [data-public-id="${Number(publicId)}"]`);
+            seat?.classList.toggle('is-speaking',!!active);
+        }
+
+        startSpeakerMeter(publicId,stream,isLocal=false) {
+            if(!publicId||!stream) return ()=>{};
+            const ctx=this.ensureAudioContext();
+            if(!ctx) return ()=>{};
+            try{
+                const source=ctx.createMediaStreamSource(stream);
+                const analyser=ctx.createAnalyser();
+                analyser.fftSize=256;
+                analyser.smoothingTimeConstant=.72;
+                source.connect(analyser);
+                const data=new Uint8Array(analyser.frequencyBinCount);
+                let stopped=false, speaking=false, raf=0;
+                const tick=()=>{
+                    if(stopped) return;
+                    analyser.getByteTimeDomainData(data);
+                    let sum=0;
+                    for(let i=0;i<data.length;i++){
+                        const v=(data[i]-128)/128;
+                        sum+=v*v;
+                    }
+                    const rms=Math.sqrt(sum/data.length);
+                    const next=rms>0.035;
+                    if(next!==speaking){
+                        speaking=next;
+                        this.setSeatSpeaking(publicId,speaking);
+                    }
+                    raf=requestAnimationFrame(tick);
+                };
+                tick();
+                const stop=()=>{
+                    stopped=true;
+                    cancelAnimationFrame(raf);
+                    try{source.disconnect();analyser.disconnect()}catch(_){}
+                    this.setSeatSpeaking(publicId,false);
+                };
+                if(isLocal) this.localMeterStop=stop;
+                return stop;
+            }catch(_){return ()=>{}}
+        }
+
         attachRemoteAudio(peerId,stream) {
             let audio=this.remoteAudios.get(peerId);
             if(!audio){
@@ -526,25 +602,52 @@
                 audio.setAttribute('playsinline','');
                 audio.setAttribute('data-zono-peer',peerId);
                 audio.volume=1;
-
                 const sinks=document.getElementById('zono-live-audio-sinks')||document.body;
                 sinks.appendChild(audio);
                 this.remoteAudios.set(peerId,audio);
             }
 
             audio.srcObject=stream;
+            const publicId=this.receiverPeers.get(peerId)?._zonoPublicId || 0;
+            const ctx=this.ensureAudioContext();
 
+            if(ctx){
+                try{
+                    const previous=this.remoteAudioNodes.get(peerId);
+                    if(previous){
+                        try{previous.source.disconnect();previous.gain.disconnect()}catch(_){}
+                    }
+                    const source=ctx.createMediaStreamSource(stream);
+                    const gain=ctx.createGain();
+                    gain.gain.value=this.listenerGain;
+                    source.connect(gain);
+                    gain.connect(ctx.destination);
+                    audio.muted=true;
+                    this.remoteAudioNodes.set(peerId,{source,gain});
+
+                    const stopMeter=this.startSpeakerMeter(publicId,stream,false);
+                    const oldMeter=this.speakerMeters.get(peerId);
+                    if(oldMeter) try{oldMeter()}catch(_){}
+                    this.speakerMeters.set(peerId,stopMeter);
+                    this._lastRemoteAudioAt=Date.now();
+
+                    if(ctx.state==='suspended') ctx.resume().catch(()=>{});
+                    return;
+                }catch(_){}
+            }
+
+            audio.muted=false;
             const tryPlay=()=>{
                 const p=audio.play?.();
-                if(p?.catch){
-                    p.catch(()=>{
-                        this.setStatus('on','اضغط داخل الروم للصوت');
-                    });
-                }
+                if(p?.catch) p.catch(()=>this.setStatus('on','اضغط داخل الروم للصوت'));
             };
-
             tryPlay();
             if(this._audioUnlocked) setTimeout(tryPlay,100);
+
+            const stopMeter=this.startSpeakerMeter(publicId,stream,false);
+            const oldMeter=this.speakerMeters.get(peerId);
+            if(oldMeter) try{oldMeter()}catch(_){}
+            this.speakerMeters.set(peerId,stopMeter);
         }
 
         closeReceiver(peerId) {
@@ -555,6 +658,15 @@
             if(pc){
                 try{pc.ontrack=null;pc.close()}catch(_){}
                 this.receiverPeers.delete(peerId);
+            }
+
+            const meter=this.speakerMeters.get(peerId);
+            if(meter){try{meter()}catch(_){} this.speakerMeters.delete(peerId)}
+
+            const nodes=this.remoteAudioNodes.get(peerId);
+            if(nodes){
+                try{nodes.source.disconnect();nodes.gain.disconnect()}catch(_){}
+                this.remoteAudioNodes.delete(peerId);
             }
 
             const audio=this.remoteAudios.get(peerId);

@@ -2489,3 +2489,39 @@ html[data-theme="imperial"] .glass-panel{
 .zono-live-diag-grid b.warn{color:#fde68a}
 .zono-live-diag-grid b.bad{color:#fca5a5}
 .zono-live-diag-message{margin-top:.5rem;padding:.45rem .55rem;border-radius:.6rem;background:rgba(8,47,73,.32);color:#bae6fd;font-size:.5rem;line-height:1.6}
+
+
+/* ROOM UI V3 */
+.zono-room-level-badge{display:inline-flex;align-items:center;padding:.14rem .38rem;border-radius:.45rem;background:linear-gradient(135deg,#f59e0b,#facc15);color:#3b2200;font-size:.52rem;font-weight:950;box-shadow:0 0 12px rgba(250,204,21,.16)}
+.zono-room-favorite-btn{width:2rem;height:2rem;border-radius:.72rem;display:flex;align-items:center;justify-content:center;background:rgba(30,41,59,.65);border:1px solid rgba(148,163,184,.22);color:#cbd5e1;font-size:1.15rem;transition:.2s}
+.zono-room-favorite-btn.is-favorite{color:#fb7185;border-color:rgba(251,113,133,.45);background:rgba(136,19,55,.28);box-shadow:0 0 16px rgba(244,63,94,.16)}
+.zono-room-mic-seats-clean{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:.7rem!important;padding:.35rem .1rem .55rem}
+.zono-mic-seat-circle{min-height:6.1rem!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important}
+.zono-mic-seat-circle .zono-mic-avatar-wrap,.zono-mic-seat-circle .zono-mic-seat-icon{width:4rem!important;height:4rem!important;border-radius:50%!important;display:flex;align-items:center;justify-content:center;position:relative;border:2px solid rgba(148,163,184,.28);background:rgba(30,41,59,.38);box-shadow:inset 0 0 18px rgba(255,255,255,.03),0 5px 18px rgba(0,0,0,.18)}
+.zono-mic-seat-circle img{width:100%!important;height:100%!important;border-radius:50%!important;object-fit:cover;border:0!important;box-shadow:none!important}
+.zono-mic-seat-circle b{margin-top:.35rem;font-size:.58rem!important;color:#f8fafc!important;max-width:5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zono-mic-seat-circle.locked .zono-mic-seat-icon{opacity:.45}
+.zono-mic-seat-circle.occupied .zono-mic-avatar-wrap{border-color:rgba(56,189,248,.65);box-shadow:0 0 0 3px rgba(14,165,233,.08),0 0 18px rgba(14,165,233,.14)}
+.zono-mic-seat-circle.is-speaking .zono-mic-avatar-wrap::before,.zono-mic-seat-circle.is-speaking .zono-mic-avatar-wrap::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(34,211,238,.92);pointer-events:none;animation:zonoSpeakingRing 1.15s ease-out infinite}
+.zono-mic-seat-circle.is-speaking .zono-mic-avatar-wrap::after{inset:-15px;border-color:rgba(168,85,247,.6);animation-delay:.3s}
+@keyframes zonoSpeakingRing{0%{transform:scale(.88);opacity:.95}100%{transform:scale(1.15);opacity:0}}
+.zono-floating-self-mute{position:absolute;left:.8rem;top:.4rem;width:2.15rem;height:2.15rem;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(3,105,161,.72);border:1px solid rgba(125,211,252,.35);box-shadow:0 0 15px rgba(56,189,248,.12);font-size:.8rem}
+.zono-floating-self-mute.is-muted{background:rgba(127,29,29,.72);border-color:rgba(248,113,113,.4)}
+.zono-room-entry-mini{align-self:flex-start;margin:.28rem .8rem;padding:.28rem .55rem;border-radius:999px;background:rgba(2,6,23,.78);border:1px solid rgba(245,158,11,.24);max-width:80%;overflow:hidden;box-shadow:0 6px 20px rgba(0,0,0,.18)}
+.zono-room-entry-mini-show{display:flex!important;align-items:center;gap:.4rem;animation:zonoEntryMini .5s ease-out,zonoEntryMiniOut .4s ease-in 2.35s forwards}
+.zono-room-entry-dot{font-size:.43rem;color:#34d399}
+.zono-room-entry-marquee{display:flex;align-items:center;gap:.4rem;min-width:0;white-space:nowrap;font-size:.55rem;color:#d6d3d1}
+.zono-room-entry-marquee .zono-name-capsule{transform:scale(.88);transform-origin:right center}
+@keyframes zonoEntryMini{from{opacity:0;transform:translateX(-55px)}to{opacity:1;transform:none}}
+@keyframes zonoEntryMiniOut{to{opacity:0;transform:translateX(35px)}}
+.zono-guidelines-message{margin:.15rem auto 1rem;padding:.75rem .85rem;border-radius:1rem;background:rgba(17,24,39,.72);border:1px solid rgba(245,158,11,.2);backdrop-filter:blur(8px);max-width:95%}
+.zono-guidelines-message-head{display:flex;align-items:center;gap:.35rem;color:#f5f5f4;font-size:.62rem}
+.zono-guidelines-message-head span{font-size:.42rem;color:#fcd34d;padding:.1rem .3rem;border-radius:999px;border:1px solid rgba(245,158,11,.28)}
+.zono-guidelines-message p{margin-top:.35rem;color:#d6d3d1;font-size:.55rem;line-height:1.7}
+.zono-room-message-avatar{width:2.15rem!important;height:2.15rem!important}
+.zono-room-msg-head{gap:.45rem!important}
+.zono-profile-photo-editor{display:flex;align-items:center;gap:1rem;padding:.75rem;border-radius:1rem;background:rgba(28,25,23,.65);border:1px solid rgba(120,113,108,.28)}
+.zono-profile-photo-ring{width:5rem;height:5rem;border-radius:50%;padding:3px;flex:0 0 auto;background:linear-gradient(135deg,#f59e0b,#fde68a,#0ea5e9);box-shadow:0 0 18px rgba(245,158,11,.15)}
+.zono-profile-photo-ring img{width:100%;height:100%;object-fit:cover;border-radius:50%;background:#111827}
+.zono-profile-avatar-file{width:100%;font-size:.58rem;color:#d6d3d1;padding:.55rem;border-radius:.7rem;border:1px dashed rgba(245,158,11,.28);background:rgba(0,0,0,.22)}
+@media(max-width:520px){.zono-room-mic-seats-clean{gap:.35rem!important}.zono-mic-seat-circle .zono-mic-avatar-wrap,.zono-mic-seat-circle .zono-mic-seat-icon{width:3.55rem!important;height:3.55rem!important}}

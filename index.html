@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=20260902-liveaudio2">
+    <link rel="stylesheet" href="css/style.css?v=20260902-roomui3">
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -848,13 +848,14 @@
                             <span id="room-modal-lock" class="hidden text-[10px]">🔒</span>
                         </div>
                         <div class="flex items-center gap-2 mt-0.5">
-                            <span id="room-modal-id" class="text-[10px] text-amber-400 font-mono">ID 50</span>
+                            <span id="room-modal-level" class="zono-room-level-badge">LV. 1 ⭐</span>
                             <span id="room-modal-count" class="text-[10px] text-emerald-400 font-semibold">0 متواجد</span>
                             <span id="room-mic-expiry-badge" class="hidden text-[9px] text-cyan-200">🎙️</span>
                         </div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button id="zono-room-favorite-btn" onclick="window.zonoApp.toggleRoomFavorite()" class="zono-room-favorite-btn" title="حفظ في المفضلة">♡</button>
                     <button onclick="window.zonoApp.openRoomGiftModal()" class="zono-room-header-btn gift" title="إرسال هدية">🌹</button>
                     <button id="room-admin-button" onclick="window.zonoApp.openRoomAdmin()" class="hidden zono-room-header-btn admin" title="إدارة الروم">⚙️</button>
                     <button onclick="window.zonoApp.closeRoomModal()" class="zono-room-header-btn">✕</button>
@@ -862,62 +863,17 @@
             </div>
 
             <div id="zono-room-mic-zone" class="relative z-[2] hidden px-3 pt-3">
-                <div class="zono-room-mic-toolbar">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-2">
-                            <b>🎙️ مايكات الروم</b>
-                            <span id="zono-live-audio-status" class="zono-live-audio-status is-off">● غير متصل</span>
-                        </div>
-                        <span id="zono-room-mic-mode-label">مفتوحة</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="window.zonoApp.toggleLiveAudioDiagnostics()" class="zono-live-diag-btn" title="فحص الصوت">📡</button>
-                        <button id="zono-live-mic-toggle" onclick="window.zonoApp.toggleLiveMicMute()" class="hidden zono-live-mic-toggle">🔊 مفتوح</button>
-                        <button id="zono-room-mic-request-btn" onclick="window.zonoApp.requestRoomMic()" class="zono-mic-request-btn">طلب مايك</button>
-                    </div>
-                </div>
-                <div id="zono-room-mic-seats" class="zono-room-mic-seats"></div>
-
-                <div id="zono-live-audio-diagnostics" class="hidden zono-live-audio-diagnostics">
-                    <div class="zono-live-diag-head">
-                        <b>📡 تشخيص الصوت المباشر</b>
-                        <button onclick="window.zonoApp.runLiveAudioDiagnostics()">فحص الآن</button>
-                    </div>
-                    <div class="zono-live-diag-grid">
-                        <div><span>الميكروفون</span><b id="diag-mic">—</b></div>
-                        <div><span>Realtime</span><b id="diag-realtime">—</b></div>
-                        <div><span>WebRTC</span><b id="diag-webrtc">—</b></div>
-                        <div><span>ICE</span><b id="diag-ice">—</b></div>
-                        <div><span>صوت مستلم</span><b id="diag-remote-audio">—</b></div>
-                        <div><span>عدد الاتصالات</span><b id="diag-peer-count">0</b></div>
-                    </div>
-                    <div id="diag-live-message" class="zono-live-diag-message">اضغط «فحص الآن» لإظهار حالة الاتصال.</div>
-                </div>
+                <div id="zono-room-mic-seats" class="zono-room-mic-seats zono-room-mic-seats-clean"></div>
+                <button id="zono-live-mic-toggle" onclick="window.zonoApp.toggleLiveMicMute()" class="hidden zono-floating-self-mute">🔊</button>
+                <span id="zono-live-audio-status" class="hidden">●</span>
+                <div id="zono-live-audio-diagnostics" class="hidden"></div>
             </div>
 
-            <div id="zono-room-guidelines" class="relative z-[2] zono-room-guidelines">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="zono-guidelines-shield">🛡️</span>
-                    <div>
-                        <b>إرشادات المجتمع</b>
-                        <span class="zono-guidelines-official">رسمي</span>
-                    </div>
-                </div>
-                <p id="zono-room-guidelines-text">مرحباً بك؛ يرجى الالتزام بالاحترام، منع السب والإساءة، وعدم نشر محتوى مخالف.</p>
-            </div>
-
-            <div id="zono-room-entry-capsule" class="hidden zono-room-entry-wrap relative z-[3]">
-                <div class="zono-room-entry-glow"></div>
-                <div id="zono-room-entry-avatar-frame" class="zono-avatar-frame zono-frame-basic zono-room-entry-avatar">
-                    <div class="zono-frame-crown" aria-hidden="true"></div>
-                    <img id="zono-room-entry-avatar" src="" alt="avatar">
-                </div>
-                <div class="zono-room-entry-content">
-                    <div id="zono-room-entry-name" class="zono-name-capsule zono-name-basic">عضو Zono</div>
-                    <div class="zono-room-entry-comment">
-                        <span class="zono-room-entry-pin">◆</span>
-                        <span id="zono-room-entry-text">دخل إلى الروم</span>
-                    </div>
+            <div id="zono-room-entry-capsule" class="hidden zono-room-entry-mini relative z-[3]">
+                <span class="zono-room-entry-dot">●</span>
+                <div class="zono-room-entry-marquee">
+                    <span id="zono-room-entry-name" class="zono-name-capsule zono-name-basic">عضو Zono</span>
+                    <span id="zono-room-entry-text">دخل الروم</span>
                 </div>
             </div>
 
@@ -1136,6 +1092,16 @@
         <div class="glass-panel w-full max-w-md p-6 rounded-3xl border border-amber-500/40 shadow-2xl">
             <h3 class="text-lg font-bold text-stone-100 mb-4">تعديل الملف الشخصي</h3>
             <div class="space-y-4">
+                <div class="zono-profile-photo-editor">
+                    <div class="zono-profile-photo-ring">
+                        <img id="edit-avatar-preview" src="" alt="صورة الحساب">
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <label class="block text-xs text-stone-300 font-bold mb-1">صورة الحساب</label>
+                        <input id="edit-avatar-file" type="file" accept="image/*" class="zono-profile-avatar-file">
+                        <p class="text-[9px] text-stone-500 mt-1">تظهر دائريًا في الحساب والرومات والخاص.</p>
+                    </div>
+                </div>
                 <div>
                     <label class="block text-xs text-stone-300 font-bold mb-1">اسم العرض</label>
                     <input type="text" id="edit-display-name-input" class="w-full p-3 rounded-2xl bg-stone-900 border border-stone-700 text-stone-100 text-xs focus:border-amber-500">
@@ -1163,8 +1129,8 @@
     <script src="js/auth.js?v=20260901-1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
-    <script src="js/voice_webrtc.js?v=20260902-liveaudio2"></script>
-    <script src="js/app.js?v=20260902-liveaudio2"></script>
+    <script src="js/voice_webrtc.js?v=20260902-roomui3"></script>
+    <script src="js/app.js?v=20260902-roomui3"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">

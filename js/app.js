@@ -1553,8 +1553,11 @@ class ZonoApp {
 
             const modal=document.getElementById('room-chat-modal');
             document.getElementById('room-modal-title').textContent = data.name || 'الروم';
-            document.getElementById('room-modal-id').textContent = `ID ${data.public_id}`;
+            const lvl=document.getElementById('room-modal-level');
+            if(lvl) lvl.textContent=`LV. ${Number(data.room_level || 1)} ⭐`;
             document.getElementById('room-modal-count').textContent = `${Number(data.active_members || 1)} متواجد`;
+            this.activeRoom.is_favorite=!!data.is_favorite;
+            this.updateRoomFavoriteButton();
             document.getElementById('room-modal-image').src = data.image_url || '';
             document.getElementById('room-modal-lock')?.classList.toggle('hidden', !data.is_locked);
 
@@ -1564,7 +1567,6 @@ class ZonoApp {
             if (modal) modal.classList.remove('hidden');
 
             this.applyRoomVisuals(data);
-            this.showRoomEntryCapsule();
             await this.loadRoomMessages();
             await this.loadRoomMembers();
             await this.loadRoomMicState();
@@ -1572,6 +1574,14 @@ class ZonoApp {
             if (window.zonoLiveVoice) {
                 await window.zonoLiveVoice.joinRoom(Number(data.public_id));
                 await window.zonoLiveVoice.syncMicState();
+                this.showRoomEntryNotice({
+                    display_name:this.currentUser?.displayName,
+                    name_theme:this.activeNameTheme || 'basic'
+                });
+                await window.zonoLiveVoice.announceRoomEntry({
+                    display_name:this.currentUser?.displayName,
+                    name_theme:this.activeNameTheme || 'basic'
+                });
             }
 
             clearInterval(this.roomPollTimer);
@@ -1619,27 +1629,31 @@ class ZonoApp {
     }
 
     showRoomEntryCapsule() {
-        if (!this.currentUser) return;
+        this.showRoomEntryNotice({
+            display_name:this.currentUser?.displayName,
+            name_theme:this.activeNameTheme || 'basic'
+        });
+    }
+
+    showRoomEntryNotice(payload={}) {
         const wrap=document.getElementById('zono-room-entry-capsule');
         const name=document.getElementById('zono-room-entry-name');
-        const avatar=document.getElementById('zono-room-entry-avatar');
-        const frame=document.getElementById('zono-room-entry-avatar-frame');
         const textEl=document.getElementById('zono-room-entry-text');
-        if (!wrap || !name) return;
+        if(!wrap||!name) return;
 
-        name.textContent=this.currentUser.displayName;
-        name.className=`zono-name-capsule ${this.getNameThemeClass()}`;
-        if (avatar) avatar.src=this.currentUser.avatar || '';
-        if (frame) frame.className=`zono-avatar-frame ${this.getAvatarFrameClass()} zono-room-entry-avatar`;
-        if (textEl) textEl.textContent='دخل إلى الروم';
+        const themeKey=payload.name_theme || 'basic';
+        const cls=this.getNameThemeCatalog().find(x=>x.key===themeKey)?.cls || 'zono-name-basic';
+        name.textContent=payload.display_name || 'عضو Zono';
+        name.className=`zono-name-capsule ${cls}`;
+        if(textEl) textEl.textContent='دخل الروم';
 
-        wrap.setAttribute('data-name-theme',this.activeNameTheme || 'basic');
-        wrap.classList.remove('hidden','zono-room-entry-show');
+        wrap.setAttribute('data-name-theme',themeKey);
+        wrap.classList.remove('hidden','zono-room-entry-mini-show');
         void wrap.offsetWidth;
-        wrap.classList.add('zono-room-entry-show');
+        wrap.classList.add('zono-room-entry-mini-show');
 
         clearTimeout(this._roomEntryTimer);
-        this._roomEntryTimer=setTimeout(()=>wrap.classList.add('hidden'),3800);
+        this._roomEntryTimer=setTimeout(()=>wrap.classList.add('hidden'),2800);
     }
 
     async roomHeartbeat() {
@@ -1677,12 +1691,17 @@ class ZonoApp {
         if (!container || !this.activeRoom) return;
 
         const messages=this.activeRoom.messages || [];
+        const guidelines=`<div class="zono-guidelines-message">
+            <div class="zono-guidelines-message-head">🛡️ <b>إرشادات المجتمع</b><span>رسمي</span></div>
+            <p>${this.escapeHtml(this.activeRoom.guidelines_text || 'مرحباً بك؛ يرجى الالتزام بالاحترام، منع السب والإساءة، وعدم نشر محتوى مخالف.')}</p>
+        </div>`;
+
         if (!messages.length) {
-            container.innerHTML='<div class="text-center text-stone-600 text-xs py-10">لا توجد رسائل بعد. ابدأ أول رسالة في الروم.</div>';
+            container.innerHTML=guidelines+'<div class="text-center text-stone-600 text-xs py-8">لا توجد رسائل بعد. ابدأ أول رسالة في الروم.</div>';
             return;
         }
 
-        container.innerHTML=messages.map(msg=>{
+        container.innerHTML=guidelines+messages.map(msg=>{
             const isMe = Number(msg.sender_public_id) === Number(this.currentUser?.publicId);
             if (msg.message_type === 'gift') {
                 return `<div class="zono-room-gift-event">
@@ -1704,7 +1723,6 @@ class ZonoApp {
                             <div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                         </div>
                         <span class="zono-name-capsule ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
-                        <span class="zono-room-user-id">ID ${Number(msg.sender_public_id || 0)}</span>
                     </div>
                     <div class="zono-voice-message">
                         <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url || '')}')" class="zono-voice-play">▶</button>
@@ -1725,7 +1743,6 @@ class ZonoApp {
                         <img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
                     </div>
                     <span class="zono-name-capsule ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
-                    <span class="zono-room-user-id">ID ${Number(msg.sender_public_id || 0)}</span>
                     <span class="text-stone-500 text-[9px]">${new Date(msg.created_at).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}</span>
                 </div>
                 <div class="p-3 rounded-2xl max-w-[85%] text-sm ${isMe?'bubble-sent text-emerald-100':'bubble-rcvd text-stone-200'} shadow">
@@ -1964,6 +1981,30 @@ class ZonoApp {
         }catch(e){this.showToast(e.message||'تعذر إرسال الهدية','error')}
     }
 
+    updateRoomFavoriteButton() {
+        const btn=document.getElementById('zono-room-favorite-btn');
+        if(!btn) return;
+        const fav=!!this.activeRoom?.is_favorite;
+        btn.textContent=fav?'♥':'♡';
+        btn.classList.toggle('is-favorite',fav);
+        btn.title=fav?'إزالة من المفضلة':'حفظ في المفضلة';
+    }
+
+    async toggleRoomFavorite() {
+        if(!this.activeRoom) return;
+        const client=this.getRoomClient();
+        if(!client) return;
+        try{
+            const {data,error}=await client.rpc('zono_toggle_room_favorite',{
+                p_room_public_id:Number(this.activeRoom.public_id)
+            });
+            if(error) throw error;
+            this.activeRoom.is_favorite=!!data?.is_favorite;
+            this.updateRoomFavoriteButton();
+            this.showToast(this.activeRoom.is_favorite?'تم حفظ الروم في المفضلة':'تمت إزالة الروم من المفضلة','success');
+        }catch(e){this.showToast(e.message||'تعذر تحديث المفضلة','error')}
+    }
+
     applyRoomVisuals(room) {
         if (!room) return;
         const bg=document.getElementById('zono-room-background');
@@ -2134,9 +2175,9 @@ class ZonoApp {
             const seat=seats.find(x=>Number(x.seat_no)===seatNo)||{};
             const occupied=!!seat.user_public_id;
             const locked=!!seat.is_locked;
-            return `<button onclick="window.zonoApp.handleMicSeatClick(${seatNo},${occupied?'true':'false'})" class="zono-mic-seat ${occupied?'occupied':''} ${locked?'locked':''}">
-                ${occupied?`<img src="${this.escapeHtml(seat.avatar||'')}" alt=""><b>${this.escapeHtml(seat.display_name||'')}</b><span>ID ${Number(seat.user_public_id)}</span>`
-                           :`<div class="zono-mic-seat-icon">${locked?'🔒':'🎙️'}</div><b>مايك ${seatNo}</b><span>${locked?'مقفل':'فارغ'}</span>`}
+            return `<button data-public-id="${occupied?Number(seat.user_public_id):''}" onclick="window.zonoApp.handleMicSeatClick(${seatNo},${occupied?'true':'false'})" class="zono-mic-seat zono-mic-seat-circle ${occupied?'occupied':''} ${locked?'locked':''}">
+                ${occupied?`<div class="zono-mic-avatar-wrap"><img src="${this.escapeHtml(seat.avatar||'')}" alt=""></div><b>${this.escapeHtml(seat.display_name||'')}</b>`
+                           :`<div class="zono-mic-seat-icon">${locked?'🔒':'🎙️'}</div><b>${locked?'مقفل':'صعود'}</b>`}
             </button>`;
         }).join('');
     }
@@ -2183,7 +2224,7 @@ class ZonoApp {
         const muted=window.zonoLiveVoice.toggleMute();
         const btn=document.getElementById('zono-live-mic-toggle');
         if(btn){
-            btn.textContent=muted?'🔇 مكتوم':'🔊 مفتوح';
+            btn.textContent=muted?'🔇':'🔊';
             btn.classList.toggle('is-muted',muted);
         }
         this.showToast(muted?'تم كتم مايكك':'تم فتح مايكك','success');
@@ -2215,13 +2256,27 @@ class ZonoApp {
     }
 
     handleMicSeatClick(seatNo,occupied) {
-        if(!(this.activeRoom?.is_owner||this.activeRoom?.is_moderator)) return;
         const seat=(this.roomMicState?.seats||[]).find(x=>Number(x.seat_no)===Number(seatNo));
-        if(occupied&&seat?.user_public_id){
-            if(confirm(`إنزال ${seat.display_name||'المستخدم'} من المايك؟`)) this.removeMicUser(Number(seat.user_public_id));
+        const myId=Number(this.currentUser?.publicId||0);
+
+        if(occupied){
+            if(Number(seat?.user_public_id)===myId) return this.leaveRoomMic();
+            if((this.activeRoom?.is_owner||this.activeRoom?.is_moderator) && seat?.user_public_id){
+                if(confirm(`إنزال ${seat.display_name||'المستخدم'} من المايك؟`)) {
+                    return this.removeMicUser(Number(seat.user_public_id));
+                }
+            }
             return;
         }
-        this.setMicSeatLock(seatNo,!seat?.is_locked);
+
+        if(seat?.is_locked){
+            if(this.activeRoom?.is_owner||this.activeRoom?.is_moderator) {
+                return this.setMicSeatLock(seatNo,false);
+            }
+            return this.showToast('هذا المايك مقفل','error');
+        }
+
+        return this.requestRoomMic();
     }
 
     async setMicSeatLock(seatNo,locked) {
@@ -3238,18 +3293,55 @@ class ZonoApp {
         const modal = document.getElementById('edit-profile-modal');
         const nameInput = document.getElementById('edit-display-name-input');
         const bioInput = document.getElementById('edit-bio-input');
+        const avatarPreview=document.getElementById('edit-avatar-preview');
+        const avatarFile=document.getElementById('edit-avatar-file');
 
         if (nameInput) nameInput.value = this.currentUser.displayName;
         if (bioInput) bioInput.value = this.currentUser.bio;
+        if (avatarPreview) avatarPreview.src=this.currentUser.avatar || '';
+        if (avatarFile) {
+            avatarFile.value='';
+            if(!avatarFile.dataset.bound){
+                avatarFile.dataset.bound='1';
+                avatarFile.addEventListener('change',()=>{
+                    const f=avatarFile.files?.[0];
+                    if(f&&avatarPreview) avatarPreview.src=URL.createObjectURL(f);
+                });
+            }
+        }
         if (modal) modal.classList.remove('hidden');
+    }
+
+    async uploadProfileAvatar(file) {
+        const client=window.zunoBackend?.client || window.zonoAuth?.client;
+        if(!client||!file) return null;
+        if(!file.type?.startsWith('image/')) throw new Error('اختر صورة صحيحة');
+        if(file.size>4*1024*1024) throw new Error('حجم الصورة يجب ألا يتجاوز 4MB');
+
+        const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase();
+        const uid=window.zonoAuth?.user?.id;
+        if(!uid) throw new Error('الحساب غير متصل');
+
+        const path=`${uid}/${Date.now()}.${ext}`;
+        const {error:upErr}=await client.storage.from('profile-avatars').upload(path,file,{
+            upsert:false,cacheControl:'3600',contentType:file.type
+        });
+        if(upErr) throw upErr;
+
+        const url=client.storage.from('profile-avatars').getPublicUrl(path).data.publicUrl;
+        const {error}=await client.rpc('zono_update_avatar',{p_avatar_url:url});
+        if(error) throw error;
+        return url;
     }
 
     async saveEditedProfile() {
         if (!this.currentUser) return;
         const nameInput = document.getElementById('edit-display-name-input');
         const bioInput = document.getElementById('edit-bio-input');
+        const avatarFile=document.getElementById('edit-avatar-file')?.files?.[0];
 
         try {
+            if(avatarFile) await this.uploadProfileAvatar(avatarFile);
             if (nameInput && nameInput.value.trim() && nameInput.value.trim() !== this.currentUser.displayName) {
                 await window.zonoAuth.updateDisplayName(nameInput.value.trim());
             }
