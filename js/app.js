@@ -16,6 +16,13 @@ class ZonoApp {
         this.roomPollTimer = null;
         this.roomPresenceTimer = null;
         this.selectedGift = 'rose';
+        this.roomMicState = null;
+        this.voiceRecorder = null;
+        this.voiceChunks = [];
+        this.recordedVoiceBlob = null;
+        this.recordedVoiceUrl = null;
+        this.voiceStartedAt = null;
+        this.voiceMaxTimer = null;
         this.birdEngine = null;
         this.theme = localStorage.getItem('zono_theme') || 'classic_night';
         this.ownedThemes = new Set(['classic_night','daylight']);
@@ -1556,9 +1563,11 @@ class ZonoApp {
 
             if (modal) modal.classList.remove('hidden');
 
+            this.applyRoomVisuals(data);
             this.showRoomEntryCapsule();
             await this.loadRoomMessages();
             await this.loadRoomMembers();
+            await this.loadRoomMicState();
 
             clearInterval(this.roomPollTimer);
             clearInterval(this.roomPresenceTimer);
@@ -1566,6 +1575,7 @@ class ZonoApp {
                 if (this.activeRoom) {
                     this.loadRoomMessages(true);
                     this.loadRoomMembers();
+                    this.loadRoomMicState();
                 }
             }, 2000);
             this.roomPresenceTimer = setInterval(() => {
@@ -1679,6 +1689,27 @@ class ZonoApp {
                 </div>`;
             }
 
+            if (msg.message_type === 'voice') {
+                const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
+                const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
+                const isMeVoice = Number(msg.sender_public_id) === Number(this.currentUser?.publicId);
+                return `<div class="flex flex-col ${isMeVoice?'items-end':'items-start'} mb-3">
+                    <div class="zono-room-msg-head">
+                        <div class="zono-avatar-frame ${frameCls} zono-room-message-avatar">
+                            <div class="zono-frame-crown"></div><img src="${this.escapeHtml(msg.sender_avatar || '')}" alt="">
+                        </div>
+                        <span class="zono-name-capsule ${nameCls}">${this.escapeHtml(msg.sender_name || '')}</span>
+                        <span class="zono-room-user-id">ID ${Number(msg.sender_public_id || 0)}</span>
+                    </div>
+                    <div class="zono-voice-message">
+                        <button onclick="window.zonoApp.toggleVoicePlayback(this,'${this.escapeHtml(msg.media_url || '')}')" class="zono-voice-play">▶</button>
+                        <div class="zono-voice-waveform"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                        <span>${this.formatVoiceDuration(Number(msg.media_duration || 0))}</span>
+                        ${(this.activeRoom?.is_owner || this.activeRoom?.is_moderator) ? `<button onclick="window.zonoApp.deleteRoomMessage(${Number(msg.id)})" class="zono-voice-delete">🗑️</button>` : ''}
+                    </div>
+                </div>`;
+            }
+
             const nameCls = this.getNameThemeCatalog().find(x=>x.key===msg.name_theme)?.cls || 'zono-name-basic';
             const frameCls = this.getAvatarFrameCatalog().find(x=>x.key===msg.avatar_frame)?.cls || 'zono-frame-basic';
 
@@ -1749,7 +1780,14 @@ class ZonoApp {
         modal?.classList.add('flex');
         document.getElementById('zono-room-admin-role').textContent=this.activeRoom.is_owner?'مالك الروم':'مشرف الروم';
         document.getElementById('zono-room-delete-wrap')?.classList.toggle('hidden',!this.activeRoom.is_owner);
+        document.getElementById('zono-room-owner-settings')?.classList.toggle('hidden',!this.activeRoom.is_owner);
+        document.getElementById('zono-mic-package-buttons')?.classList.toggle('hidden',!this.activeRoom.is_owner);
+        const guide = document.getElementById('zono-room-guidelines-input');
+        if (guide) guide.value = this.activeRoom.guidelines_text || '';
+        const mode = document.getElementById('zono-room-mic-mode-select');
+        if (mode) mode.value = this.activeRoom.mic_mode || 'open';
         this.loadRoomMembers();
+        this.loadRoomMicState();
     }
 
     closeRoomAdmin() {
@@ -1921,6 +1959,336 @@ class ZonoApp {
         }catch(e){this.showToast(e.message||'تعذر إرسال الهدية','error')}
     }
 
+    applyRoomVisuals(room) {
+        if (!room) return;
+        const bg=document.getElementById('zono-room-background');
+        if (bg) {
+            const url=room.background_url || room.image_url || '';
+            bg.style.backgroundImage=url ? `url("${String(url).replace(/"/g,'%22')}")` : '';
+        }
+        const text=document.getElementById('zono-room-guidelines-text');
+        if (text) text.textContent=room.guidelines_text || 'مرحباً بك؛ يرجى الالتزام بالاحترام، منع السب والإساءة، وعدم نشر محتوى مخالف.';
+    }
+
+    async uploadRoomAsset(file,bucket='room-images',prefix='backgrounds') {
+        const client=this.getRoomClient();
+        if(!client||!file) throw new Error('اختر ملفاً');
+        if(!file.type?.startsWith('image/')) throw new Error('الملف يجب أن يكون صورة');
+        if(file.size>4*1024*1024) throw new Error('حجم الصورة يجب ألا يتجاوز 4MB');
+        const ext=(file.name.split('.').pop()||'jpg').replace(/[^a-z0-9]/gi,'').toLowerCase();
+        const path=`${window.zonoAuth?.user?.id||'user'}/${prefix}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const {error}=await client.storage.from(bucket).upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type});
+        if(error) throw error;
+        return client.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+    }
+
+    async saveRoomBackground() {
+        if(!this.activeRoom?.is_owner) return;
+        const file=document.getElementById('zono-room-background-file')?.files?.[0];
+        if(!file) return this.showToast('اختر صورة للخلفية','error');
+        const client=this.getRoomClient();
+        try{
+            this.showToast('جاري رفع الخلفية...','info');
+            const url=await this.uploadRoomAsset(file,'room-images','backgrounds');
+            const {error}=await client.rpc('zono_room_set_background',{p_room_public_id:Number(this.activeRoom.public_id),p_background_url:url});
+            if(error) throw error;
+            this.activeRoom.background_url=url;
+            this.applyRoomVisuals(this.activeRoom);
+            this.showToast('تم تغيير خلفية الغرفة','success');
+        }catch(e){this.showToast(e.message||'تعذر تغيير الخلفية','error')}
+    }
+
+    async clearRoomBackground() {
+        if(!this.activeRoom?.is_owner) return;
+        const client=this.getRoomClient();
+        try{
+            const {error}=await client.rpc('zono_room_set_background',{p_room_public_id:Number(this.activeRoom.public_id),p_background_url:null});
+            if(error) throw error;
+            this.activeRoom.background_url=null;
+            this.applyRoomVisuals(this.activeRoom);
+            this.showToast('تم إرجاع الخلفية الافتراضية','success');
+        }catch(e){this.showToast(e.message||'تعذر تحديث الخلفية','error')}
+    }
+
+    async saveRoomGuidelines() {
+        if(!this.activeRoom?.is_owner) return;
+        const value=String(document.getElementById('zono-room-guidelines-input')?.value||'').trim();
+        if(value.length<5||value.length>500) return this.showToast('الإرشادات يجب أن تكون من 5 إلى 500 حرف','error');
+        const client=this.getRoomClient();
+        try{
+            const {error}=await client.rpc('zono_room_set_guidelines',{p_room_public_id:Number(this.activeRoom.public_id),p_guidelines:value});
+            if(error) throw error;
+            this.activeRoom.guidelines_text=value;
+            this.applyRoomVisuals(this.activeRoom);
+            this.showToast('تم حفظ إرشادات المجتمع','success');
+        }catch(e){this.showToast(e.message||'تعذر حفظ الإرشادات','error')}
+    }
+
+    async buyRoomMicPackage(count) {
+        if(!this.activeRoom?.is_owner) return this.showToast('شراء الباقة لمالك الروم فقط','error');
+        if(![4,6,8].includes(Number(count))) return;
+        const price=Number(count)*1000;
+        if(Number(this.currentUser?.seeds||0)<price) return this.showToast(`تحتاج ${price.toLocaleString('en-US')} بذرة`,'error');
+        if(!confirm(`شراء باقة ${count} مايك لمدة 60 يوم مقابل ${price.toLocaleString('en-US')} بذرة؟`)) return;
+        const client=this.getRoomClient();
+        try{
+            const {data,error}=await client.rpc('zono_room_buy_mic_package',{p_room_public_id:Number(this.activeRoom.public_id),p_mic_count:Number(count)});
+            if(error) throw error;
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            this.updateProfileUI();
+            await this.loadRoomMicState();
+            this.showToast(`تم تفعيل ${count} مايك لمدة 60 يوم`,'success');
+        }catch(e){this.showToast(e.message||'تعذر شراء باقة المايكات','error')}
+    }
+
+    async setRoomMicMode(mode) {
+        if(!['open','approval','closed'].includes(mode)||!this.activeRoom) return;
+        const client=this.getRoomClient();
+        try{
+            const {error}=await client.rpc('zono_room_set_mic_mode',{p_room_public_id:Number(this.activeRoom.public_id),p_mode:mode});
+            if(error) throw error;
+            this.activeRoom.mic_mode=mode;
+            await this.loadRoomMicState();
+            this.showToast('تم تحديث طريقة الصعود للمايك','success');
+        }catch(e){this.showToast(e.message||'تعذر تحديث المايكات','error')}
+    }
+
+    async loadRoomMicState(showToast=false) {
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom) return;
+        try{
+            const {data,error}=await client.rpc('zono_room_mic_state',{p_room_public_id:Number(this.activeRoom.public_id)});
+            if(error) throw error;
+            this.roomMicState=data||null;
+            if(data){
+                this.activeRoom.mic_count=Number(data.mic_count||0);
+                this.activeRoom.mic_mode=data.mic_mode||'open';
+                this.activeRoom.mic_expires_at=data.mic_expires_at||null;
+            }
+            this.renderRoomMics();
+            this.renderRoomMicRequests();
+            this.renderMicPackageStatus();
+            if(showToast) this.showToast('تم تحديث المايكات','success');
+        }catch(e){ if(showToast) this.showToast(e.message||'تعذر تحديث المايكات','error') }
+    }
+
+    renderMicPackageStatus() {
+        const box=document.getElementById('zono-mic-package-current');
+        const badge=document.getElementById('room-mic-expiry-badge');
+        const state=this.roomMicState;
+        if(!state||!state.active){
+            if(box) box.textContent='لا توجد باقة فعالة';
+            badge?.classList.add('hidden');
+            return;
+        }
+        const days=Math.max(0,Math.ceil((new Date(state.mic_expires_at)-Date.now())/86400000));
+        if(box) box.textContent=`الباقة الحالية: ${Number(state.mic_count)} مايك — متبقي ${days} يوم`;
+        if(badge){badge.textContent=`🎙️ ${state.mic_count} • ${days}ي`;badge.classList.remove('hidden')}
+    }
+
+    renderRoomMics() {
+        const zone=document.getElementById('zono-room-mic-zone');
+        const box=document.getElementById('zono-room-mic-seats');
+        const label=document.getElementById('zono-room-mic-mode-label');
+        const btn=document.getElementById('zono-room-mic-request-btn');
+        const s=this.roomMicState;
+        if(!zone||!box) return;
+
+        if(!s?.active||Number(s.mic_count||0)<1){
+            zone.classList.add('hidden');
+            return;
+        }
+        zone.classList.remove('hidden');
+        const modeLabels={open:'مباشر',approval:'بموافقة',closed:'مقفلة'};
+        if(label) label.textContent=modeLabels[s.mic_mode]||'مباشر';
+
+        const myId=Number(this.currentUser?.publicId||0);
+        const mySeat=(s.seats||[]).find(x=>Number(x.user_public_id)===myId);
+        if(btn){
+            btn.textContent=mySeat?'نزول من المايك':(s.mic_mode==='approval'?'طلب مايك':'صعود للمايك');
+            btn.disabled=s.mic_mode==='closed'&&!mySeat;
+        }
+
+        const seats=Array.isArray(s.seats)?s.seats:[];
+        box.innerHTML=Array.from({length:Number(s.mic_count)},(_,i)=>{
+            const seatNo=i+1;
+            const seat=seats.find(x=>Number(x.seat_no)===seatNo)||{};
+            const occupied=!!seat.user_public_id;
+            const locked=!!seat.is_locked;
+            return `<button onclick="window.zonoApp.handleMicSeatClick(${seatNo},${occupied?'true':'false'})" class="zono-mic-seat ${occupied?'occupied':''} ${locked?'locked':''}">
+                ${occupied?`<img src="${this.escapeHtml(seat.avatar||'')}" alt=""><b>${this.escapeHtml(seat.display_name||'')}</b><span>ID ${Number(seat.user_public_id)}</span>`
+                           :`<div class="zono-mic-seat-icon">${locked?'🔒':'🎙️'}</div><b>مايك ${seatNo}</b><span>${locked?'مقفل':'فارغ'}</span>`}
+            </button>`;
+        }).join('');
+    }
+
+    async requestRoomMic() {
+        if(!this.activeRoom||!this.roomMicState?.active) return;
+        const myId=Number(this.currentUser?.publicId||0);
+        const mySeat=(this.roomMicState.seats||[]).find(x=>Number(x.user_public_id)===myId);
+        if(mySeat) return this.leaveRoomMic();
+        if(this.roomMicState.mic_mode==='closed') return this.showToast('المايكات مقفلة','error');
+        const client=this.getRoomClient();
+        try{
+            const {data,error}=await client.rpc('zono_room_request_mic',{p_room_public_id:Number(this.activeRoom.public_id)});
+            if(error) throw error;
+            await this.loadRoomMicState();
+            this.showToast(data?.status==='seated'?'تم الصعود للمايك':'تم إرسال طلب المايك','success');
+        }catch(e){this.showToast(e.message||'تعذر طلب المايك','error')}
+    }
+
+    async leaveRoomMic() {
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom) return;
+        try{
+            const {error}=await client.rpc('zono_room_leave_mic',{p_room_public_id:Number(this.activeRoom.public_id)});
+            if(error) throw error;
+            await this.loadRoomMicState();
+        }catch(e){this.showToast(e.message||'تعذر النزول من المايك','error')}
+    }
+
+    handleMicSeatClick(seatNo,occupied) {
+        if(!(this.activeRoom?.is_owner||this.activeRoom?.is_moderator)) return;
+        const seat=(this.roomMicState?.seats||[]).find(x=>Number(x.seat_no)===Number(seatNo));
+        if(occupied&&seat?.user_public_id){
+            if(confirm(`إنزال ${seat.display_name||'المستخدم'} من المايك؟`)) this.removeMicUser(Number(seat.user_public_id));
+            return;
+        }
+        this.setMicSeatLock(seatNo,!seat?.is_locked);
+    }
+
+    async setMicSeatLock(seatNo,locked) {
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom) return;
+        try{
+            const {error}=await client.rpc('zono_room_mic_set_seat_lock',{p_room_public_id:Number(this.activeRoom.public_id),p_seat_no:Number(seatNo),p_locked:!!locked});
+            if(error) throw error;
+            await this.loadRoomMicState();
+        }catch(e){this.showToast(e.message||'تعذر تحديث المايك','error')}
+    }
+
+    async removeMicUser(publicId) {
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom) return;
+        try{
+            const {error}=await client.rpc('zono_room_mic_remove_user',{p_room_public_id:Number(this.activeRoom.public_id),p_target_public_id:Number(publicId)});
+            if(error) throw error;
+            await this.loadRoomMicState();
+        }catch(e){this.showToast(e.message||'تعذر إنزال المستخدم','error')}
+    }
+
+    renderRoomMicRequests() {
+        const box=document.getElementById('zono-room-mic-requests');
+        if(!box) return;
+        const reqs=Array.isArray(this.roomMicState?.requests)?this.roomMicState.requests:[];
+        box.innerHTML=reqs.map(r=>`<div class="zono-mic-request-row">
+            <div><b>${this.escapeHtml(r.display_name||'')}</b><span>ID ${Number(r.user_public_id)}</span></div>
+            <div class="flex gap-1"><button onclick="window.zonoApp.answerMicRequest(${Number(r.user_public_id)},true)">قبول</button><button onclick="window.zonoApp.answerMicRequest(${Number(r.user_public_id)},false)">رفض</button></div>
+        </div>`).join('')||'<div class="text-[10px] text-stone-500">لا توجد طلبات حالياً.</div>';
+    }
+
+    async answerMicRequest(publicId,approve) {
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom) return;
+        try{
+            const {error}=await client.rpc('zono_room_mic_request_action',{p_room_public_id:Number(this.activeRoom.public_id),p_target_public_id:Number(publicId),p_approve:!!approve});
+            if(error) throw error;
+            await this.loadRoomMicState();
+        }catch(e){this.showToast(e.message||'تعذر معالجة الطلب','error')}
+    }
+
+    formatVoiceDuration(seconds) {
+        seconds=Math.max(0,Math.round(Number(seconds)||0));
+        return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;
+    }
+
+    async toggleVoiceRecording() {
+        if(this.voiceRecorder?.state==='recording') return this.stopVoiceRecording();
+        if(this.recordedVoiceBlob) return this.showToast('أرسل أو ألغِ البصمة الحالية أولاً','info');
+        if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder) return this.showToast('التسجيل الصوتي غير مدعوم في هذا المتصفح/التطبيق','error');
+        try{
+            const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+            const preferred=['audio/webm;codecs=opus','audio/webm','audio/mp4'];
+            const mime=preferred.find(x=>MediaRecorder.isTypeSupported?.(x))||'';
+            this.voiceChunks=[];
+            this.voiceStartedAt=Date.now();
+            this.voiceRecorder=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);
+            this.voiceRecorder.ondataavailable=e=>{if(e.data?.size)this.voiceChunks.push(e.data)};
+            this.voiceRecorder.onstop=()=>{
+                stream.getTracks().forEach(t=>t.stop());
+                const type=this.voiceRecorder?.mimeType||'audio/webm';
+                this.recordedVoiceBlob=new Blob(this.voiceChunks,{type});
+                this.recordedVoiceUrl=URL.createObjectURL(this.recordedVoiceBlob);
+                const seconds=Math.min(60,Math.max(1,Math.round((Date.now()-this.voiceStartedAt)/1000)));
+                this.recordedVoiceDuration=seconds;
+                document.getElementById('zono-room-voice-duration').textContent=this.formatVoiceDuration(seconds);
+                document.getElementById('zono-room-voice-preview')?.classList.remove('hidden');
+                const btn=document.getElementById('zono-room-voice-btn'); if(btn){btn.textContent='🎙️';btn.classList.remove('recording')}
+            };
+            this.voiceRecorder.start(250);
+            const btn=document.getElementById('zono-room-voice-btn'); if(btn){btn.textContent='⏹';btn.classList.add('recording')}
+            this.voiceMaxTimer=setTimeout(()=>this.stopVoiceRecording(),60000);
+        }catch(e){this.showToast('اسمح للتطبيق باستخدام الميكروفون لتسجيل البصمة','error')}
+    }
+
+    stopVoiceRecording() {
+        clearTimeout(this.voiceMaxTimer);
+        if(this.voiceRecorder?.state==='recording') this.voiceRecorder.stop();
+    }
+
+    previewRecordedVoice() {
+        if(!this.recordedVoiceUrl) return;
+        const a=new Audio(this.recordedVoiceUrl); a.play().catch(()=>{});
+    }
+
+    cancelRecordedVoice() {
+        if(this.recordedVoiceUrl) URL.revokeObjectURL(this.recordedVoiceUrl);
+        this.recordedVoiceUrl=null;this.recordedVoiceBlob=null;this.voiceChunks=[];
+        document.getElementById('zono-room-voice-preview')?.classList.add('hidden');
+    }
+
+    async sendRecordedVoice() {
+        const client=this.getRoomClient();
+        if(!client||!this.activeRoom||!this.recordedVoiceBlob) return;
+        try{
+            const ext=this.recordedVoiceBlob.type.includes('mp4')?'m4a':'webm';
+            const path=`${window.zonoAuth?.user?.id}/${this.activeRoom.public_id}/${Date.now()}.${ext}`;
+            const {error:upErr}=await client.storage.from('room-voice').upload(path,this.recordedVoiceBlob,{upsert:false,contentType:this.recordedVoiceBlob.type||'audio/webm'});
+            if(upErr) throw upErr;
+            const url=client.storage.from('room-voice').getPublicUrl(path).data.publicUrl;
+            const {error}=await client.rpc('zono_send_room_voice',{p_room_public_id:Number(this.activeRoom.public_id),p_media_url:url,p_duration:Number(this.recordedVoiceDuration||1)});
+            if(error) throw error;
+            this.cancelRecordedVoice();
+            await this.loadRoomMessages(true);
+            this.showToast('تم إرسال البصمة الصوتية','success');
+        }catch(e){this.showToast(e.message||'تعذر إرسال البصمة الصوتية','error')}
+    }
+
+    toggleVoicePlayback(button,url) {
+        if(!url) return;
+        if(button._audio){
+            if(button._audio.paused){button._audio.play();button.textContent='⏸'}else{button._audio.pause();button.textContent='▶'}
+            return;
+        }
+        const a=new Audio(url);button._audio=a;
+        a.onended=()=>button.textContent='▶';
+        a.onpause=()=>button.textContent='▶';
+        a.onplay=()=>button.textContent='⏸';
+        a.play().catch(()=>this.showToast('تعذر تشغيل الرسالة الصوتية','error'));
+    }
+
+    async deleteRoomMessage(messageId) {
+        if(!(this.activeRoom?.is_owner||this.activeRoom?.is_moderator)) return;
+        if(!confirm('حذف هذه الرسالة من الروم؟')) return;
+        const client=this.getRoomClient();
+        try{
+            const {error}=await client.rpc('zono_delete_room_message',{p_room_public_id:Number(this.activeRoom.public_id),p_message_id:Number(messageId)});
+            if(error) throw error;
+            await this.loadRoomMessages(true);
+        }catch(e){this.showToast(e.message||'تعذر حذف الرسالة','error')}
+    }
+
     closeRoomModal() {
         const modal=document.getElementById('room-chat-modal');
         if(modal) modal.classList.add('hidden');
@@ -1928,6 +2296,9 @@ class ZonoApp {
         clearInterval(this.roomPresenceTimer);
         this.roomPollTimer=null;
         this.roomPresenceTimer=null;
+        if(this.voiceRecorder?.state==='recording') this.stopVoiceRecording();
+        this.cancelRecordedVoice();
+        this.roomMicState=null;
 
         const roomId=this.activeRoom?.public_id;
         this.activeRoom=null;
