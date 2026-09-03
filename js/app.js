@@ -839,6 +839,51 @@ class ZonoApp {
         el.className = `min-h-[22px] mt-4 text-center text-xs font-bold ${type || ''}`;
     }
 
+    showBanCapsule(reason = '', until = null) {
+        const el = document.getElementById('auth-message');
+        if (!el) return;
+
+        const reasonText = String(reason || 'لم يتم تحديد سبب الحظر.');
+        let timeText = '';
+        if (until) {
+            const untilMs = new Date(until).getTime();
+            if (Number.isFinite(untilMs) && untilMs > Date.now()) {
+                const mins = Math.max(1, Math.ceil((untilMs - Date.now()) / 60000));
+                timeText = `حظر مؤقت — المتبقي تقريباً ${mins} دقيقة`;
+            }
+        }
+
+        el.className = 'mt-4';
+        el.innerHTML = `
+            <div class="mx-auto max-w-sm">
+                <div class="flex items-center justify-center gap-2">
+                    <div class="px-4 py-2 rounded-full border border-red-500/40 bg-red-500/10 text-red-300 text-xs font-black shadow-lg">
+                        ⛔ الحساب محظور
+                    </div>
+                    <button id="ban-reason-toggle" type="button"
+                        class="w-8 h-8 rounded-full border border-amber-400/40 bg-amber-400/10 text-amber-300 text-sm font-black"
+                        aria-label="سبب الحظر">؟</button>
+                </div>
+                <div id="ban-reason-box" class="hidden mt-3 rounded-2xl border border-stone-700 bg-stone-900/90 px-4 py-3 text-center">
+                    <div class="text-[10px] text-stone-500 mb-1">سبب الحظر</div>
+                    <div id="ban-reason-text" class="text-xs font-bold text-stone-200"></div>
+                    <div id="ban-time-text" class="text-[10px] text-red-300 mt-2"></div>
+                </div>
+            </div>
+        `;
+
+        const reasonEl = document.getElementById('ban-reason-text');
+        const timeEl = document.getElementById('ban-time-text');
+        const box = document.getElementById('ban-reason-box');
+        const toggle = document.getElementById('ban-reason-toggle');
+
+        if (reasonEl) reasonEl.textContent = reasonText;
+        if (timeEl) timeEl.textContent = timeText;
+        if (toggle && box) {
+            toggle.addEventListener('click', () => box.classList.toggle('hidden'));
+        }
+    }
+
     async handleLogin(event) {
         event.preventDefault();
         const btn = document.getElementById('auth-login-btn');
@@ -861,7 +906,11 @@ class ZonoApp {
             if (window.zonoAudio) window.zonoAudio.playChirp();
             this.showToast(`مرحباً بك يا ${this.currentUser.displayName}!`, 'success');
         } catch (e) {
-            this.setAuthMessage(e.message || 'تعذر تسجيل الدخول', 'error');
+            if (e?.isBanned) {
+                this.showBanCapsule(e.banReason || '', e.bannedUntil || null);
+            } else {
+                this.setAuthMessage(e.message || 'تعذر تسجيل الدخول', 'error');
+            }
         } finally {
             if (btn) btn.disabled = false;
         }
@@ -1070,6 +1119,8 @@ class ZonoApp {
         }
         const transferCard = document.getElementById('seed-transfer-card');
         if (transferCard) transferCard.classList.toggle('hidden', !['developer','agent'].includes(this.currentUser.role));
+        const developerBanCard = document.getElementById('developer-ban-card');
+        if (developerBanCard) developerBanCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
         if (profileHours) profileHours.textContent = `${this.currentUser.stats.flightHours} س`;
         if (profileRooms) profileRooms.textContent = this.currentUser.stats.roomsCreated;
         if (profileMsgs) profileMsgs.textContent = this.currentUser.stats.messagesSent;
@@ -4048,7 +4099,7 @@ class ZonoApp {
 
         const { data, error } = await client
             .from('profiles')
-            .select('is_banned, banned_until')
+            .select('is_banned, banned_until, ban_reason')
             .eq('id', userId)
             .single();
 
@@ -4057,7 +4108,11 @@ class ZonoApp {
         const now = Date.now();
         const until = data.banned_until ? new Date(data.banned_until).getTime() : null;
         const banned = data.is_banned === true && (until === null || until > now);
-        return { banned, until };
+        return {
+            banned,
+            until,
+            reason: String(data.ban_reason || '').trim()
+        };
     }
 
     async enforceCurrentUserBan() {
@@ -4084,7 +4139,7 @@ class ZonoApp {
             this.currentUser = null;
             this.showAuthModal();
             this.authTab('login');
-            this.setAuthMessage(message, 'error');
+            this.showBanCapsule(status.reason || '', status.until || null);
             this.showToast(message, 'error');
             return true;
         } catch (_) {
@@ -4155,6 +4210,110 @@ class ZonoApp {
             toastEl.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
             toastEl.classList.remove('opacity-100', 'translate-y-0');
         }, 3200);
+    }
+
+    // --- Developer account ban control ---
+    openDeveloperBanModal() {
+        if (!this.currentUser || this.currentUser.role !== 'developer') {
+            return this.showToast('هذه الميزة للمطور فقط', 'error');
+        }
+
+        const modal = document.getElementById('developer-ban-modal');
+        if (!modal) return;
+
+        const idInput = document.getElementById('developer-ban-public-id');
+        const reasonInput = document.getElementById('developer-ban-reason');
+        const durationInput = document.getElementById('developer-ban-duration');
+        const summary = document.getElementById('developer-ban-summary');
+
+        if (idInput) idInput.value = '';
+        if (reasonInput) reasonInput.value = '';
+        if (durationInput) durationInput.value = 'hour';
+        if (summary) summary.textContent = 'أدخل ID المستخدم وحدد مدة وسبب الحظر.';
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => idInput?.focus(), 50);
+    }
+
+    closeDeveloperBanModal() {
+        const modal = document.getElementById('developer-ban-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    updateDeveloperBanSummary() {
+        const publicId = Number(String(document.getElementById('developer-ban-public-id')?.value || '').replace(/\D/g, ''));
+        const duration = String(document.getElementById('developer-ban-duration')?.value || 'hour');
+        const reason = String(document.getElementById('developer-ban-reason')?.value || '').trim();
+        const summary = document.getElementById('developer-ban-summary');
+        if (!summary) return;
+
+        const labels = { hour: 'ساعة واحدة', day: 'يوم واحد', month: 'شهر واحد', year: 'سنة واحدة' };
+        const idText = Number.isInteger(publicId) && publicId > 0 ? `ID ${publicId}` : 'ID غير محدد';
+        const reasonText = reason ? ` — السبب: ${reason}` : ' — لم يُكتب سبب بعد';
+        summary.textContent = `${idText} • مدة الحظر: ${labels[duration] || 'ساعة واحدة'}${reasonText}`;
+    }
+
+    async submitDeveloperBan() {
+        if (!this.currentUser || this.currentUser.role !== 'developer') {
+            return this.showToast('هذه الميزة للمطور فقط', 'error');
+        }
+
+        const client = window.zunoBackend?.client || window.zonoAuth?.client;
+        if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+
+        const publicId = Number(String(document.getElementById('developer-ban-public-id')?.value || '').replace(/\D/g, ''));
+        const duration = String(document.getElementById('developer-ban-duration')?.value || 'hour');
+        const reason = String(document.getElementById('developer-ban-reason')?.value || '').trim();
+        const submitBtn = document.getElementById('developer-ban-submit');
+
+        if (!Number.isInteger(publicId) || publicId < 1) {
+            return this.showToast('أدخل ID حساب صحيح', 'error');
+        }
+        if (!['hour','day','month','year'].includes(duration)) {
+            return this.showToast('اختر مدة حظر صحيحة', 'error');
+        }
+        if (reason.length < 3) {
+            return this.showToast('اكتب سبب الحظر', 'error');
+        }
+        if (publicId === Number(this.currentUser.publicId || 0)) {
+            return this.showToast('لا يمكنك حظر حساب المطور نفسه', 'error');
+        }
+
+        try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'جاري الحظر...';
+            }
+
+            const { data, error } = await client.rpc('zono_developer_ban_user', {
+                p_public_id: publicId,
+                p_duration: duration,
+                p_reason: reason
+            });
+
+            if (error) throw error;
+            if (!data?.ok) throw new Error(data?.message || 'تعذر حظر المستخدم');
+
+            this.closeDeveloperBanModal();
+            this.showToast(`تم حظر ID ${publicId} لمدة ${data.duration_label || ''}`.trim(), 'success');
+        } catch (e) {
+            const raw = String(e?.message || 'تعذر حظر المستخدم');
+            const friendly = raw.includes('DEVELOPER_ONLY') ? 'هذه العملية للمطور فقط'
+                : raw.includes('USER_NOT_FOUND') ? 'لا يوجد حساب بهذا ID'
+                : raw.includes('CANNOT_BAN_SELF') ? 'لا يمكنك حظر حساب المطور نفسه'
+                : raw.includes('INVALID_DURATION') ? 'مدة الحظر غير صحيحة'
+                : raw.includes('REASON_REQUIRED') ? 'سبب الحظر مطلوب'
+                : raw;
+            this.showToast(friendly, 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'متابعة وحظر المستخدم';
+            }
+        }
     }
 
     // --- Edit Profile ---

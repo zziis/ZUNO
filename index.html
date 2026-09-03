@@ -576,6 +576,19 @@
                     <button onclick="window.zonoApp.sendSeeds()">إرسال البذور</button>
                 </div>
 
+
+                <!-- Developer-only account ban capsule -->
+                <div id="developer-ban-card" class="hidden zono-developer-ban-card">
+                    <button type="button" onclick="window.zonoApp.openDeveloperBanModal()" class="zono-developer-ban-capsule">
+                        <span class="zono-developer-ban-icon">⛔</span>
+                        <span class="zono-developer-ban-copy">
+                            <strong>حظر مستخدم</strong>
+                            <small>إدارة الحظر — للمطور فقط</small>
+                        </span>
+                        <span class="zono-developer-ban-arrow">‹</span>
+                    </button>
+                </div>
+
                 <!-- Stats Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-6 border-t border-stone-800/80">
                     <div class="p-3.5 rounded-2xl bg-stone-900/60 border border-stone-800 text-center">
@@ -1225,6 +1238,42 @@
                 <button onclick="window.zonoApp.sendDirectMessage()" class="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-stone-950 font-bold text-xs shadow-md">
                     إرسال
                 </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Developer Ban User Modal -->
+    <div id="developer-ban-modal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4" onclick="if(event.target===this) window.zonoApp.closeDeveloperBanModal()">
+        <div class="zono-developer-ban-modal" dir="rtl">
+            <div class="zono-developer-ban-modal-head">
+                <div>
+                    <span class="zono-developer-ban-modal-badge">للمطور فقط</span>
+                    <h3>⛔ حظر مستخدم</h3>
+                    <p>حدد الحساب والمدة واكتب سبب الحظر الذي سيظهر للمستخدم.</p>
+                </div>
+                <button type="button" onclick="window.zonoApp.closeDeveloperBanModal()" class="zono-developer-ban-close">✕</button>
+            </div>
+
+            <div class="zono-developer-ban-form">
+                <label for="developer-ban-public-id">ID الحساب المراد حظره</label>
+                <input id="developer-ban-public-id" type="text" inputmode="numeric" autocomplete="off" placeholder="مثال: 25" oninput="window.zonoApp.updateDeveloperBanSummary()">
+
+                <label for="developer-ban-duration">وقت الحظر</label>
+                <select id="developer-ban-duration" onchange="window.zonoApp.updateDeveloperBanSummary()">
+                    <option value="hour">ساعة</option>
+                    <option value="day">يوم</option>
+                    <option value="month">شهر</option>
+                    <option value="year">سنة</option>
+                </select>
+
+                <label for="developer-ban-reason">نبذة عن سبب الحظر</label>
+                <textarea id="developer-ban-reason" rows="4" maxlength="300" placeholder="مثال: بسبب تشغيل نواسخ في الهاتف" oninput="window.zonoApp.updateDeveloperBanSummary()"></textarea>
+
+                <div id="developer-ban-summary" class="zono-developer-ban-summary">أدخل ID المستخدم وحدد مدة وسبب الحظر.</div>
+
+                <button id="developer-ban-submit" type="button" onclick="window.zonoApp.submitDeveloperBan()" class="zono-developer-ban-submit">متابعة وحظر المستخدم</button>
+                <button type="button" onclick="window.zonoApp.closeDeveloperBanModal()" class="zono-developer-ban-cancel">إلغاء</button>
             </div>
         </div>
     </div>

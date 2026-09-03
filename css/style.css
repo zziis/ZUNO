@@ -3786,3 +3786,29 @@ html[class*="theme"] .zono-room-message-capsule{
 .zono-plan-info-content .zono-plan-info-lead{color:#f5f5f4;font-weight:800}
 .zono-plan-info-content .zono-plan-info-muted{color:#a8a29e}
 @media(max-width:420px){.zono-room-plan-grid{gap:.42rem}.zono-room-plan-card{min-height:2.65rem}.zono-room-submit-btn{min-width:7.2rem}}
+
+
+/* ===== Developer-only account ban control ===== */
+.zono-developer-ban-card{margin-top:1rem}
+.zono-developer-ban-capsule{width:100%;display:flex;align-items:center;gap:.75rem;padding:.78rem .9rem;border-radius:999px;border:1px solid rgba(239,68,68,.36);background:linear-gradient(135deg,rgba(127,29,29,.28),rgba(69,10,10,.16));box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 12px 32px rgba(0,0,0,.18);text-align:right;transition:.18s ease}
+.zono-developer-ban-capsule:hover{border-color:rgba(248,113,113,.62);transform:translateY(-1px);background:linear-gradient(135deg,rgba(153,27,27,.34),rgba(69,10,10,.2))}
+.zono-developer-ban-icon{width:2.45rem;height:2.45rem;display:grid;place-items:center;border-radius:50%;background:rgba(220,38,38,.18);border:1px solid rgba(248,113,113,.3);font-size:1.15rem;flex:0 0 auto}
+.zono-developer-ban-copy{display:flex;flex-direction:column;min-width:0;flex:1}
+.zono-developer-ban-copy strong{font-size:.78rem;color:#fecaca;font-weight:950}
+.zono-developer-ban-copy small{margin-top:.12rem;font-size:.55rem;color:#a8a29e;font-weight:700}
+.zono-developer-ban-arrow{font-size:1.55rem;color:#fca5a5;line-height:1}
+.zono-developer-ban-modal{width:min(100%,30rem);max-height:90vh;overflow:auto;border-radius:1.55rem;border:1px solid rgba(239,68,68,.34);background:linear-gradient(180deg,rgba(28,25,23,.98),rgba(12,10,9,.99));box-shadow:0 30px 90px rgba(0,0,0,.65);padding:1.1rem}
+.zono-developer-ban-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:.35rem .2rem .9rem;border-bottom:1px solid rgba(120,113,108,.2)}
+.zono-developer-ban-modal-head h3{font-size:1.05rem;font-weight:950;color:#fee2e2;margin-top:.35rem}
+.zono-developer-ban-modal-head p{font-size:.65rem;color:#a8a29e;margin-top:.25rem;line-height:1.65}
+.zono-developer-ban-modal-badge{display:inline-flex;padding:.18rem .45rem;border-radius:999px;background:rgba(220,38,38,.16);border:1px solid rgba(248,113,113,.28);color:#fca5a5;font-size:.52rem;font-weight:950}
+.zono-developer-ban-close{width:2rem;height:2rem;border-radius:50%;border:1px solid rgba(120,113,108,.3);background:rgba(41,37,36,.7);color:#d6d3d1;font-size:.72rem;flex:0 0 auto}
+.zono-developer-ban-form{display:flex;flex-direction:column;gap:.52rem;padding-top:1rem}
+.zono-developer-ban-form label{font-size:.62rem;color:#d6d3d1;font-weight:900;margin-top:.22rem}
+.zono-developer-ban-form input,.zono-developer-ban-form select,.zono-developer-ban-form textarea{width:100%;border-radius:.85rem;border:1px solid rgba(120,113,108,.35);background:rgba(12,10,9,.7);color:#f5f5f4;padding:.75rem .8rem;font-size:.76rem;outline:none;transition:.15s ease}
+.zono-developer-ban-form input:focus,.zono-developer-ban-form select:focus,.zono-developer-ban-form textarea:focus{border-color:rgba(248,113,113,.62);box-shadow:0 0 0 3px rgba(239,68,68,.08)}
+.zono-developer-ban-form textarea{resize:vertical;min-height:6.2rem}
+.zono-developer-ban-summary{margin-top:.35rem;border-radius:.85rem;border:1px solid rgba(245,158,11,.2);background:rgba(120,53,15,.08);padding:.7rem .75rem;color:#d6d3d1;font-size:.62rem;line-height:1.7}
+.zono-developer-ban-submit{margin-top:.45rem;width:100%;border-radius:.9rem;padding:.8rem 1rem;background:linear-gradient(135deg,#dc2626,#991b1b);color:white;font-size:.72rem;font-weight:950;border:1px solid rgba(254,202,202,.18);box-shadow:0 10px 26px rgba(127,29,29,.24)}
+.zono-developer-ban-submit:disabled{opacity:.55;cursor:wait}
+.zono-developer-ban-cancel{width:100%;border-radius:.9rem;padding:.72rem 1rem;background:rgba(41,37,36,.72);border:1px solid rgba(120,113,108,.3);color:#d6d3d1;font-size:.68rem;font-weight:850}
