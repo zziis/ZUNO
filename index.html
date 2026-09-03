@@ -577,15 +577,36 @@
                 </div>
 
 
-                <!-- Developer-only account ban capsule -->
+                <!-- Developer-only account ban / unban capsules -->
                 <div id="developer-ban-card" class="hidden zono-developer-ban-card">
                     <button type="button" onclick="window.zonoApp.openDeveloperBanModal()" class="zono-developer-ban-capsule">
                         <span class="zono-developer-ban-icon">⛔</span>
                         <span class="zono-developer-ban-copy">
                             <strong>حظر مستخدم</strong>
-                            <small>إدارة الحظر — للمطور فقط</small>
+                            <small>حظر حساب بمدة محددة أو مخصصة</small>
                         </span>
                         <span class="zono-developer-ban-arrow">‹</span>
+                    </button>
+                </div>
+
+                <div id="developer-query-card" class="hidden zono-developer-query-card">
+                    <button type="button" onclick="window.zonoApp.openDeveloperQueryModal()" class="zono-developer-query-capsule">
+                        <span class="zono-developer-query-icon">🔐</span>
+                        <span class="zono-developer-ban-copy">
+                            <strong class="zono-developer-query-title">استعلام الحسابات</strong>
+                            <small>كشف الرصيد والعداد — محمي برمز سري</small>
+                        </span>
+                        <span class="zono-developer-query-arrow">‹</span>
+                    </button>
+                </div>
+                <div id="developer-unban-card" class="hidden zono-developer-ban-card">
+                    <button type="button" onclick="window.zonoApp.openDeveloperUnbanModal()" class="zono-developer-unban-capsule">
+                        <span class="zono-developer-unban-icon">🔓</span>
+                        <span class="zono-developer-ban-copy">
+                            <strong class="zono-developer-unban-title">إلغاء الحظر</strong>
+                            <small>فتح الحساب فوراً — للمطور فقط</small>
+                        </span>
+                        <span class="zono-developer-unban-arrow">‹</span>
                     </button>
                 </div>
 
@@ -1078,6 +1099,65 @@
         </div>
     </div>
 
+
+    <!-- Developer-only protected account query console -->
+    <div id="developer-query-modal" class="fixed inset-0 z-[90] modal-backdrop hidden items-center justify-center p-3" onclick="if(event.target===this) window.zonoApp.closeDeveloperQueryModal()">
+        <div class="zono-developer-query-modal" dir="rtl">
+            <div class="zono-developer-query-head">
+                <div>
+                    <span class="zono-developer-query-badge">🔐 للمطور فقط</span>
+                    <h3>استعلام الحسابات المحمي</h3>
+                    <p>هذه المنطقة تعرض بيانات مالية داخلية وتحتاج رمز حماية ثانوي.</p>
+                </div>
+                <button onclick="window.zonoApp.closeDeveloperQueryModal()" class="zono-developer-ban-close">✕</button>
+            </div>
+
+            <div id="developer-query-lock-view" class="zono-developer-query-lock">
+                <div class="zono-developer-query-lock-icon">🔒</div>
+                <div id="developer-query-lock-title" class="zono-developer-query-lock-title">المنطقة مقفلة</div>
+                <div id="developer-query-lock-hint" class="zono-developer-query-lock-hint">أدخل رمز الحماية للمتابعة.</div>
+                <input id="developer-query-pin" type="password" maxlength="32" autocomplete="off" class="zono-developer-query-input text-center tracking-[.25em]" placeholder="رمز الحماية">
+                <input id="developer-query-pin-confirm" type="password" maxlength="32" autocomplete="off" class="zono-developer-query-input text-center tracking-[.25em] hidden" placeholder="تأكيد رمز الحماية">
+                <button id="developer-query-unlock-btn" onclick="window.zonoApp.unlockDeveloperQueryConsole()" class="zono-developer-query-primary">فتح القفل</button>
+                <div id="developer-query-lock-status" class="zono-developer-query-status"></div>
+            </div>
+
+            <div id="developer-query-console-view" class="hidden">
+                <div class="zono-developer-query-searchbar">
+                    <input id="developer-query-search" class="zono-developer-query-input" placeholder="بحث بالـ ID أو الاسم" oninput="window.zonoApp.debounceDeveloperUserSearch()">
+                    <button onclick="window.zonoApp.loadDeveloperUsers()" class="zono-developer-query-refresh">تحديث ↻</button>
+                </div>
+
+                <div id="developer-query-users" class="zono-developer-query-users">
+                    <div class="zono-developer-query-empty">جاري تحميل الحسابات...</div>
+                </div>
+
+                <div id="developer-query-detail" class="hidden zono-developer-query-detail">
+                    <div class="zono-developer-query-detail-head">
+                        <div>
+                            <div id="developer-query-detail-name" class="zono-developer-query-detail-name">—</div>
+                            <div id="developer-query-detail-id" class="zono-developer-query-detail-id">ID —</div>
+                        </div>
+                        <button onclick="window.zonoApp.closeDeveloperUserDetail()" class="zono-developer-query-back">رجوع</button>
+                    </div>
+                    <div class="zono-developer-query-grid">
+                        <div class="zono-developer-query-stat"><span>LV</span><strong id="developer-query-detail-level">0</strong></div>
+                        <div class="zono-developer-query-stat"><span>البذور</span><strong id="developer-query-detail-seeds">0</strong></div>
+                        <div class="zono-developer-query-stat"><span>الريش</span><strong id="developer-query-detail-feathers">0</strong></div>
+                        <div class="zono-developer-query-stat"><span>بذور / اليوم</span><strong id="developer-query-detail-daily">0</strong></div>
+                    </div>
+                    <div class="zono-developer-query-counter-row">
+                        <span>هل يملك عداد؟</span>
+                        <strong id="developer-query-detail-counter">—</strong>
+                    </div>
+                    <div id="developer-query-detail-plan" class="zono-developer-query-plan"></div>
+                    <button id="developer-query-zero-seeds" onclick="window.zonoApp.zeroDeveloperUserSeeds()" class="zono-developer-query-danger">تصفير البذور</button>
+                    <div class="zono-developer-query-warning">⚠️ تصفير البذور عملية مالية فورية. سيتم تسجيلها في سجل الإدارة.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Room Admin Modal -->
     <div id="zono-room-admin-modal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-3">
         <div class="zono-room-admin-card">
@@ -1260,12 +1340,23 @@
                 <input id="developer-ban-public-id" type="text" inputmode="numeric" autocomplete="off" placeholder="مثال: 25" oninput="window.zonoApp.updateDeveloperBanSummary()">
 
                 <label for="developer-ban-duration">وقت الحظر</label>
-                <select id="developer-ban-duration" onchange="window.zonoApp.updateDeveloperBanSummary()">
-                    <option value="hour">ساعة</option>
+                <select id="developer-ban-duration" onchange="window.zonoApp.toggleDeveloperCustomDuration(); window.zonoApp.updateDeveloperBanSummary()">
                     <option value="day">يوم</option>
                     <option value="month">شهر</option>
                     <option value="year">سنة</option>
+                    <option value="custom">مدة مخصصة</option>
                 </select>
+
+                <div id="developer-ban-custom-duration" class="zono-custom-duration hidden">
+                    <input id="developer-ban-custom-amount" type="number" min="1" max="9999" inputmode="numeric" placeholder="اكتب المدة" oninput="window.zonoApp.updateDeveloperBanSummary()">
+                    <select id="developer-ban-custom-unit" onchange="window.zonoApp.updateDeveloperBanSummary()">
+                        <option value="minute">دقيقة</option>
+                        <option value="hour">ساعة</option>
+                        <option value="day">يوم</option>
+                        <option value="month">شهر</option>
+                        <option value="year">سنة</option>
+                    </select>
+                </div>
 
                 <label for="developer-ban-reason">نبذة عن سبب الحظر</label>
                 <textarea id="developer-ban-reason" rows="4" maxlength="300" placeholder="مثال: بسبب تشغيل نواسخ في الهاتف" oninput="window.zonoApp.updateDeveloperBanSummary()"></textarea>
@@ -1274,6 +1365,33 @@
 
                 <button id="developer-ban-submit" type="button" onclick="window.zonoApp.submitDeveloperBan()" class="zono-developer-ban-submit">متابعة وحظر المستخدم</button>
                 <button type="button" onclick="window.zonoApp.closeDeveloperBanModal()" class="zono-developer-ban-cancel">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Unban User Modal -->
+    <div id="developer-unban-modal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4" onclick="if(event.target===this) window.zonoApp.closeDeveloperUnbanModal()">
+        <div class="zono-developer-ban-modal zono-developer-unban-modal" dir="rtl">
+            <div class="zono-developer-ban-modal-head">
+                <div>
+                    <span class="zono-developer-unban-badge">للمطور فقط</span>
+                    <h3 class="zono-developer-unban-heading">🔓 إلغاء حظر مستخدم</h3>
+                    <p>اكتب ID الحساب، ويمكنك إضافة نبذة تحذيرية اختيارية قبل فتح الحساب.</p>
+                </div>
+                <button type="button" onclick="window.zonoApp.closeDeveloperUnbanModal()" class="zono-developer-ban-close">✕</button>
+            </div>
+
+            <div class="zono-developer-ban-form">
+                <label for="developer-unban-public-id">ID الحساب المراد فتحه</label>
+                <input id="developer-unban-public-id" type="text" inputmode="numeric" autocomplete="off" placeholder="مثال: 25" oninput="window.zonoApp.updateDeveloperUnbanSummary()">
+
+                <label for="developer-unban-note">نبذة تحذيرية <span class="text-stone-500">(اختياري)</span></label>
+                <textarea id="developer-unban-note" rows="4" maxlength="300" placeholder="مثال: تم فتح الحساب، يرجى عدم تكرار المخالفة" oninput="window.zonoApp.updateDeveloperUnbanSummary()"></textarea>
+
+                <div id="developer-unban-summary" class="zono-developer-unban-summary">أدخل ID المستخدم لإلغاء الحظر وفتح الحساب.</div>
+
+                <button id="developer-unban-submit" type="button" onclick="window.zonoApp.submitDeveloperUnban()" class="zono-developer-unban-submit">إلغاء الحظر وفتح الحساب</button>
+                <button type="button" onclick="window.zonoApp.closeDeveloperUnbanModal()" class="zono-developer-ban-cancel">إلغاء</button>
             </div>
         </div>
     </div>

@@ -1121,6 +1121,10 @@ class ZonoApp {
         if (transferCard) transferCard.classList.toggle('hidden', !['developer','agent'].includes(this.currentUser.role));
         const developerBanCard = document.getElementById('developer-ban-card');
         if (developerBanCard) developerBanCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
+        const developerUnbanCard = document.getElementById('developer-unban-card');
+        if (developerUnbanCard) developerUnbanCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
+        const developerQueryCard = document.getElementById('developer-query-card');
+        if (developerQueryCard) developerQueryCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
         if (profileHours) profileHours.textContent = `${this.currentUser.stats.flightHours} س`;
         if (profileRooms) profileRooms.textContent = this.currentUser.stats.roomsCreated;
         if (profileMsgs) profileMsgs.textContent = this.currentUser.stats.messagesSent;
@@ -4212,7 +4216,7 @@ class ZonoApp {
         }, 3200);
     }
 
-    // --- Developer account ban control ---
+    // --- Developer account ban / unban control ---
     openDeveloperBanModal() {
         if (!this.currentUser || this.currentUser.role !== 'developer') {
             return this.showToast('هذه الميزة للمطور فقط', 'error');
@@ -4224,12 +4228,17 @@ class ZonoApp {
         const idInput = document.getElementById('developer-ban-public-id');
         const reasonInput = document.getElementById('developer-ban-reason');
         const durationInput = document.getElementById('developer-ban-duration');
+        const customAmount = document.getElementById('developer-ban-custom-amount');
+        const customUnit = document.getElementById('developer-ban-custom-unit');
         const summary = document.getElementById('developer-ban-summary');
 
         if (idInput) idInput.value = '';
         if (reasonInput) reasonInput.value = '';
-        if (durationInput) durationInput.value = 'hour';
+        if (durationInput) durationInput.value = 'day';
+        if (customAmount) customAmount.value = '';
+        if (customUnit) customUnit.value = 'hour';
         if (summary) summary.textContent = 'أدخل ID المستخدم وحدد مدة وسبب الحظر.';
+        this.toggleDeveloperCustomDuration();
 
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -4243,17 +4252,32 @@ class ZonoApp {
         modal.classList.remove('flex');
     }
 
+    toggleDeveloperCustomDuration() {
+        const duration = String(document.getElementById('developer-ban-duration')?.value || 'day');
+        const custom = document.getElementById('developer-ban-custom-duration');
+        if (custom) custom.classList.toggle('hidden', duration !== 'custom');
+    }
+
+    getDeveloperBanDurationLabel() {
+        const duration = String(document.getElementById('developer-ban-duration')?.value || 'day');
+        if (duration !== 'custom') {
+            return ({ day: 'يوم واحد', month: 'شهر واحد', year: 'سنة واحدة' })[duration] || 'يوم واحد';
+        }
+        const amount = Number(document.getElementById('developer-ban-custom-amount')?.value || 0);
+        const unit = String(document.getElementById('developer-ban-custom-unit')?.value || 'hour');
+        const units = { minute: 'دقيقة', hour: 'ساعة', day: 'يوم', month: 'شهر', year: 'سنة' };
+        return amount > 0 ? `${amount} ${units[unit] || 'ساعة'}` : 'مدة مخصصة غير محددة';
+    }
+
     updateDeveloperBanSummary() {
         const publicId = Number(String(document.getElementById('developer-ban-public-id')?.value || '').replace(/\D/g, ''));
-        const duration = String(document.getElementById('developer-ban-duration')?.value || 'hour');
         const reason = String(document.getElementById('developer-ban-reason')?.value || '').trim();
         const summary = document.getElementById('developer-ban-summary');
         if (!summary) return;
 
-        const labels = { hour: 'ساعة واحدة', day: 'يوم واحد', month: 'شهر واحد', year: 'سنة واحدة' };
         const idText = Number.isInteger(publicId) && publicId > 0 ? `ID ${publicId}` : 'ID غير محدد';
         const reasonText = reason ? ` — السبب: ${reason}` : ' — لم يُكتب سبب بعد';
-        summary.textContent = `${idText} • مدة الحظر: ${labels[duration] || 'ساعة واحدة'}${reasonText}`;
+        summary.textContent = `${idText} • مدة الحظر: ${this.getDeveloperBanDurationLabel()}${reasonText}`;
     }
 
     async submitDeveloperBan() {
@@ -4265,15 +4289,25 @@ class ZonoApp {
         if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
 
         const publicId = Number(String(document.getElementById('developer-ban-public-id')?.value || '').replace(/\D/g, ''));
-        const duration = String(document.getElementById('developer-ban-duration')?.value || 'hour');
+        const duration = String(document.getElementById('developer-ban-duration')?.value || 'day');
+        const customAmount = Number(document.getElementById('developer-ban-custom-amount')?.value || 0);
+        const customUnit = String(document.getElementById('developer-ban-custom-unit')?.value || 'hour');
         const reason = String(document.getElementById('developer-ban-reason')?.value || '').trim();
         const submitBtn = document.getElementById('developer-ban-submit');
 
         if (!Number.isInteger(publicId) || publicId < 1) {
             return this.showToast('أدخل ID حساب صحيح', 'error');
         }
-        if (!['hour','day','month','year'].includes(duration)) {
+        if (!['day','month','year','custom'].includes(duration)) {
             return this.showToast('اختر مدة حظر صحيحة', 'error');
+        }
+        if (duration === 'custom') {
+            if (!Number.isInteger(customAmount) || customAmount < 1 || customAmount > 9999) {
+                return this.showToast('اكتب مدة مخصصة صحيحة من 1 إلى 9999', 'error');
+            }
+            if (!['minute','hour','day','month','year'].includes(customUnit)) {
+                return this.showToast('اختر وحدة المدة المخصصة', 'error');
+            }
         }
         if (reason.length < 3) {
             return this.showToast('اكتب سبب الحظر', 'error');
@@ -4291,20 +4325,23 @@ class ZonoApp {
             const { data, error } = await client.rpc('zono_developer_ban_user', {
                 p_public_id: publicId,
                 p_duration: duration,
-                p_reason: reason
+                p_reason: reason,
+                p_custom_amount: duration === 'custom' ? customAmount : null,
+                p_custom_unit: duration === 'custom' ? customUnit : null
             });
 
             if (error) throw error;
             if (!data?.ok) throw new Error(data?.message || 'تعذر حظر المستخدم');
 
             this.closeDeveloperBanModal();
-            this.showToast(`تم حظر ID ${publicId} لمدة ${data.duration_label || ''}`.trim(), 'success');
+            this.showToast(`تم حظر ID ${publicId} لمدة ${data.duration_label || this.getDeveloperBanDurationLabel()}`.trim(), 'success');
         } catch (e) {
             const raw = String(e?.message || 'تعذر حظر المستخدم');
             const friendly = raw.includes('DEVELOPER_ONLY') ? 'هذه العملية للمطور فقط'
                 : raw.includes('USER_NOT_FOUND') ? 'لا يوجد حساب بهذا ID'
                 : raw.includes('CANNOT_BAN_SELF') ? 'لا يمكنك حظر حساب المطور نفسه'
                 : raw.includes('INVALID_DURATION') ? 'مدة الحظر غير صحيحة'
+                : raw.includes('INVALID_CUSTOM_DURATION') ? 'المدة المخصصة غير صحيحة'
                 : raw.includes('REASON_REQUIRED') ? 'سبب الحظر مطلوب'
                 : raw;
             this.showToast(friendly, 'error');
@@ -4312,6 +4349,81 @@ class ZonoApp {
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'متابعة وحظر المستخدم';
+            }
+        }
+    }
+
+    openDeveloperUnbanModal() {
+        if (!this.currentUser || this.currentUser.role !== 'developer') {
+            return this.showToast('هذه الميزة للمطور فقط', 'error');
+        }
+        const modal = document.getElementById('developer-unban-modal');
+        if (!modal) return;
+        const idInput = document.getElementById('developer-unban-public-id');
+        const noteInput = document.getElementById('developer-unban-note');
+        const summary = document.getElementById('developer-unban-summary');
+        if (idInput) idInput.value = '';
+        if (noteInput) noteInput.value = '';
+        if (summary) summary.textContent = 'أدخل ID المستخدم لإلغاء الحظر وفتح الحساب.';
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => idInput?.focus(), 50);
+    }
+
+    closeDeveloperUnbanModal() {
+        const modal = document.getElementById('developer-unban-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    updateDeveloperUnbanSummary() {
+        const publicId = Number(String(document.getElementById('developer-unban-public-id')?.value || '').replace(/\D/g, ''));
+        const note = String(document.getElementById('developer-unban-note')?.value || '').trim();
+        const summary = document.getElementById('developer-unban-summary');
+        if (!summary) return;
+        const idText = Number.isInteger(publicId) && publicId > 0 ? `ID ${publicId}` : 'ID غير محدد';
+        const noteText = note ? ` — تنبيه: ${note}` : ' — بدون نبذة تحذيرية';
+        summary.textContent = `${idText} • سيتم إلغاء الحظر وفتح الحساب فوراً${noteText}`;
+    }
+
+    async submitDeveloperUnban() {
+        if (!this.currentUser || this.currentUser.role !== 'developer') {
+            return this.showToast('هذه الميزة للمطور فقط', 'error');
+        }
+        const client = window.zunoBackend?.client || window.zonoAuth?.client;
+        if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+
+        const publicId = Number(String(document.getElementById('developer-unban-public-id')?.value || '').replace(/\D/g, ''));
+        const note = String(document.getElementById('developer-unban-note')?.value || '').trim();
+        const submitBtn = document.getElementById('developer-unban-submit');
+        if (!Number.isInteger(publicId) || publicId < 1) {
+            return this.showToast('أدخل ID حساب صحيح', 'error');
+        }
+
+        try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'جاري إلغاء الحظر...';
+            }
+            const { data, error } = await client.rpc('zono_developer_unban_user', {
+                p_public_id: publicId,
+                p_note: note || null
+            });
+            if (error) throw error;
+            if (!data?.ok) throw new Error(data?.message || 'تعذر إلغاء الحظر');
+            this.closeDeveloperUnbanModal();
+            this.showToast(`تم إلغاء حظر ID ${publicId} وفتح الحساب`, 'success');
+        } catch (e) {
+            const raw = String(e?.message || 'تعذر إلغاء الحظر');
+            const friendly = raw.includes('DEVELOPER_ONLY') ? 'هذه العملية للمطور فقط'
+                : raw.includes('USER_NOT_FOUND') ? 'لا يوجد حساب بهذا ID'
+                : raw;
+            this.showToast(friendly, 'error');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'إلغاء الحظر وفتح الحساب';
             }
         }
     }
@@ -4385,6 +4497,244 @@ class ZonoApp {
             this.showToast('تم تحديث بيانات الملف الشخصي بنجاح! ✨', 'success');
         } catch (e) {
             this.showToast(e.message || 'تعذر حفظ التغييرات', 'error');
+        }
+    }
+
+
+    // --- Developer protected account query console ---
+    async openDeveloperQueryModal() {
+        if (!this.currentUser || this.currentUser.role !== 'developer') {
+            return this.showToast('هذه المنطقة للمطور فقط', 'error');
+        }
+        const modal = document.getElementById('developer-query-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        this.developerQueryToken = null;
+        this.developerQuerySelectedId = null;
+        await this.prepareDeveloperQueryLock();
+    }
+
+    async prepareDeveloperQueryLock() {
+        const lockView = document.getElementById('developer-query-lock-view');
+        const consoleView = document.getElementById('developer-query-console-view');
+        const pin = document.getElementById('developer-query-pin');
+        const confirmPin = document.getElementById('developer-query-pin-confirm');
+        const btn = document.getElementById('developer-query-unlock-btn');
+        const title = document.getElementById('developer-query-lock-title');
+        const hint = document.getElementById('developer-query-lock-hint');
+        const status = document.getElementById('developer-query-lock-status');
+        lockView?.classList.remove('hidden');
+        consoleView?.classList.add('hidden');
+        if (pin) pin.value = '';
+        if (confirmPin) confirmPin.value = '';
+        if (status) status.textContent = '';
+
+        try {
+            const client = window.zonoBackend?.client || window.zonoAuth?.client;
+            if (!client) throw new Error('تعذر الاتصال');
+            const { data, error } = await client.rpc('zono_developer_console_status');
+            if (error) throw error;
+            this.developerQueryNeedsSetup = !data?.configured;
+            if (this.developerQueryNeedsSetup) {
+                if (title) title.textContent = 'إنشاء رمز حماية لأول مرة';
+                if (hint) hint.textContent = 'أنشئ رمزاً سرياً من 6 إلى 32 حرفاً. لا يتم حفظه داخل ملفات الموقع.';
+                confirmPin?.classList.remove('hidden');
+                if (btn) btn.textContent = 'حفظ الرمز وفتح القفل';
+            } else {
+                if (title) title.textContent = data?.locked ? 'القفل مؤقتاً بسبب محاولات خاطئة' : 'المنطقة مقفلة';
+                if (hint) hint.textContent = data?.locked
+                    ? `حاول لاحقاً${data?.locked_until ? ` — حتى ${new Date(data.locked_until).toLocaleTimeString('ar-IQ',{hour:'2-digit',minute:'2-digit'})}` : ''}`
+                    : 'أدخل رمز الحماية الثانوي للمتابعة.';
+                confirmPin?.classList.add('hidden');
+                if (btn) btn.textContent = 'فتح القفل';
+                if (btn) btn.disabled = !!data?.locked;
+            }
+        } catch (e) {
+            if (status) status.textContent = e.message || 'تعذر فحص حالة القفل';
+        }
+        setTimeout(() => pin?.focus(), 80);
+    }
+
+    async unlockDeveloperQueryConsole() {
+        if (!this.currentUser || this.currentUser.role !== 'developer') return;
+        const pinEl = document.getElementById('developer-query-pin');
+        const confirmEl = document.getElementById('developer-query-pin-confirm');
+        const btn = document.getElementById('developer-query-unlock-btn');
+        const status = document.getElementById('developer-query-lock-status');
+        const pin = String(pinEl?.value || '');
+        if (pin.length < 6 || pin.length > 32) {
+            if (status) status.textContent = 'رمز الحماية يجب أن يكون من 6 إلى 32 حرفاً';
+            return;
+        }
+        if (this.developerQueryNeedsSetup && pin !== String(confirmEl?.value || '')) {
+            if (status) status.textContent = 'تأكيد رمز الحماية غير مطابق';
+            return;
+        }
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!client) return;
+        try {
+            if (btn) btn.disabled = true;
+            if (status) status.textContent = 'جارٍ التحقق...';
+            if (this.developerQueryNeedsSetup) {
+                const { error: setupError } = await client.rpc('zono_developer_console_set_pin', { p_pin: pin });
+                if (setupError) throw setupError;
+            }
+            const { data, error } = await client.rpc('zono_developer_console_unlock', { p_pin: pin });
+            if (error) throw error;
+            if (!data?.token) throw new Error('تعذر إنشاء جلسة الحماية');
+            this.developerQueryToken = data.token;
+            this.developerQueryTokenExpiresAt = data.expires_at || null;
+            if (pinEl) pinEl.value = '';
+            if (confirmEl) confirmEl.value = '';
+            document.getElementById('developer-query-lock-view')?.classList.add('hidden');
+            document.getElementById('developer-query-console-view')?.classList.remove('hidden');
+            await this.loadDeveloperUsers();
+        } catch (e) {
+            const raw = String(e?.message || '');
+            const friendly = raw.includes('INVALID_PIN') ? 'رمز الحماية غير صحيح'
+                : raw.includes('CONSOLE_LOCKED') ? 'تم قفل المحاولات مؤقتاً. حاول لاحقاً'
+                : raw.includes('PIN_ALREADY_CONFIGURED') ? 'رمز الحماية مُعد مسبقاً'
+                : raw.includes('DEVELOPER_ONLY') ? 'هذه المنطقة للمطور فقط'
+                : raw || 'تعذر فتح القفل';
+            if (status) status.textContent = friendly;
+            if (raw.includes('CONSOLE_LOCKED')) await this.prepareDeveloperQueryLock();
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    debounceDeveloperUserSearch() {
+        clearTimeout(this._developerUserSearchTimer);
+        this._developerUserSearchTimer = setTimeout(() => this.loadDeveloperUsers(), 260);
+    }
+
+    async loadDeveloperUsers() {
+        if (!this.developerQueryToken) return this.prepareDeveloperQueryLock();
+        const list = document.getElementById('developer-query-users');
+        const detail = document.getElementById('developer-query-detail');
+        const q = String(document.getElementById('developer-query-search')?.value || '').trim();
+        if (detail) detail.classList.add('hidden');
+        if (list) {
+            list.classList.remove('hidden');
+            list.innerHTML = '<div class="zono-developer-query-empty">جاري تحميل الحسابات...</div>';
+        }
+        try {
+            const client = window.zonoBackend?.client || window.zonoAuth?.client;
+            const { data, error } = await client.rpc('zono_developer_query_users', {
+                p_token: this.developerQueryToken,
+                p_query: q || null
+            });
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+            if (!list) return;
+            if (!rows.length) {
+                list.innerHTML = '<div class="zono-developer-query-empty">لا توجد حسابات مطابقة</div>';
+                return;
+            }
+            list.innerHTML = rows.map(row => `
+                <button class="zono-developer-user-row" onclick="window.zonoApp.openDeveloperUserDetail(${Number(row.public_id || 0)})">
+                    <div class="zono-developer-user-avatar">${this.escapeHtml(String(row.display_name || row.username || 'Z').slice(0,1).toUpperCase())}</div>
+                    <div class="zono-developer-user-copy">
+                        <strong>${this.escapeHtml(row.display_name || row.username || 'مستخدم ZONO')}</strong>
+                        <small>ID ${Number(row.public_id || 0).toLocaleString('en-US')}</small>
+                    </div>
+                    <span class="zono-developer-user-level">LV.${Number(row.account_level || 1).toLocaleString('en-US')}</span>
+                </button>
+            `).join('');
+        } catch (e) {
+            const raw = String(e?.message || '');
+            if (raw.includes('INVALID_CONSOLE_SESSION') || raw.includes('CONSOLE_SESSION_EXPIRED')) {
+                this.developerQueryToken = null;
+                return this.prepareDeveloperQueryLock();
+            }
+            if (list) list.innerHTML = `<div class="zono-developer-query-empty text-red-300">${this.escapeHtml(raw || 'تعذر تحميل الحسابات')}</div>`;
+        }
+    }
+
+    async openDeveloperUserDetail(publicId) {
+        if (!this.developerQueryToken) return;
+        const list = document.getElementById('developer-query-users');
+        const detail = document.getElementById('developer-query-detail');
+        if (list) list.classList.add('hidden');
+        if (detail) {
+            detail.classList.remove('hidden');
+            detail.classList.add('zono-loading');
+        }
+        try {
+            const client = window.zonoBackend?.client || window.zonoAuth?.client;
+            const { data, error } = await client.rpc('zono_developer_user_details', {
+                p_token: this.developerQueryToken,
+                p_public_id: Number(publicId)
+            });
+            if (error) throw error;
+            this.developerQuerySelectedId = Number(data.public_id || publicId);
+            const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+            setText('developer-query-detail-name', data.display_name || data.username || 'مستخدم ZONO');
+            setText('developer-query-detail-id', `ID ${Number(data.public_id || 0).toLocaleString('en-US')}`);
+            setText('developer-query-detail-level', Number(data.account_level || 1).toLocaleString('en-US'));
+            setText('developer-query-detail-seeds', Number(data.seeds || 0).toLocaleString('en-US'));
+            setText('developer-query-detail-feathers', Number(data.feathers || 0).toLocaleString('en-US'));
+            setText('developer-query-detail-daily', Number(data.daily_seeds || 0).toLocaleString('en-US'));
+            setText('developer-query-detail-counter', data.has_counter ? 'نعم ✓' : 'لا');
+            const counterEl = document.getElementById('developer-query-detail-counter');
+            if (counterEl) counterEl.className = data.has_counter ? 'zono-counter-yes' : 'zono-counter-no';
+            const plan = document.getElementById('developer-query-detail-plan');
+            if (plan) {
+                plan.textContent = data.has_counter
+                    ? `العداد الحالي: ${data.active_bird || 'مفعّل'}${data.bird_plan_ends_at ? ` • ينتهي ${new Intl.DateTimeFormat('ar-IQ',{dateStyle:'medium'}).format(new Date(data.bird_plan_ends_at))}` : ''}`
+                    : 'لا يوجد عداد مدفوع فعّال على الحساب';
+            }
+        } catch (e) {
+            this.showToast(e.message || 'تعذر جلب كشف الحساب', 'error');
+            this.closeDeveloperUserDetail();
+        } finally {
+            detail?.classList.remove('zono-loading');
+        }
+    }
+
+    closeDeveloperUserDetail() {
+        document.getElementById('developer-query-detail')?.classList.add('hidden');
+        document.getElementById('developer-query-users')?.classList.remove('hidden');
+        this.developerQuerySelectedId = null;
+    }
+
+    async zeroDeveloperUserSeeds() {
+        const publicId = Number(this.developerQuerySelectedId || 0);
+        if (!publicId || !this.developerQueryToken) return;
+        if (!window.confirm(`تأكيد تصفير بذور الحساب ID ${publicId}؟\nهذه العملية ستجعل الرصيد 0 فوراً.`)) return;
+        const btn = document.getElementById('developer-query-zero-seeds');
+        try {
+            if (btn) btn.disabled = true;
+            const client = window.zonoBackend?.client || window.zonoAuth?.client;
+            const { data, error } = await client.rpc('zono_developer_zero_user_seeds', {
+                p_token: this.developerQueryToken,
+                p_public_id: publicId
+            });
+            if (error) throw error;
+            const seedsEl = document.getElementById('developer-query-detail-seeds');
+            if (seedsEl) seedsEl.textContent = '0';
+            this.showToast(`تم تصفير ${Number(data?.previous_seeds || 0).toLocaleString('en-US')} بذرة من ID ${publicId}`, 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر تصفير البذور', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async closeDeveloperQueryModal() {
+        const modal = document.getElementById('developer-query-modal');
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+        const token = this.developerQueryToken;
+        this.developerQueryToken = null;
+        this.developerQuerySelectedId = null;
+        clearTimeout(this._developerUserSearchTimer);
+        if (token) {
+            try {
+                const client = window.zonoBackend?.client || window.zonoAuth?.client;
+                await client?.rpc('zono_developer_console_lock_session', { p_token: token });
+            } catch (_) {}
         }
     }
 
