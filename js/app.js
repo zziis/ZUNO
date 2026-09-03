@@ -4551,7 +4551,17 @@ class ZonoApp {
                 if (btn) btn.disabled = !!data?.locked;
             }
         } catch (e) {
-            if (status) status.textContent = e.message || 'تعذر فحص حالة القفل';
+            // إذا تعذر جلب حالة القفل (مثلاً تأخر schema cache) نعرض إعداد الرمز لأول مرة.
+            // دالة set_pin في الخادم تبقى هي المرجع النهائي وتمنع استبدال رمز موجود.
+            this.developerQueryNeedsSetup = true;
+            if (title) title.textContent = 'إنشاء رمز حماية لأول مرة';
+            if (hint) hint.textContent = 'أنشئ رمزاً سرياً من 6 إلى 32 حرفاً ثم أعد كتابته للتأكيد.';
+            confirmPin?.classList.remove('hidden');
+            if (btn) {
+                btn.textContent = 'حفظ الرمز وفتح القفل';
+                btn.disabled = false;
+            }
+            if (status) status.textContent = '';
         }
         setTimeout(() => pin?.focus(), 80);
     }
@@ -4597,7 +4607,19 @@ class ZonoApp {
                 : raw.includes('PIN_ALREADY_CONFIGURED') ? 'رمز الحماية مُعد مسبقاً'
                 : raw.includes('DEVELOPER_ONLY') ? 'هذه المنطقة للمطور فقط'
                 : raw || 'تعذر فتح القفل';
-            if (status) status.textContent = friendly;
+            if (raw.includes('PIN_ALREADY_CONFIGURED')) {
+                // يوجد رمز بالفعل: انتقل مباشرة إلى وضع فتح القفل بدون محاولة إنشاء رمز جديد.
+                this.developerQueryNeedsSetup = false;
+                const title = document.getElementById('developer-query-lock-title');
+                const hint = document.getElementById('developer-query-lock-hint');
+                if (title) title.textContent = 'المنطقة مقفلة';
+                if (hint) hint.textContent = 'الرمز موجود مسبقاً. أدخل رمز الحماية للمتابعة.';
+                confirmEl?.classList.add('hidden');
+                if (btn) btn.textContent = 'فتح القفل';
+                if (status) status.textContent = 'الرمز موجود مسبقاً — أدخله لفتح القفل';
+            } else {
+                if (status) status.textContent = friendly;
+            }
             if (raw.includes('CONSOLE_LOCKED')) await this.prepareDeveloperQueryLock();
         } finally {
             if (btn) btn.disabled = false;
