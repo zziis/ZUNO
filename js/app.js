@@ -1424,8 +1424,24 @@ class ZonoApp {
             if (error) ({ data, error } = await client.rpc('zono_list_rooms'));
             if (error) throw error;
 
-            this.rooms = (Array.isArray(data) ? data : [])
-                .filter(Boolean)
+            let roomRows = (Array.isArray(data) ? data : []).filter(Boolean);
+
+            // بعض دوال RPC القديمة لا تُرجع room_level، لذلك نقرأه مباشرة من جدول rooms
+            // ونربطه بالروم باستخدام public_id. هذا يحافظ على التوافق مع الإصدارات القديمة.
+            try {
+                const { data: levelRows, error: levelError } = await client
+                    .from('rooms')
+                    .select('public_id, room_level');
+                if (!levelError && Array.isArray(levelRows)) {
+                    const levelMap = new Map(levelRows.map(r => [Number(r.public_id), Number(r.room_level || 1)]));
+                    roomRows = roomRows.map(room => ({
+                        ...room,
+                        room_level: levelMap.get(Number(room.public_id)) ?? Number(room.room_level || 1)
+                    }));
+                }
+            } catch (_) {}
+
+            this.rooms = roomRows
                 .sort((a,b) => Number(b.active_members || 0) - Number(a.active_members || 0));
             this.renderRooms();
             if (showToast) this.showToast('تم تحديث الرومات', 'success');
@@ -1505,6 +1521,7 @@ class ZonoApp {
                         <div class="zono-room-name-track">${this.escapeHtml(room.name || '')} ✦ ${this.escapeHtml(room.name || '')}</div>
                     </div>
                     <div class="zono-room-card-meta">
+                        <span>LV.${Number(room.room_level || 1)} ⭐</span>
                         <span>${Number(room.active_members || 0)} 👥</span>
                         <span>${this.escapeHtml(room.owner_name || '')}</span>
                     </div>
@@ -1701,7 +1718,20 @@ class ZonoApp {
             const modal=document.getElementById('room-chat-modal');
             document.getElementById('room-modal-title').textContent = data.name || 'الروم';
             const lvl=document.getElementById('room-modal-level');
-            if(lvl) lvl.textContent=`LV. ${Number(data.room_level || 1)} ⭐`;
+            let resolvedRoomLevel = Number(data.room_level || listRoom?.room_level || 1);
+            // fallback مباشر من جدول rooms في حال دالة الدخول لا تُرجع room_level
+            if (!data.room_level) {
+                try {
+                    const { data: roomLevelRow } = await client
+                        .from('rooms')
+                        .select('room_level')
+                        .eq('public_id', Number(roomPublicId))
+                        .maybeSingle();
+                    if (roomLevelRow?.room_level != null) resolvedRoomLevel = Number(roomLevelRow.room_level || 1);
+                } catch (_) {}
+            }
+            this.activeRoom.room_level = resolvedRoomLevel;
+            if(lvl) lvl.textContent=`LV. ${resolvedRoomLevel} ⭐`;
             const ridEl=document.getElementById('room-modal-public-id'); if(ridEl) ridEl.textContent=`ID ${Number(data.public_id)}`; const numEl=document.getElementById('zono-room-member-number'); if(numEl) numEl.textContent=String(Number(data.active_members||1));
             this.activeRoom.is_favorite=!!data.is_favorite;
             this.updateRoomFavoriteButton();
