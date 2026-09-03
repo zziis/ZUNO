@@ -75,10 +75,24 @@ class ZonoAuth {
     } else {
       const id = Number(identifier.replace(/\D/g,''));
       if (!Number.isInteger(id) || id < 1) throw new Error('ID غير صحيح');
-      const { data, error } = await this.client.functions.invoke('auth-login', { body: { public_id: id, password } });
-      if (error || !data?.access_token || !data?.refresh_token) throw new Error(data?.error || 'ID أو كلمة المرور غير صحيحة');
-      const { data: s, error: e } = await this.client.auth.setSession({ access_token: data.access_token, refresh_token: data.refresh_token });
-      if (e) throw new Error('تعذر فتح جلسة الحساب');
+      const { data, error } = await this.client.functions.invoke('login-by-id', {
+        body: { public_id: id, password }
+      });
+
+      // الدالة الجديدة ترجع التوكنات داخل session، مع دعم الشكل القديم احتياطياً.
+      const accessToken = data?.session?.access_token || data?.access_token;
+      const refreshToken = data?.session?.refresh_token || data?.refresh_token;
+
+      if (error || !accessToken || !refreshToken) {
+        throw new Error(data?.error || 'ID أو كلمة المرور غير صحيحة');
+      }
+
+      const { data: s, error: e } = await this.client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      });
+
+      if (e || !s?.session?.user) throw new Error('تعذر فتح جلسة الحساب');
       session = s.session;
     }
     await this.loadProfile(session.user);
