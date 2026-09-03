@@ -146,6 +146,9 @@ class ZonoApp {
             dailyFeathersTotal,
             bio: p.bio || 'عضو في مجتمع Zono 🕊️',
             role: p.role || 'user',
+            agentVerified: p.agent_verified === true,
+            agentSince: p.agent_since || null,
+            agentPreviousPublicId: p.agent_previous_public_id || null,
             readReceiptsEnabled: p.read_receipts_enabled !== false,
             activeTheme: p.active_theme || 'classic_night',
             activeNameTheme: p.active_name_theme || 'basic',
@@ -1125,6 +1128,18 @@ class ZonoApp {
         if (developerUnbanCard) developerUnbanCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
         const developerQueryCard = document.getElementById('developer-query-card');
         if (developerQueryCard) developerQueryCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
+        const developerAdminCard = document.getElementById('developer-admin-card');
+        if (developerAdminCard) developerAdminCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
+        const agencyRequestCard = document.getElementById('agency-request-card');
+        if (agencyRequestCard) agencyRequestCard.classList.toggle('hidden', ['agent','developer'].includes(this.currentUser.role));
+        const agentBadge = document.getElementById('profile-agent-badge');
+        if (agentBadge) {
+            const isAgent = this.currentUser.role === 'agent';
+            agentBadge.classList.toggle('hidden', !isAgent);
+            agentBadge.textContent = isAgent ? '✓ وكيل معتمد' : '';
+        }
+        const walletWithdrawBtn = document.getElementById('zono-wallet-withdraw-btn');
+        if (walletWithdrawBtn) walletWithdrawBtn.classList.remove('hidden');
         if (profileHours) profileHours.textContent = `${this.currentUser.stats.flightHours} س`;
         if (profileRooms) profileRooms.textContent = this.currentUser.stats.roomsCreated;
         if (profileMsgs) profileMsgs.textContent = this.currentUser.stats.messagesSent;
@@ -1230,14 +1245,14 @@ class ZonoApp {
         panel.classList.remove('hidden');
 
         const admin = document.getElementById('zono-withdrawal-admin');
-        if (admin) {
-            admin.classList.toggle('hidden', this.currentUser.role !== 'developer');
-        }
+        if (admin) admin.classList.add('hidden');
+
+        const withdrawBtn = document.getElementById('zono-wallet-withdraw-btn');
+        const canWithdraw = !!this.currentUser;
+        if (withdrawBtn) withdrawBtn.classList.toggle('hidden', !canWithdraw);
+        if (!canWithdraw) document.getElementById('zono-wallet-withdraw-options')?.classList.add('hidden');
 
         await this.loadWithdrawalHistory();
-        if (this.currentUser.role === 'developer') {
-            await this.loadWithdrawalAdmin();
-        }
 
         setTimeout(() => {
             panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1286,6 +1301,9 @@ class ZonoApp {
 
         const client = window.zonoBackend?.client || window.zonoAuth?.client;
         if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+        if (!this.currentUser) {
+            return this.showToast('سحب البذور متاح للوكلاء المعتمدين فقط', 'error');
+        }
 
         const isVerified = await this.refreshVerificationBadge();
         if (!isVerified) return this.showToast('يجب توثيق الحساب أولاً قبل سحب البذور', 'error');
@@ -1324,7 +1342,7 @@ class ZonoApp {
         }
 
         try {
-            const { data, error } = await client.rpc('zono_create_withdrawal', {
+            const { data, error } = await client.rpc('zono_withdrawal_submit_v2', {
                 p_method: method,
                 p_account_name: accountName,
                 p_fib_phone: fibPhone || null,
@@ -1363,7 +1381,7 @@ class ZonoApp {
         if (!list || !client || !this.currentUser) return;
 
         try {
-            const { data, error } = await client.rpc('zono_my_withdrawals');
+            const { data, error } = await client.rpc('zono_withdrawal_my_v2');
             if (error) throw error;
             const rows = Array.isArray(data) ? data : [];
 
@@ -1404,7 +1422,7 @@ class ZonoApp {
         if (!list || !client || this.currentUser?.role !== 'developer') return;
 
         try {
-            const { data, error } = await client.rpc('zono_pending_withdrawals');
+            const { data, error } = await client.rpc('zono_withdrawal_pending_v2');
             if (error) throw error;
             const rows = Array.isArray(data) ? data : [];
 
@@ -1441,7 +1459,7 @@ class ZonoApp {
         }
 
         try {
-            const { data, error } = await client.rpc('zono_review_withdrawal', {
+            const { data, error } = await client.rpc('zono_withdrawal_review_v2', {
                 p_withdrawal_id: Number(id),
                 p_decision: decision,
                 p_rejection_reason: reason.trim() || null
@@ -1452,6 +1470,266 @@ class ZonoApp {
             this.showToast(decision === 'approved' ? 'تمت الموافقة على الطلب' : 'تم رفض الطلب وإرجاع البذور', 'success');
         } catch (e) {
             this.showToast(e.message || 'تعذر تحديث الطلب', 'error');
+        }
+    }
+
+
+    // --- Developer Administration Hub: transfers + agencies ---
+    openDeveloperAdminModal(tab = 'transfers') {
+        if (!this.currentUser || this.currentUser.role !== 'developer') {
+            return this.showToast('قسم الإدارة للمطور فقط', 'error');
+        }
+        const modal = document.getElementById('developer-admin-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        this.switchDeveloperAdminTab(tab);
+    }
+
+    closeDeveloperAdminModal() {
+        const modal = document.getElementById('developer-admin-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    switchDeveloperAdminTab(tab) {
+        if (this.currentUser?.role !== 'developer') return;
+        const transfers = tab === 'transfers';
+        document.getElementById('developer-admin-tab-transfers')?.classList.toggle('is-active', transfers);
+        document.getElementById('developer-admin-tab-agents')?.classList.toggle('is-active', !transfers);
+        document.getElementById('developer-admin-transfers')?.classList.toggle('hidden', !transfers);
+        document.getElementById('developer-admin-agents')?.classList.toggle('hidden', transfers);
+        if (transfers) {
+            this.loadDeveloperTransferRequests();
+            this.loadDeveloperApprovedTransfers();
+        } else {
+            this.loadDeveloperAgencyRequests();
+        }
+    }
+
+    async loadDeveloperTransferRequests() {
+        const list = document.getElementById('developer-admin-transfer-pending-list');
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!list || !client || this.currentUser?.role !== 'developer') return;
+        list.innerHTML = '<div class="text-center text-stone-500 text-xs py-4">جاري تحميل الطلبات...</div>';
+        try {
+            const { data, error } = await client.rpc('zono_withdrawal_pending_v2');
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+            list.innerHTML = rows.length ? rows.map(row => `
+                <div class="zono-withdrawal-row border-emerald-500/20">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="font-black text-xs text-stone-100">ID ${Number(row.public_id || 0)} — ${this.escapeHtml(row.display_name || row.account_name || '')}</div>
+                        <span class="zono-withdrawal-status zono-status-pending">قيد المعالجة</span>
+                    </div>
+                    <div class="text-[10px] text-stone-300 mt-2 leading-5">
+                        الطريقة: ${row.method === 'fib' ? 'FIB' : 'Qi'}<br>
+                        صاحب الحساب: ${this.escapeHtml(row.account_name || '')}<br>
+                        ${row.method === 'fib'
+                            ? `هاتف FIB: ${this.escapeHtml(row.fib_phone || '')}`
+                            : `رقم 11: ${this.escapeHtml(row.qi_phone_11 || '')}<br>حساب Qi: ${this.escapeHtml(row.qi_account || '')}`}
+                        <br>البذور: ${Number(row.amount_seeds || 0).toLocaleString('en-US')}
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button onclick="window.zonoApp.reviewDeveloperTransfer(${Number(row.id)}, 'approved')" class="zono-withdraw-approve-btn">قبول</button>
+                        <button onclick="window.zonoApp.reviewDeveloperTransfer(${Number(row.id)}, 'rejected')" class="zono-withdraw-reject-btn">رفض</button>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات حوالات قيد المعالجة</div>';
+        } catch (e) {
+            list.innerHTML = `<div class="text-center text-red-400 text-xs py-4">${this.escapeHtml(e.message || 'تعذر تحميل الطلبات')}</div>`;
+        }
+    }
+
+    async loadDeveloperApprovedTransfers() {
+        const list = document.getElementById('developer-admin-transfer-approved-list');
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!list || !client || this.currentUser?.role !== 'developer') return;
+        try {
+            const { data, error } = await client.rpc('zono_withdrawal_approved_v2');
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+            list.innerHTML = rows.length ? rows.map(row => `
+                <div class="zono-withdrawal-row border-sky-500/20">
+                    <div class="flex items-center justify-between gap-2">
+                        <strong class="text-xs text-stone-100">${this.escapeHtml(row.display_name || row.account_name || '')}</strong>
+                        <span class="zono-withdrawal-status zono-status-approved">تم القبول</span>
+                    </div>
+                    <div class="text-[10px] text-stone-400 mt-1">ID ${Number(row.public_id || 0)} • ${Number(row.amount_seeds || 0).toLocaleString('en-US')} بذرة</div>
+                </div>
+            `).join('') : '<div class="text-center text-stone-500 text-xs py-4">لا توجد سحوبات مقبولة بعد</div>';
+        } catch (e) {
+            list.innerHTML = '<div class="text-center text-red-400 text-xs py-4">تعذر تحميل السحوبات المقبولة</div>';
+        }
+    }
+
+    async reviewDeveloperTransfer(id, decision) {
+        if (this.currentUser?.role !== 'developer') return;
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!client) return;
+        let reason = '';
+        if (decision === 'rejected') {
+            reason = String(window.prompt('اكتب سبب رفض طلب السحب:') || '').trim();
+            if (reason.length < 3) return this.showToast('اكتب سبب الرفض', 'error');
+        }
+        try {
+            const { data, error } = await client.rpc('zono_withdrawal_review_v2', {
+                p_withdrawal_id: Number(id),
+                p_decision: decision,
+                p_rejection_reason: reason || null
+            });
+            if (error) throw error;
+            await this.loadDeveloperTransferRequests();
+            await this.loadDeveloperApprovedTransfers();
+            this.showToast(decision === 'approved' ? 'تم قبول طلب السحب' : 'تم رفض الطلب وإرجاع البذور للحساب', 'success');
+        } catch (e) {
+            this.showToast(e.message || 'تعذر معالجة الطلب', 'error');
+        }
+    }
+
+    // --- Agency request workflow ---
+    openAgencyRequestModal() {
+        if (!this.currentUser) return this.showAuthModal();
+        if (['agent','developer'].includes(this.currentUser.role)) {
+            return this.showToast('الحساب وكيل/مطور بالفعل', 'info');
+        }
+        const modal = document.getElementById('agency-request-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        this.loadAgencyRequestHistory();
+    }
+
+    closeAgencyRequestModal() {
+        const modal = document.getElementById('agency-request-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    async submitAgencyRequest() {
+        if (!this.currentUser || ['agent','developer'].includes(this.currentUser.role)) return;
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!client) return;
+        const btn = document.getElementById('agency-request-submit');
+        if (Number(this.currentUser.seeds || 0) < 1000) {
+            return this.showToast('تحتاج 1,000 بذرة لإرسال طلب الوكالة', 'error');
+        }
+        if (!window.confirm('سيتم خصم 1,000 بذرة فوراً وإرجاعها تلقائياً إذا رُفض الطلب. متابعة؟')) return;
+        try {
+            if (btn) btn.disabled = true;
+            const { data, error } = await client.rpc('zono_agency_create_request');
+            if (error) throw error;
+            await window.zonoAuth.loadProfile(window.zonoAuth.user);
+            await this.syncUserFromSupabase();
+            await this.loadAgencyRequestHistory();
+            this.showToast('تم إرسال طلب الوكالة — قيد المعالجة', 'success');
+        } catch (e) {
+            const raw = String(e?.message || '');
+            const friendly = raw.includes('PENDING_REQUEST_EXISTS') ? 'لديك طلب وكالة قيد المعالجة بالفعل'
+                : raw.includes('INSUFFICIENT_SEEDS') ? 'رصيد البذور غير كافٍ'
+                : raw.includes('ALREADY_AGENT') ? 'الحساب وكيل بالفعل'
+                : raw;
+            this.showToast(friendly || 'تعذر إرسال طلب الوكالة', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async loadAgencyRequestHistory() {
+        const list = document.getElementById('agency-request-history-list');
+        const btn = document.getElementById('agency-request-submit');
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!list || !client || !this.currentUser) return;
+        try {
+            const { data, error } = await client.rpc('zono_agency_my_requests');
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+            const hasPending = rows.some(x => x.status === 'pending');
+            if (btn) {
+                btn.disabled = hasPending;
+                btn.textContent = hasPending ? 'طلبك قيد المعالجة' : 'طلب وكالة مقابل 1,000 بذرة';
+            }
+            list.innerHTML = rows.length ? rows.map(row => {
+                const status = row.status === 'approved' ? 'تم قبول وكالتك'
+                    : row.status === 'rejected' ? 'تم رفض وكالتك'
+                    : 'قيد المعالجة';
+                const cls = row.status === 'approved' ? 'zono-status-approved'
+                    : row.status === 'rejected' ? 'zono-status-rejected'
+                    : 'zono-status-pending';
+                const reason = row.status === 'rejected' && row.rejection_reason
+                    ? `<div class="text-[10px] text-red-300 mt-2">السبب: ${this.escapeHtml(row.rejection_reason)}</div>` : '';
+                const assigned = row.status === 'approved' && row.assigned_public_id
+                    ? `<div class="text-[10px] text-emerald-300 mt-2">ID الوكيل الجديد: ${Number(row.assigned_public_id)}</div>` : '';
+                return `<div class="zono-withdrawal-row">
+                    <div class="flex items-center justify-between gap-2"><strong class="text-xs text-stone-100">طلب وكالة — ${Number(row.fee_seeds || 1000).toLocaleString('en-US')} بذرة</strong><span class="zono-withdrawal-status ${cls}">${status}</span></div>
+                    <div class="text-[10px] text-stone-500 mt-1">${new Date(row.created_at).toLocaleString('ar-IQ')}</div>${reason}${assigned}
+                </div>`;
+            }).join('') : '<div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات وكالة سابقة</div>';
+        } catch (e) {
+            list.innerHTML = '<div class="text-center text-red-400 text-xs py-4">تعذر تحميل سجل طلب الوكالة</div>';
+        }
+    }
+
+    async loadDeveloperAgencyRequests() {
+        const list = document.getElementById('developer-admin-agent-pending-list');
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!list || !client || this.currentUser?.role !== 'developer') return;
+        list.innerHTML = '<div class="text-center text-stone-500 text-xs py-4">جاري تحميل طلبات الوكالة...</div>';
+        try {
+            const { data, error } = await client.rpc('zono_agency_pending_requests');
+            if (error) throw error;
+            const rows = Array.isArray(data) ? data : [];
+            list.innerHTML = rows.length ? rows.map(row => `
+                <div class="zono-withdrawal-row border-violet-500/20">
+                    <div class="flex items-center justify-between gap-2">
+                        <div><strong class="text-xs text-stone-100">${this.escapeHtml(row.display_name || row.username || '')}</strong><div class="text-[10px] text-stone-500">ID الحالي ${Number(row.public_id || 0)}</div></div>
+                        <span class="zono-withdrawal-status zono-status-pending">طلب وكالة</span>
+                    </div>
+                    <div class="text-[10px] text-stone-300 mt-2">تم حجز ${Number(row.fee_seeds || 1000).toLocaleString('en-US')} بذرة من الحساب.</div>
+                    <input id="agency-new-id-${Number(row.id)}" class="zono-wallet-input mt-3" type="number" inputmode="numeric" min="1" placeholder="ID الوكيل الجديد">
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button onclick="window.zonoApp.reviewAgencyRequest(${Number(row.id)}, 'approved')" class="zono-withdraw-approve-btn">قبول الوكالة</button>
+                        <button onclick="window.zonoApp.reviewAgencyRequest(${Number(row.id)}, 'rejected')" class="zono-withdraw-reject-btn">رفض</button>
+                    </div>
+                </div>
+            `).join('') : '<div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات وكالة قيد المعالجة</div>';
+        } catch (e) {
+            list.innerHTML = `<div class="text-center text-red-400 text-xs py-4">${this.escapeHtml(e.message || 'تعذر تحميل طلبات الوكالة')}</div>`;
+        }
+    }
+
+    async reviewAgencyRequest(id, decision) {
+        if (this.currentUser?.role !== 'developer') return;
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        if (!client) return;
+        let newPublicId = null;
+        let reason = null;
+        if (decision === 'approved') {
+            newPublicId = Number(document.getElementById(`agency-new-id-${Number(id)}`)?.value || 0);
+            if (!Number.isInteger(newPublicId) || newPublicId < 1) return this.showToast('اكتب ID الوكيل الجديد', 'error');
+            if (!window.confirm(`تأكيد قبول الوكالة وتغيير ID الحساب إلى ${newPublicId}؟`)) return;
+        } else {
+            reason = String(window.prompt('اكتب سبب رفض طلب الوكالة:') || '').trim();
+            if (reason.length < 3) return this.showToast('اكتب سبب الرفض', 'error');
+        }
+        try {
+            const { data, error } = await client.rpc('zono_agency_review_request', {
+                p_request_id: Number(id),
+                p_decision: decision,
+                p_new_public_id: newPublicId,
+                p_rejection_reason: reason
+            });
+            if (error) throw error;
+            await this.loadDeveloperAgencyRequests();
+            this.showToast(decision === 'approved' ? `تم اعتماد الوكيل بـ ID ${newPublicId}` : 'تم رفض الوكالة وإرجاع البذور', 'success');
+        } catch (e) {
+            const raw = String(e?.message || '');
+            const friendly = raw.includes('PUBLIC_ID_IN_USE') ? 'ID الوكيل الجديد مستخدم مسبقاً'
+                : raw.includes('REQUEST_NOT_PENDING') ? 'هذا الطلب تمت معالجته مسبقاً'
+                : raw;
+            this.showToast(friendly || 'تعذر معالجة طلب الوكالة', 'error');
         }
     }
 
@@ -3818,7 +4096,9 @@ class ZonoApp {
                 'seed_transfer',
                 'support',
                 'developer_message',
-                'company_message'
+                'company_message',
+                'withdrawal_status',
+                'agency_status'
             ]);
 
             const rows = (Array.isArray(data) ? data : []).filter(n => {
@@ -3855,7 +4135,9 @@ class ZonoApp {
                     const icon =
                         looksLikeSeedTransfer ? '🌾' :
                         n.kind === 'support' ? '🛟' :
-                        n.kind === 'developer_message' ? '👑' : '🏢';
+                        n.kind === 'developer_message' ? '👑' :
+                        n.kind === 'withdrawal_status' ? '💸' :
+                        n.kind === 'agency_status' ? '🛡️' : '🏢';
 
                     const title = n.title ||
                         (looksLikeSeedTransfer ? 'استلام بذور' : 'إشعار');
@@ -4551,17 +4833,7 @@ class ZonoApp {
                 if (btn) btn.disabled = !!data?.locked;
             }
         } catch (e) {
-            // إذا تعذر جلب حالة القفل (مثلاً تأخر schema cache) نعرض إعداد الرمز لأول مرة.
-            // دالة set_pin في الخادم تبقى هي المرجع النهائي وتمنع استبدال رمز موجود.
-            this.developerQueryNeedsSetup = true;
-            if (title) title.textContent = 'إنشاء رمز حماية لأول مرة';
-            if (hint) hint.textContent = 'أنشئ رمزاً سرياً من 6 إلى 32 حرفاً ثم أعد كتابته للتأكيد.';
-            confirmPin?.classList.remove('hidden');
-            if (btn) {
-                btn.textContent = 'حفظ الرمز وفتح القفل';
-                btn.disabled = false;
-            }
-            if (status) status.textContent = '';
+            if (status) status.textContent = e.message || 'تعذر فحص حالة القفل';
         }
         setTimeout(() => pin?.focus(), 80);
     }
@@ -4607,19 +4879,7 @@ class ZonoApp {
                 : raw.includes('PIN_ALREADY_CONFIGURED') ? 'رمز الحماية مُعد مسبقاً'
                 : raw.includes('DEVELOPER_ONLY') ? 'هذه المنطقة للمطور فقط'
                 : raw || 'تعذر فتح القفل';
-            if (raw.includes('PIN_ALREADY_CONFIGURED')) {
-                // يوجد رمز بالفعل: انتقل مباشرة إلى وضع فتح القفل بدون محاولة إنشاء رمز جديد.
-                this.developerQueryNeedsSetup = false;
-                const title = document.getElementById('developer-query-lock-title');
-                const hint = document.getElementById('developer-query-lock-hint');
-                if (title) title.textContent = 'المنطقة مقفلة';
-                if (hint) hint.textContent = 'الرمز موجود مسبقاً. أدخل رمز الحماية للمتابعة.';
-                confirmEl?.classList.add('hidden');
-                if (btn) btn.textContent = 'فتح القفل';
-                if (status) status.textContent = 'الرمز موجود مسبقاً — أدخله لفتح القفل';
-            } else {
-                if (status) status.textContent = friendly;
-            }
+            if (status) status.textContent = friendly;
             if (raw.includes('CONSOLE_LOCKED')) await this.prepareDeveloperQueryLock();
         } finally {
             if (btn) btn.disabled = false;
