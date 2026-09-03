@@ -1422,7 +1422,7 @@ class ZonoApp {
         if (!list || !client || this.currentUser?.role !== 'developer') return;
 
         try {
-            const { data, error } = await client.rpc('zono_withdrawal_pending_v2');
+            const { data, error } = await client.rpc('zono_withdrawal_pending_v3');
             if (error) throw error;
             const rows = Array.isArray(data) ? data : [];
 
@@ -1514,7 +1514,7 @@ class ZonoApp {
         if (!list || !client || this.currentUser?.role !== 'developer') return;
         list.innerHTML = '<div class="text-center text-stone-500 text-xs py-4">جاري تحميل الطلبات...</div>';
         try {
-            const { data, error } = await client.rpc('zono_withdrawal_pending_v2');
+            const { data, error } = await client.rpc('zono_withdrawal_pending_v3');
             if (error) throw error;
             const rows = Array.isArray(data) ? data : [];
             list.innerHTML = rows.length ? rows.map(row => `
@@ -1547,7 +1547,7 @@ class ZonoApp {
         const client = window.zonoBackend?.client || window.zonoAuth?.client;
         if (!list || !client || this.currentUser?.role !== 'developer') return;
         try {
-            const { data, error } = await client.rpc('zono_withdrawal_approved_v2');
+            const { data, error } = await client.rpc('zono_withdrawal_approved_v3');
             if (error) throw error;
             const rows = Array.isArray(data) ? data : [];
             list.innerHTML = rows.length ? rows.map(row => `
