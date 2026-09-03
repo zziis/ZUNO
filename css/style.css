@@ -3853,3 +3853,20 @@ html[class*="theme"] .zono-room-message-capsule{
 .zono-developer-query-counter-row{margin-top:.65rem;padding:.75rem .8rem;border-radius:1rem;background:rgba(15,23,42,.58);border:1px solid rgba(71,85,105,.28);display:flex;align-items:center;justify-content:space-between;font-size:.65rem;color:#cbd5e1}.zono-counter-yes{color:#86efac}.zono-counter-no{color:#fca5a5}.zono-developer-query-plan{font-size:.58rem;color:#94a3b8;line-height:1.7;padding:.55rem .15rem}
 .zono-developer-query-danger{margin-top:.65rem;width:100%;border-radius:.9rem;padding:.82rem 1rem;background:linear-gradient(135deg,#dc2626,#991b1b);border:1px solid rgba(254,202,202,.18);color:#fff;font-size:.7rem;font-weight:950}.zono-developer-query-danger:disabled{opacity:.5;cursor:wait}.zono-developer-query-warning{text-align:center;margin-top:.45rem;color:#fbbf24;font-size:.53rem;line-height:1.6}.zono-loading{opacity:.65;pointer-events:none}
 @media(max-width:420px){.zono-developer-query-grid{grid-template-columns:1fr 1fr}.zono-developer-query-modal{padding:.8rem}}
+
+/* ZONO 24.0 — Developer administration hub */
+#developer-admin-tab-transfers.is-active,
+#developer-admin-tab-agents.is-active {
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.32);
+    color: rgb(252, 211, 77);
+}
+
+#developer-admin-modal .zono-wallet-input,
+#agency-request-modal .zono-wallet-input {
+    width: 100%;
+}
+
+#profile-agent-badge {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
+}

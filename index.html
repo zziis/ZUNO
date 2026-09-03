@@ -359,6 +359,7 @@
                             <div>
                                 <h3 id="profile-display-name" class="text-2xl font-black text-stone-100">ضيف_زونو</h3>
                                 <p id="profile-kik-username" class="text-xs font-mono text-amber-400 font-bold mt-0.5">@guest_zono</p>
+                                <div id="profile-agent-badge" class="hidden mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-[10px] font-black">✓ وكيل معتمد</div>
                             </div>
                             <button id="profile-badge-pill" onclick="window.zonoApp.openVerification()" class="badge-pill bg-sky-500/15 text-sky-300 border border-sky-500/40 self-center sm:self-auto cursor-pointer hover:bg-sky-500/20 transition-all">
                                 🛡️ توثيق الحساب
@@ -433,7 +434,7 @@
                         <span class="zono-wallet-coin">●</span>
                     </div>
 
-                    <button onclick="window.zonoApp.toggleWalletWithdraw()" class="zono-wallet-withdraw-btn">
+                    <button id="zono-wallet-withdraw-btn" onclick="window.zonoApp.toggleWalletWithdraw()" class="zono-wallet-withdraw-btn">
                         <span>سحب البذور</span>
                         <span>🌾</span>
                     </button>
@@ -576,6 +577,30 @@
                     <button onclick="window.zonoApp.sendSeeds()">إرسال البذور</button>
                 </div>
 
+
+                <!-- Agency request for normal users -->
+                <div id="agency-request-card" class="hidden zono-developer-query-card">
+                    <button type="button" onclick="window.zonoApp.openAgencyRequestModal()" class="zono-developer-query-capsule">
+                        <span class="zono-developer-query-icon">🛡️</span>
+                        <span class="zono-developer-ban-copy">
+                            <strong class="zono-developer-query-title">طلب وكالة</strong>
+                            <small>طلب الانضمام للوكلاء مقابل 1,000 بذرة</small>
+                        </span>
+                        <span class="zono-developer-query-arrow">‹</span>
+                    </button>
+                </div>
+
+                <!-- Developer administration hub -->
+                <div id="developer-admin-card" class="hidden zono-developer-query-card">
+                    <button type="button" onclick="window.zonoApp.openDeveloperAdminModal('transfers')" class="zono-developer-query-capsule">
+                        <span class="zono-developer-query-icon">🏛️</span>
+                        <span class="zono-developer-ban-copy">
+                            <strong class="zono-developer-query-title">الإدارة</strong>
+                            <small>الحوالات وطلبات الوكلاء — للمطور فقط</small>
+                        </span>
+                        <span class="zono-developer-query-arrow">‹</span>
+                    </button>
+                </div>
 
                 <!-- Developer-only account ban / unban capsules -->
                 <div id="developer-ban-card" class="hidden zono-developer-ban-card">
@@ -1396,6 +1421,56 @@
         </div>
     </div>
 
+    <!-- Agency Request Modal -->
+    <div id="agency-request-modal" class="fixed inset-0 z-[85] modal-backdrop hidden items-center justify-center p-4" onclick="if(event.target===this) window.zonoApp.closeAgencyRequestModal()">
+        <div class="glass-panel w-full max-w-xl p-5 rounded-3xl border border-violet-500/40 shadow-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                    <div class="text-[10px] font-black text-violet-300">🛡️ طلب وكالة</div>
+                    <h3 class="text-lg font-black text-stone-100 mt-1">الانضمام إلى الوكلاء</h3>
+                    <p class="text-[10px] text-stone-400 mt-1">سيتم حجز 1,000 بذرة فور إرسال الطلب. إذا رُفض الطلب تُعاد البذور تلقائياً.</p>
+                </div>
+                <button onclick="window.zonoApp.closeAgencyRequestModal()" class="w-9 h-9 rounded-full bg-stone-900 border border-stone-800 text-stone-300">✕</button>
+            </div>
+            <div class="rounded-2xl border border-violet-500/25 bg-violet-500/5 p-4 text-xs text-stone-300 leading-6">
+                عند القبول سيقوم المطور بتعيين ID وكيل جديد للحساب، ويصبح الحساب <b class="text-emerald-300">وكيل معتمد ✓</b>.
+            </div>
+            <button id="agency-request-submit" onclick="window.zonoApp.submitAgencyRequest()" class="w-full mt-4 py-3 rounded-2xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-black">طلب وكالة مقابل 1,000 بذرة</button>
+            <div class="mt-5 border-t border-stone-800 pt-4">
+                <div class="flex items-center justify-between gap-2 mb-2"><h4 class="text-xs font-black text-stone-200">📜 سجل طلبات الوكالة</h4><button onclick="window.zonoApp.loadAgencyRequestHistory()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button></div>
+                <div id="agency-request-history-list" class="space-y-2"><div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات وكالة سابقة</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developer Administration Modal -->
+    <div id="developer-admin-modal" class="fixed inset-0 z-[86] modal-backdrop hidden items-center justify-center p-4" onclick="if(event.target===this) window.zonoApp.closeDeveloperAdminModal()">
+        <div class="glass-panel w-full max-w-2xl p-5 rounded-3xl border border-amber-500/40 shadow-2xl max-h-[92vh] overflow-y-auto" dir="rtl">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div><div class="text-[10px] font-black text-amber-300">🔒 للمطور فقط</div><h3 class="text-xl font-black text-stone-100 mt-1">🏛️ الإدارة</h3><p class="text-[10px] text-stone-400 mt-1">إدارة الحوالات وطلبات الوكلاء</p></div>
+                <button onclick="window.zonoApp.closeDeveloperAdminModal()" class="w-9 h-9 rounded-full bg-stone-900 border border-stone-800 text-stone-300">✕</button>
+            </div>
+            <div class="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-stone-900/80 border border-stone-800 mb-4">
+                <button id="developer-admin-tab-transfers" onclick="window.zonoApp.switchDeveloperAdminTab('transfers')" class="is-active py-2.5 rounded-xl text-xs font-black text-amber-300">💸 الحوالات</button>
+                <button id="developer-admin-tab-agents" onclick="window.zonoApp.switchDeveloperAdminTab('agents')" class="py-2.5 rounded-xl text-xs font-black text-stone-400">🛡️ الوكلاء</button>
+            </div>
+
+            <div id="developer-admin-transfers">
+                <div class="flex items-center justify-between gap-2 mb-2"><h4 class="text-xs font-black text-emerald-300">طلبات السحب قيد المعالجة</h4><button onclick="window.zonoApp.loadDeveloperTransferRequests()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button></div>
+                <div id="developer-admin-transfer-pending-list" class="space-y-2"><div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات</div></div>
+                <div class="mt-5 border-t border-stone-800 pt-4">
+                    <div class="flex items-center justify-between gap-2 mb-2"><h4 class="text-xs font-black text-sky-300">سحوبات البذور المقبولة</h4><button onclick="window.zonoApp.loadDeveloperApprovedTransfers()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button></div>
+                    <div id="developer-admin-transfer-approved-list" class="space-y-2"><div class="text-center text-stone-500 text-xs py-4">لا توجد سحوبات مقبولة</div></div>
+                </div>
+            </div>
+
+            <div id="developer-admin-agents" class="hidden">
+                <div class="flex items-center justify-between gap-2 mb-2"><h4 class="text-xs font-black text-violet-300">طلبات الوكالة قيد المعالجة</h4><button onclick="window.zonoApp.loadDeveloperAgencyRequests()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button></div>
+                <div id="developer-admin-agent-pending-list" class="space-y-2"><div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات وكالة</div></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Profile Modal -->
     <div id="edit-profile-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md p-6 rounded-3xl border border-amber-500/40 shadow-2xl">
@@ -1439,7 +1514,7 @@
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
     <script src="js/voice_webrtc.js?v=20260902-ui7"></script>
-    <script src="js/app.js?v=23.3-room-level-rpc"></script>
+    <script src="js/app.js?v=24.0-admin-agency"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
