@@ -1,6 +1,7 @@
 class ZonoApp {
     constructor() {
         this.notificationWatcher = null;
+        this.banWatcher = null;
         this.lastNotificationId = 0;
         this.notificationsPrimed = false;
         this.historyPeriod = 'day';
@@ -65,12 +66,15 @@ class ZonoApp {
         try {
             const logged = await window.zonoAuth.init();
             if (logged) {
+                const blocked = await this.enforceCurrentUserBan();
+                if (blocked) return;
                 await this.syncUserFromSupabase();
                 await this.loadThemeState();
                 await this.loadCosmeticThemeState();
                 this.showMainApp();
                 await this.loadNotifications(true);
                 this.startNotificationWatcher();
+                this.startBanWatcher();
             } else {
                 this.showAuthModal();
             }
@@ -845,12 +849,15 @@ class ZonoApp {
                 document.getElementById('auth-login-id').value,
                 document.getElementById('auth-login-pass').value
             );
+            const blocked = await this.enforceCurrentUserBan();
+            if (blocked) return;
             await this.syncUserFromSupabase();
             await this.loadThemeState();
             await this.loadCosmeticThemeState();
             this.showMainApp();
             await this.loadNotifications(true);
             this.startNotificationWatcher();
+            this.startBanWatcher();
             if (window.zonoAudio) window.zonoAudio.playChirp();
             this.showToast(`مرحباً بك يا ${this.currentUser.displayName}!`, 'success');
         } catch (e) {
@@ -892,6 +899,10 @@ class ZonoApp {
         if (this.notificationWatcher) {
             clearInterval(this.notificationWatcher);
             this.notificationWatcher = null;
+        }
+        if (this.banWatcher) {
+            clearInterval(this.banWatcher);
+            this.banWatcher = null;
         }
         this.notificationsPrimed = false;
         this.lastNotificationId = 0;
@@ -3983,6 +3994,65 @@ class ZonoApp {
         } else {
             this.showToast(message, 'info');
         }
+    }
+
+    async getCurrentBanStatus() {
+        const client = window.zonoBackend?.client || window.zonoAuth?.client;
+        const userId = window.zonoAuth?.user?.id || this.currentUser?.id;
+        if (!client || !userId) return { banned: false };
+
+        const { data, error } = await client
+            .from('profiles')
+            .select('is_banned, banned_until')
+            .eq('id', userId)
+            .single();
+
+        if (error || !data) return { banned: false };
+
+        const now = Date.now();
+        const until = data.banned_until ? new Date(data.banned_until).getTime() : null;
+        const banned = data.is_banned === true && (until === null || until > now);
+        return { banned, until };
+    }
+
+    async enforceCurrentUserBan() {
+        try {
+            const status = await this.getCurrentBanStatus();
+            if (!status.banned) return false;
+
+            if (this.notificationWatcher) {
+                clearInterval(this.notificationWatcher);
+                this.notificationWatcher = null;
+            }
+            if (this.banWatcher) {
+                clearInterval(this.banWatcher);
+                this.banWatcher = null;
+            }
+
+            let message = 'تم حظر حسابك من منصة ZONO.';
+            if (status.until) {
+                const mins = Math.max(1, Math.ceil((status.until - Date.now()) / 60000));
+                message = `تم حظر حسابك مؤقتاً. المتبقي تقريباً ${mins} دقيقة.`;
+            }
+
+            try { await window.zonoAuth?.logout?.(); } catch (_) {}
+            this.currentUser = null;
+            this.showAuthModal();
+            this.authTab('login');
+            this.setAuthMessage(message, 'error');
+            this.showToast(message, 'error');
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    startBanWatcher() {
+        if (this.banWatcher) clearInterval(this.banWatcher);
+        this.banWatcher = setInterval(async () => {
+            if (!this.currentUser) return;
+            await this.enforceCurrentUserBan();
+        }, 5000);
     }
 
     startNotificationWatcher() {
