@@ -1408,7 +1408,7 @@ class ZonoApp {
     // --- Rooms System (الرومات) ---
     // --- Real Supabase Rooms ---
     getRoomClient() {
-        return window.zunoBackend?.client || window.zunoAuth?.client || null;
+        return window.zonoBackend?.client || window.zonoAuth?.client || null;
     }
 
     async loadRooms(showToast = false) {
@@ -1429,15 +1429,20 @@ class ZonoApp {
             // بعض دوال RPC القديمة لا تُرجع room_level، لذلك نقرأه مباشرة من جدول rooms
             // ونربطه بالروم باستخدام public_id. هذا يحافظ على التوافق مع الإصدارات القديمة.
             try {
-                const { data: levelRows, error: levelError } = await client
-                    .from('rooms')
-                    .select('public_id, room_level');
+                const roomIds = roomRows.map(r => Number(r.public_id)).filter(Number.isFinite);
+                let levelQuery = client.from('rooms').select('public_id, room_level');
+                if (roomIds.length) levelQuery = levelQuery.in('public_id', roomIds);
+                const { data: levelRows, error: levelError } = await levelQuery;
                 if (!levelError && Array.isArray(levelRows)) {
-                    const levelMap = new Map(levelRows.map(r => [Number(r.public_id), Number(r.room_level || 1)]));
+                    const levelMap = new Map(levelRows.map(r => [Number(r.public_id), Number(r.room_level ?? 1)]));
                     roomRows = roomRows.map(room => ({
                         ...room,
-                        room_level: levelMap.get(Number(room.public_id)) ?? Number(room.room_level || 1)
+                        room_level: levelMap.has(Number(room.public_id))
+                            ? levelMap.get(Number(room.public_id))
+                            : Number(room.room_level ?? 1)
                     }));
+                } else if (levelError) {
+                    console.warn('[ZONO] تعذر قراءة room_level من rooms:', levelError.message || levelError);
                 }
             } catch (_) {}
 
@@ -1718,17 +1723,21 @@ class ZonoApp {
             const modal=document.getElementById('room-chat-modal');
             document.getElementById('room-modal-title').textContent = data.name || 'الروم';
             const lvl=document.getElementById('room-modal-level');
-            let resolvedRoomLevel = Number(data.room_level || listRoom?.room_level || 1);
-            // fallback مباشر من جدول rooms في حال دالة الدخول لا تُرجع room_level
-            if (!data.room_level) {
-                try {
-                    const { data: roomLevelRow } = await client
-                        .from('rooms')
-                        .select('room_level')
-                        .eq('public_id', Number(roomPublicId))
-                        .maybeSingle();
-                    if (roomLevelRow?.room_level != null) resolvedRoomLevel = Number(roomLevelRow.room_level || 1);
-                } catch (_) {}
+            let resolvedRoomLevel = Number(data.room_level ?? listRoom?.room_level ?? 1);
+            // نقرأ المستوى مباشرة من جدول rooms عند كل دخول حتى يظهر آخر تحديث فورًا.
+            try {
+                const { data: roomLevelRow, error: roomLevelError } = await client
+                    .from('rooms')
+                    .select('room_level')
+                    .eq('public_id', Number(roomPublicId))
+                    .maybeSingle();
+                if (!roomLevelError && roomLevelRow?.room_level != null) {
+                    resolvedRoomLevel = Number(roomLevelRow.room_level ?? 1);
+                } else if (roomLevelError) {
+                    console.warn('[ZONO] تعذر قراءة مستوى الروم:', roomLevelError.message || roomLevelError);
+                }
+            } catch (levelReadError) {
+                console.warn('[ZONO] خطأ قراءة مستوى الروم:', levelReadError);
             }
             this.activeRoom.room_level = resolvedRoomLevel;
             if(lvl) lvl.textContent=`LV. ${resolvedRoomLevel} ⭐`;
