@@ -4567,7 +4567,7 @@ class ZonoApp {
             return this.showToast('هذه الميزة للمطور فقط', 'error');
         }
 
-        const client = window.zunoBackend?.client || window.zonoAuth?.client;
+        const client = window.zonoAuth?.client || window.zunoBackend?.client;
         if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
 
         const publicId = Number(String(document.getElementById('developer-ban-public-id')?.value || '').replace(/\D/g, ''));
@@ -4673,7 +4673,7 @@ class ZonoApp {
         if (!this.currentUser || this.currentUser.role !== 'developer') {
             return this.showToast('هذه الميزة للمطور فقط', 'error');
         }
-        const client = window.zunoBackend?.client || window.zonoAuth?.client;
+        const client = window.zonoAuth?.client || window.zunoBackend?.client;
         if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
 
         const publicId = Number(String(document.getElementById('developer-unban-public-id')?.value || '').replace(/\D/g, ''));
@@ -4736,7 +4736,7 @@ class ZonoApp {
     }
 
     async uploadProfileAvatar(file) {
-        const client=window.zunoBackend?.client || window.zonoAuth?.client;
+        const client=window.zonoAuth?.client || window.zunoBackend?.client;
         if(!client||!file) return null;
         if(!file.type?.startsWith('image/')) throw new Error('اختر صورة صحيحة');
         if(file.size>4*1024*1024) throw new Error('حجم الصورة يجب ألا يتجاوز 4MB');
