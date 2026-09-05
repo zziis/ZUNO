@@ -126,7 +126,7 @@
     <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 pb-28">
 
         <!-- ==================== TAB 1: الرومات (Real Public Rooms) ==================== -->
-        <section id="tab-rooms" class="tab-content active space-y-4">
+        <section id="tab-rooms" class="tab-content space-y-4">
             <div class="zono-rooms-discovery-head">
                 <div class="zono-world-room-pill">
                     <span class="zono-world-tag">✦</span>
@@ -198,7 +198,7 @@
         </section>
 
         <!-- ==================== TAB 3: قسم العداد (The 24h Flying Bird Counter) ==================== -->
-        <section id="tab-counter" class="tab-content space-y-6">
+        <section id="tab-counter" class="tab-content active space-y-6">
             <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/40 relative overflow-hidden text-center shadow-2xl">
                 <!-- Background Ambient Glow -->
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -817,7 +817,7 @@
     <!-- ==================== MODALS ==================== -->
 
     <!-- Auth / Login / Register Modal -->
-    <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md p-6 sm:p-8 rounded-3xl border border-amber-500/40 shadow-2xl relative">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-xl shadow-amber-500/30 flex items-center justify-center">
@@ -1497,7 +1497,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js?v=20260901-1"></script>
     <script src="js/supabase.js?v=20260901-1"></script>
-    <script src="js/auth.js?v=20260901-1"></script>
+    <script src="js/auth.js?v=20260905-persist1"></script>
     <script src="js/audio.js?v=20260901-1"></script>
     <script src="js/bird_canvas.js?v=20260901-1"></script>
     <script src="js/voice_webrtc.js?v=20260902-ui7"></script>
