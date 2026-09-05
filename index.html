@@ -1493,15 +1493,28 @@
         </div>
     </div>
 
-    <!-- Supabase + Zono -->
+    <!-- Zono bird engine first: restore the local 24h state immediately on Refresh. -->
+    <script src="js/audio.js?v=20260901-1"></script>
+    <script src="js/bird_canvas.js?v=20260901-1"></script>
+    <script>
+      // Do not wait for Supabase/network before drawing the bird and restoring the timer.
+      // bird_canvas.js reads the saved flight end time synchronously from localStorage.
+      if (window.ZonoBirdEngine || typeof ZonoBirdEngine !== 'undefined') {
+        try {
+          if (!window.zonoBirdEngine && document.getElementById('bird-canvas')) {
+            window.zonoBirdEngine = new ZonoBirdEngine('bird-canvas');
+          }
+        } catch (_) {}
+      }
+    </script>
+
+    <!-- Supabase + the rest of Zono can continue loading in the background. -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js?v=20260901-1"></script>
     <script src="js/supabase.js?v=20260901-1"></script>
     <script src="js/auth.js?v=20260905-persist1"></script>
-    <script src="js/audio.js?v=20260901-1"></script>
-    <script src="js/bird_canvas.js?v=20260901-1"></script>
     <script src="js/voice_webrtc.js?v=20260902-ui7"></script>
-    <script src="js/app.js?v=24.0-admin-agency"></script>
+    <script src="js/app.js?v=24.0-refreshfix1"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
