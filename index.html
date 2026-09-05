@@ -28,7 +28,13 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=23.1-room-purchase-ui">
+    <link rel="stylesheet" href="css/style.css?v=25-menu-corrected">
+
+<style id="zono-canary-menu-update">
+.zono-feather-center-btn{flex-direction:column!important;gap:2px!important;height:auto!important;padding-bottom:1px!important}
+.zono-canary-nav-label{display:block;color:#d8a52b;font-size:12px;font-weight:900;line-height:1.05;letter-spacing:.2px;text-shadow:0 0 10px rgba(245,158,11,.38);white-space:nowrap}
+.zono-main-drawer-menu button>span{font-size:24px!important;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+</style>
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
 
@@ -111,13 +117,12 @@
             </div>
         </div>
         <div class="zono-main-drawer-menu">
-            <button type="button" onclick="window.zonoApp.switchTab('rooms')"><span>🏛️</span><strong>الرومات</strong></button>
-            <button type="button" onclick="window.zonoApp.switchTab('direct')"><span>💬</span><strong>الخاص</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('profile')"><span>🧑🏻</span><strong>معلوماتي</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('news')"><span>✉️</span><strong>مراسيل</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('counter')"><span>🪶</span><strong>العداد</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('birds')"><span>🕊️</span><strong>شراء عصفور</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('store')"><span>🛍️</span><strong>المتجر</strong></button>
-            <button type="button" onclick="window.zonoApp.switchTab('news')"><span>🗞️</span><strong>الأخبار</strong></button>
-            <button type="button" onclick="window.zonoApp.switchTab('profile')"><span>👤</span><strong>حسابي</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('rooms')"><span>👥</span><strong>كوفي</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('settings')"><span>⚙️</span><strong>الإعدادات</strong></button>
         </div>
     </aside>
@@ -810,7 +815,8 @@
                     <div class="w-full h-full bg-stone-950 rounded-full flex items-center justify-center text-xl">🪶</div>
                 </div>
                 <span class="active-dot hidden absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            </button>
+            
+                <span class="zono-canary-nav-label">ڪـنـاري</span></button>
         </div>
     </nav>
 
