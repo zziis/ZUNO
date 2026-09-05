@@ -3870,3 +3870,27 @@ html[class*="theme"] .zono-room-message-capsule{
 #profile-agent-badge {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.08);
 }
+
+/* ===== ZONO 25.0 — Brand drawer + feather-only bottom navigation ===== */
+.zono-main-drawer-backdrop{position:fixed;inset:0;z-index:58;background:rgba(0,0,0,.56);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .24s ease}
+.zono-main-drawer-backdrop.is-open{opacity:1;pointer-events:auto}
+.zono-main-drawer{position:fixed;top:0;right:0;bottom:0;z-index:59;width:65vw;max-width:430px;min-width:245px;background:linear-gradient(180deg,rgba(28,25,23,.995),rgba(12,10,9,.995));border-left:1px solid rgba(245,158,11,.28);box-shadow:-24px 0 70px rgba(0,0,0,.55);transform:translateX(105%);transition:transform .28s cubic-bezier(.22,.61,.36,1);display:flex;flex-direction:column;overflow:hidden}
+.zono-main-drawer.is-open{transform:translateX(0)}
+.zono-main-drawer-head{padding:1rem .9rem .9rem;border-bottom:1px solid rgba(120,113,108,.22);background:radial-gradient(circle at 90% 0%,rgba(245,158,11,.12),transparent 46%)}
+.zono-main-drawer-close{width:2rem;height:2rem;border-radius:50%;display:grid;place-items:center;margin-left:auto;background:rgba(41,37,36,.8);border:1px solid rgba(120,113,108,.35);color:#d6d3d1;font-size:.7rem}
+.zono-main-drawer-profile{display:flex;align-items:center;gap:.8rem;margin-top:.55rem;direction:rtl}
+.zono-main-drawer-avatar{width:4.25rem;height:4.25rem;border-radius:50%;object-fit:cover;background:#1c1917;border:2px solid rgba(245,158,11,.48);box-shadow:0 0 24px rgba(245,158,11,.1);flex:0 0 auto}
+.zono-main-drawer-identity{display:flex;flex-direction:column;min-width:0;flex:1;text-align:right}
+.zono-main-drawer-identity strong{font-size:.93rem;color:#fafaf9;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zono-main-drawer-identity>span:nth-child(2){font-size:.62rem;color:#fbbf24;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:.15rem}
+.zono-main-drawer-verification{width:max-content;margin-top:.38rem;padding:.2rem .48rem;border-radius:999px;font-size:.55rem;font-weight:950;color:#a8a29e;border:1px solid rgba(120,113,108,.3);background:rgba(41,37,36,.5)}
+.zono-main-drawer-verification.is-verified{color:#7dd3fc;border-color:rgba(14,165,233,.34);background:rgba(14,165,233,.1)}
+.zono-main-drawer-menu{padding:.7rem;overflow:auto;display:flex;flex-direction:column;gap:.35rem}
+.zono-main-drawer-menu button{width:100%;display:flex;align-items:center;gap:.72rem;direction:rtl;text-align:right;padding:.78rem .8rem;border-radius:.9rem;border:1px solid transparent;background:rgba(41,37,36,.34);color:#e7e5e4;transition:.16s ease}
+.zono-main-drawer-menu button:hover{background:rgba(120,53,15,.17);border-color:rgba(245,158,11,.24);transform:translateX(-2px)}
+.zono-main-drawer-menu button span{width:2rem;height:2rem;border-radius:.65rem;display:grid;place-items:center;background:rgba(28,25,23,.82);border:1px solid rgba(120,113,108,.24);font-size:1rem;flex:0 0 auto}
+.zono-main-drawer-menu button strong{font-size:.72rem;font-weight:900}
+body.zono-drawer-open{overflow:hidden}
+.zono-feather-only-nav{min-height:64px}
+.zono-feather-center-btn{width:56px;height:48px;transform:translateY(-8px)}
+@media(max-width:360px){.zono-main-drawer{width:68vw;min-width:230px}.zono-main-drawer-avatar{width:3.8rem;height:3.8rem}}
