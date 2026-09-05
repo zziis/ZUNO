@@ -968,6 +968,7 @@ class ZonoApp {
     }
 
     switchTab(tabId) {
+        this.closeMainDrawer();
         if (window.zonoAudio) window.zonoAudio.playTap();
         this.currentTab = tabId;
         document.body.classList.toggle('zono-counter-mode', tabId === 'counter');
@@ -1018,6 +1019,61 @@ class ZonoApp {
             this.renderStore();
         }
 
+    }
+
+    toggleMainDrawer() {
+        const drawer = document.getElementById('zono-main-drawer');
+        if (!drawer) return;
+        if (drawer.classList.contains('is-open')) this.closeMainDrawer();
+        else this.openMainDrawer();
+    }
+
+    async openMainDrawer() {
+        const drawer = document.getElementById('zono-main-drawer');
+        const backdrop = document.getElementById('zono-main-drawer-backdrop');
+        if (!drawer) return;
+        this.updateMainDrawerIdentity();
+        drawer.classList.add('is-open');
+        backdrop?.classList.add('is-open');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('zono-drawer-open');
+        if (this.currentUser) {
+            try {
+                const status = await this.getVerificationStatus();
+                const el = document.getElementById('drawer-user-verification');
+                if (el) {
+                    el.textContent = status?.verified ? '✓ موثق' : 'غير موثق';
+                    el.classList.toggle('is-verified', !!status?.verified);
+                }
+            } catch (_) {}
+        }
+    }
+
+    closeMainDrawer() {
+        const drawer = document.getElementById('zono-main-drawer');
+        const backdrop = document.getElementById('zono-main-drawer-backdrop');
+        drawer?.classList.remove('is-open');
+        backdrop?.classList.remove('is-open');
+        drawer?.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('zono-drawer-open');
+    }
+
+    updateMainDrawerIdentity() {
+        const user = this.currentUser;
+        const name = document.getElementById('drawer-user-name');
+        const id = document.getElementById('drawer-user-id');
+        const avatar = document.getElementById('drawer-user-avatar');
+        const verification = document.getElementById('drawer-user-verification');
+        if (!user) {
+            if (name) name.textContent = 'ضيف_زونو';
+            if (id) id.textContent = 'ID: —';
+            if (verification) { verification.textContent = 'غير موثق'; verification.classList.remove('is-verified'); }
+            return;
+        }
+        if (name) name.textContent = user.displayName || 'عضو Zono';
+        if (id) id.textContent = `ID: ${user.username || user.publicId || '—'}`;
+        if (avatar) avatar.src = user.avatar;
+        if (verification) { verification.textContent = 'غير موثق'; verification.classList.remove('is-verified'); }
     }
 
     updateHeaderUI() {
@@ -1093,6 +1149,7 @@ class ZonoApp {
 
         fitValueNumber(seedValueIqdEl, seedValueIqd);
         if (avatarEl) avatarEl.src = this.currentUser.avatar;
+        this.updateMainDrawerIdentity();
     }
 
     updateProfileUI() {
