@@ -83,14 +83,16 @@ class ZonoApp {
             this.setAuthMessage(e.message || 'تعذر تهيئة الحساب', 'error');
         }
 
-        setTimeout(() => {
-            if (document.getElementById('bird-canvas')) {
-                this.birdEngine = new ZonoBirdEngine('bird-canvas');
-                window.zonoBirdEngine = this.birdEngine;
-                if (this.currentUser?.activeBird) this.birdEngine.setSkin(this.currentUser.activeBird);
-                this.renderStore();
+        // The bird engine is initialized by index.html before the network/auth wait,
+        // so Refresh never flashes 24:00:00 or an empty bird canvas. Reuse it here.
+        if (document.getElementById('bird-canvas')) {
+            if (!window.zonoBirdEngine) {
+                window.zonoBirdEngine = new ZonoBirdEngine('bird-canvas');
             }
-        }, 120);
+            this.birdEngine = window.zonoBirdEngine;
+            if (this.currentUser?.activeBird) this.birdEngine.setSkin(this.currentUser.activeBird);
+            this.renderStore();
+        }
     }
 
     async syncUserFromSupabase() {
