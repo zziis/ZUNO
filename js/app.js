@@ -1026,6 +1026,12 @@ class ZonoApp {
 
     }
 
+    showComingSoon(sectionName = '') {
+        this.closeMainDrawer();
+        const label = sectionName ? ` — ${sectionName}` : '';
+        this.showToast(`قريبًا الفتح${label}`, 'success');
+    }
+
     toggleMainDrawer() {
         const drawer = document.getElementById('zono-main-drawer');
         if (!drawer) return;
@@ -3959,7 +3965,41 @@ class ZonoApp {
         this.showToast('الترقية دائمة ولا يمكن الرجوع إلى شكل طائر أقدم', 'error');
     }
 
-    async claimBirdDailySeeds() {
+    async addCounterRewardNotification(seeds = 0, feathers = 0) {
+        const client = window.zunoBackend?.client || window.zunoAuth?.client;
+        if (!client || !this.currentUser?.id) return;
+        const s = Number(seeds || 0);
+        const f = Number(feathers || 0);
+        try {
+            await client.from('zono_notifications').insert({
+                user_id: this.currentUser.id,
+                kind: 'counter_reward',
+                title: 'مكافأة رحلة الكناري',
+                body: `تم استلام مكافأة رحلة الـ24 ساعة: ${s.toLocaleString('en-US')} بذرة 🌾 و ${f.toLocaleString('en-US')} ريشة 🪶، وأضيفت إلى حسابك تلقائيًا.`,
+                amount: s,
+                is_read: false
+            });
+            await this.loadNotifications(false);
+        } catch (_) {}
+    }
+
+    async claimBirdFlightRewards() {
+        if (!this.currentUser || this._birdRewardClaiming) return { ok: false };
+        this._birdRewardClaiming = true;
+        try {
+            const seedResult = await this.claimBirdDailySeeds(true);
+            const featherResult = await this.claimDailyReward(true);
+            const seeds = Number(seedResult?.reward || 0);
+            const feathers = Number(featherResult?.reward || 0);
+            await this.addCounterRewardNotification(seeds, feathers);
+            this.showToast(`اكتملت الرحلة: +${seeds.toLocaleString('en-US')} بذرة و +${feathers.toLocaleString('en-US')} ريشة`, 'success');
+            return { ok: true, seeds, feathers };
+        } finally {
+            this._birdRewardClaiming = false;
+        }
+    }
+
+    async claimBirdDailySeeds(silent = false) {
         if (!this.currentUser) return { ok: false };
         try {
             const { data, error } = await window.zunoBackend.client.rpc('zono_claim_bird_daily_seeds');
@@ -3968,16 +4008,16 @@ class ZonoApp {
             await this.syncUserFromSupabase();
             if (window.zonoAudio) window.zonoAudio.playCoin();
             const rewardSeeds = Number(data?.reward || 0);
-            this.showToast(`اكتملت الرحلة اليومية: +${rewardSeeds} بذرة 🌾`, 'success');
+            if (!silent) this.showToast(`اكتملت الرحلة اليومية: +${rewardSeeds} بذرة 🌾`, 'success');
             await this.recordActivity('counter_seed_reward', 'seed', rewardSeeds, 'مكافأة العداد', 'بذور من رحلة العصفور');
             return data || { ok: true };
         } catch (e) {
-            this.showToast(e.message || 'تعذر استلام بذور اليوم', 'error');
+            if (!silent) this.showToast(e.message || 'تعذر استلام بذور اليوم', 'error');
             return { ok: false, error: e.message };
         }
     }
 
-    async claimDailyReward() {
+    async claimDailyReward(silent = false) {
         if (!this.currentUser) return this.showAuthModal();
         try {
             const { data, error } = await window.zunoBackend.client.rpc('zono_claim_daily_feathers');
@@ -3986,10 +4026,12 @@ class ZonoApp {
             await this.syncUserFromSupabase();
             if (window.zonoAudio) window.zonoAudio.playCoin();
             const rewardFeathers = Number(data?.reward || 60);
-            this.showToast(`تم استلام مكافأة اليوم: +${rewardFeathers} ريشة 🪶✨`, 'success');
+            if (!silent) this.showToast(`تم استلام مكافأة اليوم: +${rewardFeathers} ريشة 🪶✨`, 'success');
             await this.recordActivity('counter_feather_reward', 'feather', rewardFeathers, 'مكافأة الريش', 'ريش من العداد');
+            return data || { ok: true, reward: rewardFeathers };
         } catch (e) {
-            this.showToast(e.message || 'المكافأة غير متاحة الآن', 'error');
+            if (!silent) this.showToast(e.message || 'المكافأة غير متاحة الآن', 'error');
+            return { ok: false, reward: 0, error: e.message };
         }
     }
 
@@ -4160,7 +4202,8 @@ class ZonoApp {
                 'developer_message',
                 'company_message',
                 'withdrawal_status',
-                'agency_status'
+                'agency_status',
+                'counter_reward'
             ]);
 
             const rows = (Array.isArray(data) ? data : []).filter(n => {
@@ -4199,7 +4242,8 @@ class ZonoApp {
                         n.kind === 'support' ? '🛟' :
                         n.kind === 'developer_message' ? '👑' :
                         n.kind === 'withdrawal_status' ? '💸' :
-                        n.kind === 'agency_status' ? '🛡️' : '🏢';
+                        n.kind === 'agency_status' ? '🛡️' :
+                        n.kind === 'counter_reward' ? '🐦' : '🏢';
 
                     const title = n.title ||
                         (looksLikeSeedTransfer ? 'استلام بذور' : 'إشعار');
@@ -4300,7 +4344,8 @@ class ZonoApp {
         const icon =
             n.kind === 'seed_transfer' ? '🌾' :
             n.kind === 'support' ? '🛟' :
-            n.kind === 'developer_message' ? '👑' : '🏢';
+            n.kind === 'developer_message' ? '👑' :
+            n.kind === 'counter_reward' ? '🐦' : '🏢';
 
         const modal = document.getElementById('zono-notification-detail-modal');
         const iconEl = document.getElementById('notification-detail-icon');

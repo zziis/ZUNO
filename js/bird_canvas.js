@@ -203,9 +203,9 @@ class ZonoBirdEngine {
 
             if (this.remainingMs <= 0) {
                 this.resetFlight(false);
-                // Daily seed reward is validated and credited by Supabase.
-                if (window.zonoApp && typeof window.zonoApp.claimBirdDailySeeds === 'function') {
-                    window.zonoApp.claimBirdDailySeeds();
+                // Claim both daily rewards once the 24-hour flight completes.
+                if (window.zonoApp && typeof window.zonoApp.claimBirdFlightRewards === 'function') {
+                    window.zonoApp.claimBirdFlightRewards();
                 }
             }
         }
