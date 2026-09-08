@@ -1297,6 +1297,27 @@
         </div>
     </div>
 
+    <!-- ZONO Logout Confirmation -->
+    <div id="zono-logout-modal" class="zono-logout-modal hidden" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="zono-logout-title" onclick="if(event.target===this) window.zonoApp.cancelLogout()">
+        <div class="zono-logout-card">
+            <button type="button" class="zono-logout-close" aria-label="إغلاق" onclick="window.zonoApp.cancelLogout()">×</button>
+            <div class="zono-logout-warning-icon">!</div>
+            <h3 id="zono-logout-title">تحذير</h3>
+            <p class="zono-logout-question">هل أنت متأكد من تسجيل الخروج من الحساب؟</p>
+            <p class="zono-logout-note">عند تسجيل الخروج سيتم إيقاف جلستك الحالية وستحتاج إلى تسجيل الدخول مرة أخرى.</p>
+            <div class="zono-logout-actions">
+                <button type="button" class="zono-logout-stay" onclick="window.zonoApp.cancelLogout()">
+                    <strong>البقاء</strong>
+                    <span>متابعة استخدام الحساب</span>
+                </button>
+                <button type="button" id="zono-confirm-logout-btn" class="zono-logout-continue" onclick="window.zonoApp.confirmLogout()">
+                    <strong>متابعة</strong>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Room Exit Confirmation -->
     <div id="zono-room-exit-modal" class="fixed inset-0 z-[120] hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
         <div class="zono-room-exit-card">
