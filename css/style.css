@@ -3894,3 +3894,27 @@ body.zono-drawer-open{overflow:hidden}
 .zono-feather-only-nav{min-height:64px}
 .zono-feather-center-btn{width:56px;height:48px;transform:translateY(-8px)}
 @media(max-width:360px){.zono-main-drawer{width:68vw;min-width:230px}.zono-main-drawer-avatar{width:3.8rem;height:3.8rem}}
+
+/* ZONO update 2026-09-08: fixed app shell, left drawer, compact themed header controls */
+html,body{height:100%;height:100dvh;overflow:hidden!important;overscroll-behavior:none}
+body{min-height:100dvh!important;max-height:100dvh!important}
+body>header{position:fixed!important;top:0;left:0;right:0;z-index:40}
+body>main{position:fixed;left:0;right:0;top:var(--zono-header-h,7rem);bottom:var(--zono-bottom-h,5.7rem);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:1rem!important}
+.zono-feather-only-nav{height:var(--zono-bottom-h,5.7rem);padding-bottom:max(.35rem,env(safe-area-inset-bottom))!important}
+.zono-header-icon-btn{position:relative;width:2.15rem;height:2.15rem;display:grid;place-items:center;padding:0;border:0!important;background:transparent!important;box-shadow:none!important;color:var(--accent,#d4af37);font-size:1.25rem;line-height:1;opacity:.9;filter:saturate(.85);transition:transform .15s ease,color .25s ease,opacity .25s ease}
+.zono-header-icon-btn:active{transform:scale(.9)}
+.zono-header-bell{font-size:1rem}
+.zono-header-notification-badge{position:absolute;top:-.15rem;left:-.15rem;min-width:1rem;height:1rem;padding:0 .2rem;border-radius:999px;background:#dc2626;color:#fff;font-size:.55rem;font-weight:900;align-items:center;justify-content:center}
+.zono-left-header-actions{direction:ltr;justify-content:flex-start}
+.zono-main-drawer{left:0!important;right:auto!important;border-left:0!important;border-right:1px solid rgba(245,158,11,.28)!important;box-shadow:24px 0 70px rgba(0,0,0,.55)!important;transform:translateX(-105%)!important}
+.zono-main-drawer.is-open{transform:translateX(0)!important}
+.zono-main-drawer-menu button{direction:rtl!important;padding:.6rem .7rem!important;gap:.55rem!important}
+.zono-main-drawer-menu button span{width:1.55rem!important;height:1.55rem!important;font-size:.82rem!important;border-radius:.5rem!important;filter:none!important}
+.zono-main-drawer-menu button strong{font-size:.69rem!important}
+.zono-bottom-nav-grid{display:grid!important;grid-template-columns:1fr 1fr 1.2fr 1fr 1fr;align-items:end;gap:.15rem;width:100%}
+.zono-bottom-side-btn{position:relative;min-width:0;height:3.3rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.12rem;color:#a8a29e;font-size:.92rem;border-radius:.75rem}
+.zono-bottom-side-btn small{font-size:.58rem;font-weight:800;white-space:nowrap}
+.zono-bottom-side-btn.text-amber-400{color:#fbbf24}
+.zono-bottom-side-btn .active-dot{position:absolute;bottom:.08rem;width:.25rem;height:.25rem;border-radius:50%;background:currentColor}
+@media(min-width:641px){:root{--zono-header-h:4.6rem;--zono-bottom-h:5.7rem}}
+@media(max-width:640px){:root{--zono-header-h:7rem;--zono-bottom-h:5.7rem}.zono-header-controls{justify-self:start!important}.zono-brand{justify-self:end!important}}
