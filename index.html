@@ -33,7 +33,7 @@
 <style id="zono-canary-menu-update">
 .zono-feather-center-btn{flex-direction:column!important;gap:2px!important;height:auto!important;padding-bottom:1px!important}
 .zono-canary-nav-label{display:block;color:#d8a52b;font-size:12px;font-weight:900;line-height:1.05;letter-spacing:.2px;text-shadow:0 0 10px rgba(245,158,11,.38);white-space:nowrap}
-.zono-main-drawer-menu button>span{font-size:24px!important;filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
+.zono-main-drawer-menu button>span{filter:none!important}
 </style>
 </head>
 <body class="bg-stone-950 text-stone-100 flex flex-col min-h-screen relative selection:bg-amber-500 selection:text-stone-950">
@@ -127,6 +127,7 @@
             <button type="button" onclick="window.zonoApp.showComingSoon('الوكلاء')"><span>🤝</span><strong>الوكلاء</strong></button>
             <button type="button" onclick="window.zonoApp.showComingSoon('الدعم')"><span>🎧</span><strong>الدعم</strong></button>
             <button type="button" onclick="window.zonoApp.showComingSoon('الشكاوى')"><span>📣</span><strong>الشكاوى</strong></button>
+            <button type="button" class="zono-drawer-logout" onclick="window.zonoApp.logout()"><span>↪</span><strong>تسجيل خروج</strong></button>
         </div>
     </aside>
 
