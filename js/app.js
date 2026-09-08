@@ -1055,6 +1055,106 @@ class ZonoApp {
 
     }
 
+    openThemesPanel() {
+        this.closeMainDrawer();
+        const panel = document.getElementById('zono-themes-panel');
+        const backdrop = document.getElementById('zono-themes-backdrop');
+        if (!panel) return;
+        this.backToThemeCategories();
+        panel.classList.add('is-open');
+        backdrop?.classList.add('is-open');
+        panel.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('zono-themes-open');
+    }
+
+    closeThemesPanel() {
+        const panel = document.getElementById('zono-themes-panel');
+        const backdrop = document.getElementById('zono-themes-backdrop');
+        panel?.classList.remove('is-open');
+        backdrop?.classList.remove('is-open');
+        panel?.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('zono-themes-open');
+    }
+
+    backToThemeCategories() {
+        document.getElementById('zono-theme-categories')?.classList.remove('hidden');
+        document.getElementById('zono-theme-market')?.classList.add('hidden');
+    }
+
+    openThemeCategory(category) {
+        const catalog = {
+            bird: {
+                title: 'ثيم الطير',
+                subtitle: 'اختر شكل طيرك المفضل',
+                items: [
+                    ['الكناري الأصلي', 0, true, 'theme-gold', '🐤'],
+                    ['الكناري الأزرق', 20000, false, 'theme-blue', '🐦'],
+                    ['الكناري الأحمر', 20000, false, 'theme-red', '🐦'],
+                    ['الكناري الأخضر', 25000, false, 'theme-green', '🐦'],
+                    ['الكناري البنفسجي', 40000, false, 'theme-purple', '🐦'],
+                    ['الكناري الجليدي', 50000, false, 'theme-ice', '🐦']
+                ]
+            },
+            zono: {
+                title: 'ثيم زونو',
+                subtitle: 'ألوان وتصاميم مختلفة للواجهة',
+                items: [
+                    ['زونو الأصلي', 0, true, 'theme-gold', 'ZUNO'],
+                    ['زونو الليلي', 15000, false, 'theme-blue', 'ZUNO'],
+                    ['زونو الملكي', 30000, false, 'theme-purple', 'ZUNO'],
+                    ['زونو الناري', 40000, false, 'theme-red', 'ZUNO'],
+                    ['زونو الزمردي', 45000, false, 'theme-green', 'ZUNO'],
+                    ['زونو الجليدي', 50000, false, 'theme-ice', 'ZUNO']
+                ]
+            },
+            name: {
+                title: 'ثيم الاسم',
+                subtitle: 'أشكال مميزة لاسم حسابك',
+                items: [
+                    ['الاسم الأصلي', 0, true, 'theme-gold', 'ZONO'],
+                    ['اسم ذهبي', 10000, false, 'theme-gold', 'ZONO'],
+                    ['اسم أزرق', 15000, false, 'theme-blue', 'ZONO'],
+                    ['اسم ناري', 20000, false, 'theme-red', 'ZONO'],
+                    ['اسم ملكي', 30000, false, 'theme-purple', 'ZONO'],
+                    ['اسم جليدي', 35000, false, 'theme-ice', 'ZONO']
+                ]
+            },
+            avatar: {
+                title: 'ثيم الصورة',
+                subtitle: 'إطارات وتأثيرات لصورة الحساب',
+                items: [
+                    ['الإطار الأصلي', 0, true, 'theme-gold', '👤'],
+                    ['الإطار الذهبي', 15000, false, 'theme-gold', '👤'],
+                    ['الإطار الأزرق', 20000, false, 'theme-blue', '👤'],
+                    ['الإطار الناري', 25000, false, 'theme-red', '👤'],
+                    ['الإطار الملكي', 35000, false, 'theme-purple', '👤'],
+                    ['الإطار الجليدي', 40000, false, 'theme-ice', '👤']
+                ]
+            }
+        };
+        const data = catalog[category] || catalog.bird;
+        const categories = document.getElementById('zono-theme-categories');
+        const market = document.getElementById('zono-theme-market');
+        const title = document.getElementById('zono-theme-market-title');
+        const subtitle = document.getElementById('zono-theme-market-subtitle');
+        const grid = document.getElementById('zono-theme-grid');
+        if (!market || !grid) return;
+        categories?.classList.add('hidden');
+        market.classList.remove('hidden');
+        if (title) title.textContent = data.title;
+        if (subtitle) subtitle.textContent = data.subtitle;
+        const symbolClass = category === 'bird' ? 'bird-symbol' : category === 'zono' ? 'zuno-symbol' : category === 'name' ? 'name-symbol' : 'avatar-symbol';
+        grid.innerHTML = data.items.map(([name, price, owned, themeClass, symbol]) => `
+            <article class="zono-theme-card ${themeClass} ${owned ? 'is-owned' : ''}">
+                <div class="zono-theme-card-preview"><span class="${symbolClass}">${symbol}</span></div>
+                <div class="zono-theme-card-body">
+                    <div class="zono-theme-card-name">${name}</div>
+                    <div class="zono-theme-card-price">${price ? `🪶 ${Number(price).toLocaleString('en-US')}` : 'مجاني'}</div>
+                    <div class="zono-theme-card-state">${owned ? '✓ مملوك' : 'غير مملوك'}</div>
+                </div>
+            </article>`).join('');
+    }
+
     showComingSoon(sectionName = '') {
         this.closeMainDrawer();
         const label = sectionName ? ` — ${sectionName}` : '';
