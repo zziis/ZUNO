@@ -952,24 +952,53 @@ class ZonoApp {
         }
     }
 
-    async logout() {
-        if (this.notificationWatcher) {
-            clearInterval(this.notificationWatcher);
-            this.notificationWatcher = null;
-        }
-        if (this.banWatcher) {
-            clearInterval(this.banWatcher);
-            this.banWatcher = null;
-        }
-        this.notificationsPrimed = false;
-        this.lastNotificationId = 0;
+    logout() {
+        const modal = document.getElementById('zono-logout-modal');
+        if (!modal) return;
+        this.closeMainDrawer();
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        requestAnimationFrame(() => modal.classList.add('is-open'));
+    }
 
-        if (!confirm('هل أنت متأكد من تسجيل الخروج؟')) return;
-        try { await window.zonoAuth.logout(); } catch (_) {}
-        this.currentUser = null;
-        this.showAuthModal();
-        this.authTab('login');
-        this.showToast('تم تسجيل الخروج بنجاح.');
+    cancelLogout() {
+        const modal = document.getElementById('zono-logout-modal');
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        window.setTimeout(() => modal.classList.add('hidden'), 180);
+    }
+
+    async confirmLogout() {
+        const btn = document.getElementById('zono-confirm-logout-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+        }
+        try {
+            if (this.notificationWatcher) {
+                clearInterval(this.notificationWatcher);
+                this.notificationWatcher = null;
+            }
+            if (this.banWatcher) {
+                clearInterval(this.banWatcher);
+                this.banWatcher = null;
+            }
+            this.notificationsPrimed = false;
+            this.lastNotificationId = 0;
+
+            try { await window.zonoAuth.logout(); } catch (_) {}
+            this.currentUser = null;
+            this.cancelLogout();
+            this.showAuthModal();
+            this.authTab('login');
+            this.showToast('تم تسجيل الخروج بنجاح.');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        }
     }
 
     switchTab(tabId) {
