@@ -127,8 +127,44 @@
             <button type="button" onclick="window.zonoApp.showComingSoon('الوكلاء')"><span>🤝</span><strong>الوكلاء</strong></button>
             <button type="button" onclick="window.zonoApp.showComingSoon('الدعم')"><span>🎧</span><strong>الدعم</strong></button>
             <button type="button" onclick="window.zonoApp.showComingSoon('الشكاوى')"><span>📣</span><strong>الشكاوى</strong></button>
+            <button type="button" class="zono-drawer-themes" onclick="window.zonoApp.openThemesPanel()"><span>🎨</span><strong>ثيمات</strong></button>
             <button type="button" class="zono-drawer-logout" onclick="window.zonoApp.logout()"><span>↪</span><strong>تسجيل خروج</strong></button>
         </div>
+    </aside>
+
+    <!-- Themes drawer / marketplace -->
+    <div id="zono-themes-backdrop" class="zono-themes-backdrop" onclick="window.zonoApp.closeThemesPanel()"></div>
+    <aside id="zono-themes-panel" class="zono-themes-panel" aria-hidden="true">
+        <div class="zono-themes-head">
+            <button type="button" class="zono-themes-close" onclick="window.zonoApp.closeThemesPanel()" aria-label="إغلاق">✕</button>
+            <div>
+                <h2>🎨 ثيمات زونو</h2>
+                <p>اختر القسم ثم شاهد الثيمات المتوفرة</p>
+            </div>
+        </div>
+
+        <div id="zono-theme-categories" class="zono-theme-categories">
+            <button type="button" class="zono-theme-category bird" onclick="window.zonoApp.openThemeCategory('bird')">
+                <span class="zono-theme-category-preview">🐤</span><span><strong>ثيم الطير</strong><small>أشكال خاصة لطير الكناري</small></span><b>‹</b>
+            </button>
+            <button type="button" class="zono-theme-category zono" onclick="window.zonoApp.openThemeCategory('zono')">
+                <span class="zono-theme-category-preview zuno-preview">Z</span><span><strong>ثيم زونو</strong><small>ألوان وتصاميم واجهة التطبيق</small></span><b>‹</b>
+            </button>
+            <button type="button" class="zono-theme-category name" onclick="window.zonoApp.openThemeCategory('name')">
+                <span class="zono-theme-category-preview name-preview">ZUNO</span><span><strong>ثيم الاسم</strong><small>أشكال مميزة لاسم الحساب</small></span><b>‹</b>
+            </button>
+            <button type="button" class="zono-theme-category avatar" onclick="window.zonoApp.openThemeCategory('avatar')">
+                <span class="zono-theme-category-preview avatar-preview">👤</span><span><strong>ثيم الصورة</strong><small>إطارات وتأثيرات لصورة الحساب</small></span><b>‹</b>
+            </button>
+        </div>
+
+        <section id="zono-theme-market" class="zono-theme-market hidden">
+            <div class="zono-theme-market-head">
+                <button type="button" class="zono-theme-back" onclick="window.zonoApp.backToThemeCategories()" aria-label="رجوع">←</button>
+                <div><h3 id="zono-theme-market-title">ثيم الطير</h3><p id="zono-theme-market-subtitle">اختر الثيم المناسب لك</p></div>
+            </div>
+            <div id="zono-theme-grid" class="zono-theme-grid"></div>
+        </section>
     </aside>
 
     <!-- Main Content Body -->
