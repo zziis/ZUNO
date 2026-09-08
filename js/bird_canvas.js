@@ -356,34 +356,94 @@ class ZonoBirdEngine {
         ctx.arc(this.centerX, this.centerY, this.radius - 9, 0, Math.PI * 2);
         ctx.stroke();
 
-        // 24-hour marks in the same neon palette.
-        for (let i = 0; i < 24; i++) {
-            const angle = (i / 24) * Math.PI * 2 - Math.PI / 2;
-            const isMajor = i % 3 === 0;
-            const innerR = isMajor ? this.radius - 24 : this.radius - 15;
-            const outerR = this.radius - 11;
+        // Classic 12-hour clock face. The hands are animated separately behind the bird.
+        const roman = ['XII','I','II','III','IV','V','VI','VII','VIII','IX','X','XI'];
+        for (let i = 0; i < 60; i++) {
+            const angle = (i / 60) * Math.PI * 2 - Math.PI / 2;
+            const isHour = i % 5 === 0;
+            const innerR = isHour ? this.radius - 25 : this.radius - 16;
+            const outerR = this.radius - 10;
             const x1 = this.centerX + Math.cos(angle) * innerR;
             const y1 = this.centerY + Math.sin(angle) * innerR;
             const x2 = this.centerX + Math.cos(angle) * outerR;
             const y2 = this.centerY + Math.sin(angle) * outerR;
-            ctx.lineWidth = isMajor ? 2.6 : 1;
-            ctx.strokeStyle = isMajor ? '#e0f2fe' : 'rgba(125,211,252,0.52)';
+            ctx.lineWidth = isHour ? 2.2 : 0.8;
+            ctx.strokeStyle = isHour ? 'rgba(224,242,254,0.92)' : 'rgba(125,211,252,0.36)';
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
             ctx.stroke();
-
-            if (isMajor) {
-                const textR = this.radius - 38;
-                const tx = this.centerX + Math.cos(angle) * textR;
-                const ty = this.centerY + Math.sin(angle) * textR;
-                ctx.font = 'bold 10px "Cairo", sans-serif';
-                ctx.fillStyle = i % 6 === 0 ? '#f0abfc' : '#7dd3fc';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(i === 0 ? '24' : String(i), tx, ty);
-            }
         }
+
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+            const textR = this.radius - 43;
+            const tx = this.centerX + Math.cos(angle) * textR;
+            const ty = this.centerY + Math.sin(angle) * textR;
+            ctx.font = 'bold 13px "Cairo", sans-serif';
+            ctx.fillStyle = i % 3 === 0 ? '#f0abfc' : '#7dd3fc';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(roman[i], tx, ty);
+        }
+
+        ctx.restore();
+    }
+
+    drawClockHands() {
+        const ctx = this.ctx;
+        ctx.save();
+
+        // The clock starts at 12:00 when the bird launches.
+        // Minute hand: one revolution per hour (24 revolutions in a 24h flight).
+        // Hour hand: one revolution every 12 hours (2 revolutions in a 24h flight).
+        let elapsed = 0;
+        if (this.isFlying && this.flightStartTime) {
+            elapsed = Math.max(0, Math.min(this.flightDuration, Date.now() - this.flightStartTime));
+        }
+
+        const hourMs = 60 * 60 * 1000;
+        const twelveHoursMs = 12 * hourMs;
+        const minuteAngle = (elapsed / hourMs) * Math.PI * 2 - Math.PI / 2;
+        const hourAngle = (elapsed / twelveHoursMs) * Math.PI * 2 - Math.PI / 2;
+
+        const drawHand = (angle, length, width, c1, c2, glow) => {
+            const x = this.centerX + Math.cos(angle) * length;
+            const y = this.centerY + Math.sin(angle) * length;
+            const tailX = this.centerX - Math.cos(angle) * 18;
+            const tailY = this.centerY - Math.sin(angle) * 18;
+            const g = ctx.createLinearGradient(tailX, tailY, x, y);
+            g.addColorStop(0, c1);
+            g.addColorStop(1, c2);
+            ctx.strokeStyle = g;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = glow;
+            ctx.shadowBlur = this.isFlying ? 14 : 8;
+            ctx.beginPath();
+            ctx.moveTo(tailX, tailY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        };
+
+        // Draw hour hand first, then minute hand. Both remain behind branch/bird.
+        drawHand(hourAngle, 92, 7, '#60a5fa', '#c084fc', 'rgba(96,165,250,.85)');
+        drawHand(minuteAngle, 132, 4, '#22d3ee', '#f472b6', 'rgba(244,114,182,.9)');
+
+        // Central jewel / pin.
+        const jewel = ctx.createRadialGradient(this.centerX - 2, this.centerY - 2, 2, this.centerX, this.centerY, 12);
+        jewel.addColorStop(0, '#ffffff');
+        jewel.addColorStop(0.25, '#67e8f9');
+        jewel.addColorStop(0.65, '#8b5cf6');
+        jewel.addColorStop(1, '#ec4899');
+        ctx.fillStyle = jewel;
+        ctx.shadowColor = '#8b5cf6';
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(this.centerX, this.centerY, 9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
 
         ctx.restore();
     }
@@ -729,6 +789,9 @@ class ZonoBirdEngine {
 
         // Draw Clock Background Dial & Roman marks
         this.drawDial();
+
+        // Animated minute/hour hands are rendered behind the bird and branch.
+        this.drawClockHands();
 
         // Draw Branch
         this.drawBranch();
