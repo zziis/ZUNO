@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=27-compact-shell">
+    <link rel="stylesheet" href="css/style.css?v=20260908-account-wallet-themes">
 
 <style id="zono-canary-menu-update">
 .zono-feather-center-btn{flex-direction:column!important;gap:2px!important;height:auto!important;padding-bottom:1px!important}
@@ -117,6 +117,7 @@
             <button type="button" onclick="window.zonoApp.switchTab('profile')"><span>👤</span><strong>معلوماتي</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('news')"><span>✉️</span><strong>مراسيل</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('counter')"><span>⏱️</span><strong>العداد</strong></button>
+            <button type="button" onclick="window.zonoApp.openWallet()"><span>💳</span><strong>المحفظة</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('birds')"><span>🐦</span><strong>شراء عصفور</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('store')"><span>🛍️</span><strong>المتجر</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('rooms')"><span>☕</span><strong>كوفي</strong></button>
@@ -163,8 +164,62 @@
                 <button type="button" class="zono-theme-back" onclick="window.zonoApp.backToThemeCategories()" aria-label="رجوع">←</button>
                 <div><h3 id="zono-theme-market-title">ثيم الطير</h3><p id="zono-theme-market-subtitle">اختر الثيم المناسب لك</p></div>
             </div>
-            <div id="zono-theme-grid" class="zono-theme-grid"></div>
+            <div id="zono-theme-shop-grid" class="zono-theme-grid"></div>
         </section>
+        <div class="zono-themes-existing-settings">
+            <div class="zono-themes-divider"><span>إعدادات الثيمات</span></div>
+<!-- Existing theme customization moved from Settings -->
+                    <div id="zono-theme-center" class="zono-theme-center">
+                        <div class="zono-theme-center-head">
+                            <div>
+                                <div class="zono-theme-center-kicker">🎨 تخصيص Zono</div>
+                                <h4 class="zono-theme-center-title">عرض الثيمات</h4>
+                                <p class="zono-theme-center-desc">غيّر شكل التطبيق والطائر والاسم وإطار الصورة من مكان واحد.</p>
+                            </div>
+                            <button onclick="window.zonoApp.toggleCustomizationCenter()" class="zono-theme-center-open">
+                                عرض الثيمات
+                            </button>
+                        </div>
+
+                        <div id="zono-customization-center" class="hidden mt-4">
+                            <div class="zono-customization-tabs">
+                                <button id="zono-custom-tab-app" onclick="window.zonoApp.openCustomizationTab('app')" class="zono-customization-tab is-active">🎨 ثيم زونو</button>
+                                <button id="zono-custom-tab-bird" onclick="window.zonoApp.openCustomizationTab('bird')" class="zono-customization-tab">🪶 ثيم الطائر</button>
+                                <button id="zono-custom-tab-name" onclick="window.zonoApp.openCustomizationTab('name')" class="zono-customization-tab">✨ ثيم الاسم</button>
+                                <button id="zono-custom-tab-frame" onclick="window.zonoApp.openCustomizationTab('frame')" class="zono-customization-tab">🖼️ إطار الصورة</button>
+                            </div>
+
+                            <div id="zono-custom-panel-app" class="zono-customization-panel">
+                                <div class="zono-panel-title">🎨 ثيم زونو</div>
+                                <div class="zono-panel-desc">الثيم يغيّر خلفية التطبيق والأقسام والشريط السفلي.</div>
+                                <div id="zono-theme-gallery" class="mt-3">
+                                    <div id="zono-theme-grid" class="zono-theme-grid"></div>
+                                </div>
+                            </div>
+
+                            <div id="zono-custom-panel-bird" class="zono-customization-panel hidden">
+                                <div class="zono-panel-title">🪶 ثيم الطائر</div>
+                                <div class="zono-panel-desc">يغيّر الطائر والدائرة والساعة والحركة والصوت داخل العداد.</div>
+                                <div class="zono-cosmetic-subtitle mt-3">الثيمات المفتوحة من الطيور التي اشتريتها</div>
+                                <div id="zono-owned-bird-theme-grid" class="zono-bird-theme-grid mt-2"></div>
+                                <div class="zono-cosmetic-subtitle mt-4">ثيمات إضافية بالبذور</div>
+                                <div id="zono-bird-theme-grid" class="zono-bird-theme-grid mt-2"></div>
+                            </div>
+
+                            <div id="zono-custom-panel-name" class="zono-customization-panel hidden">
+                                <div class="zono-panel-title">✨ ثيم الاسم</div>
+                                <div class="zono-panel-desc">زخرفة وكبسولة خاصة باسمك داخل الرومات وعند الدخول.</div>
+                                <div id="zono-name-theme-grid" class="zono-name-theme-grid mt-3"></div>
+                            </div>
+
+                            <div id="zono-custom-panel-frame" class="zono-customization-panel hidden">
+                                <div class="zono-panel-title">🖼️ إطار الصورة</div>
+                                <div class="zono-panel-desc">إطارات متحركة حول صورتك، تظهر في حسابك وعند دخول الروم ورسائلك الخاصة.</div>
+                                <div id="zono-avatar-frame-grid" class="zono-frame-theme-grid mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+        </div>
     </aside>
 
     <!-- Main Content Body -->
@@ -451,10 +506,6 @@
                                 <span>⚙️</span>
                                 <span>الإعدادات</span>
                             </button>
-                            <button onclick="window.zonoApp.openWallet()" class="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-xs font-bold text-emerald-300 border border-emerald-700/40 transition-all flex items-center space-x-1.5 space-x-reverse">
-                                <span>💳</span>
-                                <span>المحفظة</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -486,111 +537,6 @@
                             <div class="zono-verification-field"><span>التولد</span><strong id="verify-view-birth">—</strong></div>
                             <div class="zono-verification-field"><span>رقم الهاتف</span><strong id="verify-view-phone">—</strong></div>
                             <div class="text-[10px] text-stone-500 mt-3">رمز التوثيق لا يُعرض ولا يُخزن كنص صريح.</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Wallet -->
-                <div id="zono-wallet-panel" class="hidden mt-5 rounded-3xl border border-emerald-500/30 bg-stone-950/50 p-4 sm:p-5">
-                    <div class="flex items-center justify-between gap-3 mb-4">
-                        <div>
-                            <h4 class="text-base font-black text-emerald-300">💳 المحفظة</h4>
-                            <p class="text-[10px] text-stone-400 mt-1">رصيدك وقسم سحب البذور</p>
-                        </div>
-                        <button onclick="window.zonoApp.closeWallet()" class="w-8 h-8 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100">✕</button>
-                    </div>
-
-                    <div class="zono-wallet-balance-pill">
-                        <span class="zono-wallet-currency">د.ع</span>
-                        <span id="zono-wallet-iqd-balance" class="zono-wallet-amount">0</span>
-                        <span class="zono-wallet-coin">●</span>
-                    </div>
-
-                    <button id="zono-wallet-withdraw-btn" onclick="window.zonoApp.toggleWalletWithdraw()" class="zono-wallet-withdraw-btn">
-                        <span>سحب البذور</span>
-                        <span>🌾</span>
-                    </button>
-
-                    <div id="zono-wallet-withdraw-options" class="hidden mt-4 space-y-3">
-                        <button onclick="window.zonoApp.selectWalletMethod('fib')" class="zono-wallet-method-card">
-                            <div class="flex items-center justify-between w-full">
-                                <div class="text-right">
-                                    <div class="font-black text-stone-100">FIB</div>
-                                    <div class="text-[10px] text-stone-500 mt-1">First Iraqi Bank</div>
-                                </div>
-                                <span class="text-2xl">🏦</span>
-                            </div>
-                        </button>
-
-                        <div id="zono-wallet-method-fib" class="zono-wallet-method-form hidden">
-                            <div class="zono-wallet-form-title">🏦 معلومات FIB</div>
-                            <label class="zono-wallet-label">اسم صاحب الحساب FIB</label>
-                            <input id="fib-account-name" class="zono-wallet-input" type="text" maxlength="80" placeholder="الاسم الكامل">
-
-                            <label class="zono-wallet-label">رقم الهاتف المسجل في FIB</label>
-                            <input id="fib-phone" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="15" placeholder="07xxxxxxxxx">
-
-                            <label class="zono-wallet-label">عدد البذور</label>
-                            <input id="fib-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('fib')">
-                            <div id="fib-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
-
-                            <label class="zono-wallet-label">رمز توثيق الحساب</label>
-                            <div class="zono-withdraw-verify-hint">يجب توثيق الحساب أولاً ثم إدخال رمز التوثيق نفسه.</div>
-                            <input id="fib-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
-
-                            <button onclick="window.zonoApp.submitWithdrawal('fib')" class="zono-wallet-submit-btn">إتمام الطلب</button>
-                        </div>
-
-                        <button onclick="window.zonoApp.selectWalletMethod('qi')" class="zono-wallet-method-card">
-                            <div class="flex items-center justify-between w-full">
-                                <div class="text-right">
-                                    <div class="font-black text-stone-100">Qi</div>
-                                    <div class="text-[10px] text-stone-500 mt-1">Qi Card</div>
-                                </div>
-                                <span class="text-2xl">💳</span>
-                            </div>
-                        </button>
-
-                        <div id="zono-wallet-method-qi" class="zono-wallet-method-form hidden">
-                            <div class="zono-wallet-form-title">💳 معلومات Qi</div>
-                            <label class="zono-wallet-label">اسم صاحب البطاقة</label>
-                            <input id="qi-account-name" class="zono-wallet-input" type="text" maxlength="80" placeholder="الاسم الكامل">
-
-                            <label class="zono-wallet-label">الرقم المكون من 11 رقم</label>
-                            <input id="qi-phone-11" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="11" placeholder="11 رقم بالضبط">
-
-                            <label class="zono-wallet-label">رقم حساب Qi</label>
-                            <input id="qi-account-number" class="zono-wallet-input" type="text" inputmode="numeric" maxlength="30" placeholder="رقم حساب Qi">
-
-                            <label class="zono-wallet-label">عدد البذور</label>
-                            <input id="qi-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('qi')">
-                            <div id="qi-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
-
-                            <label class="zono-wallet-label">رمز توثيق الحساب</label>
-                            <div class="zono-withdraw-verify-hint">يجب توثيق الحساب أولاً ثم إدخال رمز التوثيق نفسه.</div>
-                            <input id="qi-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
-
-                            <button onclick="window.zonoApp.submitWithdrawal('qi')" class="zono-wallet-submit-btn">إتمام الطلب</button>
-                        </div>
-                    </div>
-
-                    <div class="zono-wallet-history mt-5">
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <h5 class="text-xs font-black text-stone-200">📜 سجل السحب</h5>
-                            <button onclick="window.zonoApp.loadWithdrawalHistory()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button>
-                        </div>
-                        <div id="zono-withdrawal-history-list" class="space-y-2">
-                            <div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات سحب</div>
-                        </div>
-                    </div>
-
-                    <div id="zono-withdrawal-admin" class="hidden mt-5 border-t border-stone-800 pt-4">
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <h5 class="text-xs font-black text-emerald-300">🛡️ طلبات السحب للإدارة</h5>
-                            <button onclick="window.zonoApp.loadWithdrawalAdmin()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button>
-                        </div>
-                        <div id="zono-withdrawal-admin-list" class="space-y-2">
-                            <div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات قيد المعالجة</div>
                         </div>
                     </div>
                 </div>
@@ -733,110 +679,167 @@
             </div>
         </section>
 
-        <!-- ==================== TAB 7: قسم الإعدادات (Settings) ==================== -->
-        <section id="tab-settings" class="tab-content space-y-6">
-            <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/30 max-w-2xl mx-auto">
-                <div class="flex items-center space-x-2 space-x-reverse mb-6">
-                    <span class="text-2xl">⚙️</span>
-                    <div>
-                        <h2 class="text-2xl font-black text-stone-100">إعدادات تطبيق زونو</h2>
-                        <p class="text-xs text-stone-400">تخصيص المظهر، الأصوات، وخيارات الخصوصية</p>
+
+        <!-- ==================== TAB: المحفظة ==================== -->
+        <section id="tab-wallet" class="tab-content space-y-4">
+            <div class="zono-wallet-page max-w-2xl mx-auto">
+                <!-- Wallet -->
+                <div id="zono-wallet-panel" class="mt-5 rounded-3xl border border-emerald-500/30 bg-stone-950/50 p-4 sm:p-5">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <div>
+                            <h4 class="text-base font-black text-emerald-300">💳 المحفظة</h4>
+                            <p class="text-[10px] text-stone-400 mt-1">رصيدك وقسم سحب البذور</p>
+                        </div>
+                        <button onclick="window.zonoApp.closeWallet()" class="w-8 h-8 rounded-full bg-stone-900 border border-stone-800 text-stone-400 hover:text-stone-100">✕</button>
+                    </div>
+
+                    <div class="zono-wallet-balance-pill">
+                        <span class="zono-wallet-currency">د.ع</span>
+                        <span id="zono-wallet-iqd-balance" class="zono-wallet-amount">0</span>
+                        <span class="zono-wallet-coin">●</span>
+                    </div>
+
+                    <button id="zono-wallet-withdraw-btn" onclick="window.zonoApp.toggleWalletWithdraw()" class="zono-wallet-withdraw-btn">
+                        <span>سحب البذور</span>
+                        <span>🌾</span>
+                    </button>
+
+                    <div id="zono-wallet-withdraw-options" class="hidden mt-4 space-y-3">
+                        <button onclick="window.zonoApp.selectWalletMethod('fib')" class="zono-wallet-method-card">
+                            <div class="flex items-center justify-between w-full">
+                                <div class="text-right">
+                                    <div class="font-black text-stone-100">FIB</div>
+                                    <div class="text-[10px] text-stone-500 mt-1">First Iraqi Bank</div>
+                                </div>
+                                <span class="text-2xl">🏦</span>
+                            </div>
+                        </button>
+
+                        <div id="zono-wallet-method-fib" class="zono-wallet-method-form hidden">
+                            <div class="zono-wallet-form-title">🏦 معلومات FIB</div>
+                            <label class="zono-wallet-label">اسم صاحب الحساب FIB</label>
+                            <input id="fib-account-name" class="zono-wallet-input" type="text" maxlength="80" placeholder="الاسم الكامل">
+
+                            <label class="zono-wallet-label">رقم الهاتف المسجل في FIB</label>
+                            <input id="fib-phone" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="15" placeholder="07xxxxxxxxx">
+
+                            <label class="zono-wallet-label">عدد البذور</label>
+                            <input id="fib-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('fib')">
+                            <div id="fib-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
+
+                            <label class="zono-wallet-label">رمز توثيق الحساب</label>
+                            <div class="zono-withdraw-verify-hint">يجب توثيق الحساب أولاً ثم إدخال رمز التوثيق نفسه.</div>
+                            <input id="fib-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
+
+                            <button onclick="window.zonoApp.submitWithdrawal('fib')" class="zono-wallet-submit-btn">إتمام الطلب</button>
+                        </div>
+
+                        <button onclick="window.zonoApp.selectWalletMethod('qi')" class="zono-wallet-method-card">
+                            <div class="flex items-center justify-between w-full">
+                                <div class="text-right">
+                                    <div class="font-black text-stone-100">Qi</div>
+                                    <div class="text-[10px] text-stone-500 mt-1">Qi Card</div>
+                                </div>
+                                <span class="text-2xl">💳</span>
+                            </div>
+                        </button>
+
+                        <div id="zono-wallet-method-qi" class="zono-wallet-method-form hidden">
+                            <div class="zono-wallet-form-title">💳 معلومات Qi</div>
+                            <label class="zono-wallet-label">اسم صاحب البطاقة</label>
+                            <input id="qi-account-name" class="zono-wallet-input" type="text" maxlength="80" placeholder="الاسم الكامل">
+
+                            <label class="zono-wallet-label">الرقم المكون من 11 رقم</label>
+                            <input id="qi-phone-11" class="zono-wallet-input" type="tel" inputmode="numeric" maxlength="11" placeholder="11 رقم بالضبط">
+
+                            <label class="zono-wallet-label">رقم حساب Qi</label>
+                            <input id="qi-account-number" class="zono-wallet-input" type="text" inputmode="numeric" maxlength="30" placeholder="رقم حساب Qi">
+
+                            <label class="zono-wallet-label">عدد البذور</label>
+                            <input id="qi-seeds-amount" class="zono-wallet-input" type="number" inputmode="numeric" min="15000" step="1" placeholder="الحد الأدنى 15,000 بذرة" oninput="window.zonoApp.previewWithdrawAmount('qi')">
+                            <div id="qi-withdraw-preview" class="zono-wallet-preview">يعادل: 0 د.ع</div>
+
+                            <label class="zono-wallet-label">رمز توثيق الحساب</label>
+                            <div class="zono-withdraw-verify-hint">يجب توثيق الحساب أولاً ثم إدخال رمز التوثيق نفسه.</div>
+                            <input id="qi-verification-code" class="zono-wallet-input" type="password" inputmode="numeric" maxlength="8" placeholder="رمز التوثيق">
+
+                            <button onclick="window.zonoApp.submitWithdrawal('qi')" class="zono-wallet-submit-btn">إتمام الطلب</button>
+                        </div>
+                    </div>
+
+                    <div class="zono-wallet-history mt-5">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h5 class="text-xs font-black text-stone-200">📜 سجل السحب</h5>
+                            <button onclick="window.zonoApp.loadWithdrawalHistory()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button>
+                        </div>
+                        <div id="zono-withdrawal-history-list" class="space-y-2">
+                            <div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات سحب</div>
+                        </div>
+                    </div>
+
+                    <div id="zono-withdrawal-admin" class="hidden mt-5 border-t border-stone-800 pt-4">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h5 class="text-xs font-black text-emerald-300">🛡️ طلبات السحب للإدارة</h5>
+                            <button onclick="window.zonoApp.loadWithdrawalAdmin()" class="text-[9px] font-bold text-amber-300">تحديث ↻</button>
+                        </div>
+                        <div id="zono-withdrawal-admin-list" class="space-y-2">
+                            <div class="text-center text-stone-500 text-xs py-4">لا توجد طلبات قيد المعالجة</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="space-y-4">
-                    <!-- Theme Center -->
-                    <div id="zono-theme-center" class="zono-theme-center">
-                        <div class="zono-theme-center-head">
-                            <div>
-                                <div class="zono-theme-center-kicker">🎨 تخصيص Zono</div>
-                                <h4 class="zono-theme-center-title">عرض الثيمات</h4>
-                                <p class="zono-theme-center-desc">غيّر شكل التطبيق والطائر والاسم وإطار الصورة من مكان واحد.</p>
-                            </div>
-                            <button onclick="window.zonoApp.toggleCustomizationCenter()" class="zono-theme-center-open">
-                                عرض الثيمات
-                            </button>
-                        </div>
 
-                        <div id="zono-customization-center" class="hidden mt-4">
-                            <div class="zono-customization-tabs">
-                                <button id="zono-custom-tab-app" onclick="window.zonoApp.openCustomizationTab('app')" class="zono-customization-tab is-active">🎨 ثيم زونو</button>
-                                <button id="zono-custom-tab-bird" onclick="window.zonoApp.openCustomizationTab('bird')" class="zono-customization-tab">🪶 ثيم الطائر</button>
-                                <button id="zono-custom-tab-name" onclick="window.zonoApp.openCustomizationTab('name')" class="zono-customization-tab">✨ ثيم الاسم</button>
-                                <button id="zono-custom-tab-frame" onclick="window.zonoApp.openCustomizationTab('frame')" class="zono-customization-tab">🖼️ إطار الصورة</button>
-                            </div>
+            </div>
+        </section>
 
-                            <div id="zono-custom-panel-app" class="zono-customization-panel">
-                                <div class="zono-panel-title">🎨 ثيم زونو</div>
-                                <div class="zono-panel-desc">الثيم يغيّر خلفية التطبيق والأقسام والشريط السفلي.</div>
-                                <div id="zono-theme-gallery" class="mt-3">
-                                    <div id="zono-theme-grid" class="zono-theme-grid"></div>
-                                </div>
-                            </div>
+        <!-- ==================== TAB 7: قسم الإعدادات (Settings) ==================== -->
+        <section id="tab-settings" class="tab-content space-y-6">
+            <div class="glass-panel p-5 sm:p-7 rounded-3xl border border-amber-500/30 max-w-2xl mx-auto">
+                <div class="flex items-center gap-2 mb-5">
+                    <span class="text-2xl">⚙️</span>
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-black text-stone-100">إعدادات الحساب</h2>
+                        <p class="text-xs text-stone-400">بيانات الحساب، البريد، وطريقة تسجيل الدخول</p>
+                    </div>
+                </div>
 
-                            <div id="zono-custom-panel-bird" class="zono-customization-panel hidden">
-                                <div class="zono-panel-title">🪶 ثيم الطائر</div>
-                                <div class="zono-panel-desc">يغيّر الطائر والدائرة والساعة والحركة والصوت داخل العداد.</div>
-                                <div class="zono-cosmetic-subtitle mt-3">الثيمات المفتوحة من الطيور التي اشتريتها</div>
-                                <div id="zono-owned-bird-theme-grid" class="zono-bird-theme-grid mt-2"></div>
-                                <div class="zono-cosmetic-subtitle mt-4">ثيمات إضافية بالبذور</div>
-                                <div id="zono-bird-theme-grid" class="zono-bird-theme-grid mt-2"></div>
-                            </div>
-
-                            <div id="zono-custom-panel-name" class="zono-customization-panel hidden">
-                                <div class="zono-panel-title">✨ ثيم الاسم</div>
-                                <div class="zono-panel-desc">زخرفة وكبسولة خاصة باسمك داخل الرومات وعند الدخول.</div>
-                                <div id="zono-name-theme-grid" class="zono-name-theme-grid mt-3"></div>
-                            </div>
-
-                            <div id="zono-custom-panel-frame" class="zono-customization-panel hidden">
-                                <div class="zono-panel-title">🖼️ إطار الصورة</div>
-                                <div class="zono-panel-desc">إطارات متحركة حول صورتك، تظهر في حسابك وعند دخول الروم ورسائلك الخاصة.</div>
-                                <div id="zono-avatar-frame-grid" class="zono-frame-theme-grid mt-3"></div>
-                            </div>
-                        </div>
+                <div class="zono-account-settings space-y-4">
+                    <div class="zono-settings-card">
+                        <div class="zono-settings-card-head"><div><strong>👤 الاسم الكامل</strong><small>يمكن تغييره أو حذفه مرة واحدة كل 7 أيام</small></div><span id="settings-full-name-status" class="zono-settings-status">جاهز</span></div>
+                        <input id="settings-full-name" class="zono-settings-input" type="text" maxlength="120" placeholder="اكتب الاسم الكامل">
+                        <div class="zono-settings-actions"><button onclick="window.zonoApp.saveAccountField('full_name')" class="zono-settings-save">حفظ</button><button onclick="window.zonoApp.deleteAccountField('full_name')" class="zono-settings-delete">حذف</button></div>
                     </div>
 
-                    <!-- Sound FX -->
+                    <div class="zono-settings-card">
+                        <div class="zono-settings-card-head"><div><strong>📱 رقم الهاتف</strong><small>إضافة أو تغيير الرقم مرة واحدة كل 7 أيام</small></div><span id="settings-phone-status" class="zono-settings-status">جاهز</span></div>
+                        <input id="settings-phone" class="zono-settings-input" type="tel" inputmode="tel" maxlength="20" placeholder="مثال: 07xxxxxxxxx">
+                        <div class="zono-settings-actions"><button onclick="window.zonoApp.saveAccountField('phone')" class="zono-settings-save">حفظ</button><button onclick="window.zonoApp.deleteAccountField('phone')" class="zono-settings-delete">حذف</button></div>
+                    </div>
+
+                    <div class="zono-settings-card">
+                        <div class="zono-settings-card-head"><div><strong>✉️ البريد الإلكتروني الأساسي</strong><small id="settings-primary-email">—</small></div><span id="settings-email-status" class="zono-settings-status">مؤكد</span></div>
+                        <input id="settings-new-email" class="zono-settings-input" type="email" autocomplete="email" placeholder="البريد الإلكتروني الجديد">
+                        <button onclick="window.zonoApp.requestEmailChange()" class="zono-settings-wide-btn">تغيير البريد وإرسال التحقق</button>
+                        <p class="zono-settings-hint">لن يعتمد البريد الجديد نهائيًا إلا بعد إكمال التحقق. تغيير البريد متاح مرة واحدة كل 7 أيام.</p>
+                    </div>
+
+                    <div class="zono-settings-card zono-facebook-card">
+                        <div class="zono-settings-card-head"><div><strong>ⓕ Facebook</strong><small>اربط حسابك واعتمد الدخول عن طريق فيسبوك</small></div><span id="settings-facebook-status" class="zono-settings-status">غير مربوط</span></div>
+                        <button onclick="window.zonoApp.linkFacebookAccount()" class="zono-facebook-btn">ربط / اعتماد Facebook</button>
+                        <p class="zono-settings-hint">يتطلب تفعيل Facebook Provider داخل Supabase. بعد الربط يمكنك الدخول بنفس حساب فيسبوك.</p>
+                    </div>
+
                     <div class="p-4 rounded-2xl bg-stone-900/60 border border-stone-800 flex items-center justify-between">
-                        <div>
-                            <h4 class="text-sm font-bold text-stone-200">المؤثرات الصوتية الكلاسيكية</h4>
-                            <p class="text-xs text-stone-400">أصوات نقرات الخشب، زقزقة العصفور، وإشعارات Kik</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="setting-sound-toggle" checked onchange="window.zonoApp.toggleSound()" class="sr-only peer">
-                            <div class="w-11 h-6 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                        </label>
+                        <div><h4 class="text-sm font-bold text-stone-200">المؤثرات الصوتية</h4><p class="text-xs text-stone-400">أصوات التطبيق والعصفور والإشعارات</p></div>
+                        <label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="setting-sound-toggle" checked onchange="window.zonoApp.toggleSound()" class="sr-only peer"><div class="w-11 h-6 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div></label>
                     </div>
 
-                    <!-- Read Receipts -->
                     <div class="p-4 rounded-2xl bg-stone-900/60 border border-stone-800 flex items-center justify-between gap-4">
-                        <div>
-                            <h4 class="text-sm font-bold text-stone-200">إشعارات القراءة (S/D/R)</h4>
-                            <p class="text-xs text-stone-400">اختر إن كنت تريد إظهار حالة وصول وقراءة رسائلك للطرف الآخر</p>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                            <input type="checkbox" id="setting-read-receipts-toggle" checked onchange="window.zonoApp.toggleReadReceipts()" class="sr-only peer">
-                            <div class="w-11 h-6 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                        </label>
+                        <div><h4 class="text-sm font-bold text-stone-200">إشعارات القراءة (S/D/R)</h4><p class="text-xs text-stone-400">إظهار حالة وصول وقراءة الرسائل</p></div>
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0"><input type="checkbox" id="setting-read-receipts-toggle" checked onchange="window.zonoApp.toggleReadReceipts()" class="sr-only peer"><div class="w-11 h-6 bg-stone-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div></label>
                     </div>
 
-                    <!-- Logout -->
-                    <div class="p-4 rounded-2xl bg-red-950/25 border border-red-800/35 flex items-center justify-between gap-4">
-                        <div>
-                            <h4 class="text-sm font-bold text-red-300">تسجيل الخروج</h4>
-                            <p class="text-xs text-stone-400">الخروج الآمن من حساب Zono على هذا الجهاز</p>
-                        </div>
-                        <button onclick="window.zonoApp.logout()" class="px-4 py-2 rounded-xl bg-red-900/60 hover:bg-red-800 text-xs font-black text-red-100 border border-red-700/50">
-                            خروج
-                        </button>
-                    </div>
-
-                    <!-- App Info -->
-                    <div class="pt-6 border-t border-stone-800 text-center text-xs text-stone-400 space-y-1">
-                        <p class="font-bold text-amber-300">تطبيق زونو الكلاسيكي • ZONO App v2.4</p>
-                        <p>صُمم بأعلى معايير الأناقة والنوستالجيا التفاعلية</p>
-                    </div>
+                    <div class="pt-5 border-t border-stone-800 text-center text-xs text-stone-400 space-y-1"><p class="font-bold text-amber-300">تطبيق زونو • ZONO</p><p>إدارة الحساب والخصوصية</p></div>
                 </div>
             </div>
         </section>
@@ -903,6 +906,8 @@
                     class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-black text-xs shadow-lg shadow-amber-600/30 transition-all">
                     تسجيل الدخول
                 </button>
+                <div class="zono-auth-divider"><span>أو</span></div>
+                <button type="button" onclick="window.zonoApp.loginWithFacebook()" class="zono-facebook-login-btn">ⓕ متابعة باستخدام Facebook</button>
             </form>
 
             <form id="zono-register-form" class="space-y-3 hidden" onsubmit="window.zonoApp.handleRegister(event)">
@@ -1583,9 +1588,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js?v=20260901-1"></script>
     <script src="js/supabase.js?v=20260901-1"></script>
-    <script src="js/auth.js?v=20260905-persist1"></script>
+    <script src="js/auth.js?v=20260908-account-settings"></script>
     <script src="js/voice_webrtc.js?v=20260902-ui7"></script>
-    <script src="js/app.js?v=27-compact-shell"></script>
+    <script src="js/app.js?v=20260908-account-wallet-themes"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">

@@ -137,6 +137,11 @@ class ZonoApp {
             username: String(p.public_id || ''),
             publicId: Number(p.public_id || 0),
             displayName: p.display_name || 'عضو Zono',
+            fullName: u.user_metadata?.zono_full_name || '',
+            phone: u.user_metadata?.zono_phone || '',
+            primaryEmail: u.email || '',
+            accountMeta: u.user_metadata || {},
+            identities: Array.isArray(u.identities) ? u.identities : [],
             isGuest: false,
             avatar: p.avatar_url || `https://api.dicebear.com/7.x/micah/svg?seed=${encodeURIComponent(p.public_id || u.id)}`,
             feathers: Number(p.feathers || 0),
@@ -779,6 +784,113 @@ class ZonoApp {
         }
     }
 
+    _accountChangeMetaKey(field) {
+        return `zono_${field}_changed_at`;
+    }
+
+    _accountCooldown(field) {
+        const raw = window.zonoAuth?.user?.user_metadata?.[this._accountChangeMetaKey(field)] || null;
+        if (!raw) return { allowed: true, remainingMs: 0 };
+        const last = new Date(raw).getTime();
+        if (!Number.isFinite(last)) return { allowed: true, remainingMs: 0 };
+        const remainingMs = (7 * 24 * 60 * 60 * 1000) - (Date.now() - last);
+        return { allowed: remainingMs <= 0, remainingMs: Math.max(0, remainingMs) };
+    }
+
+    _formatCooldown(ms) {
+        if (!ms || ms <= 0) return 'جاهز للتغيير';
+        const days = Math.floor(ms / 86400000);
+        const hours = Math.ceil((ms % 86400000) / 3600000);
+        return days > 0 ? `متبقي ${days} يوم و${hours} ساعة` : `متبقي ${hours} ساعة`;
+    }
+
+    refreshAccountSettingsUI() {
+        const user = window.zonoAuth?.user;
+        if (!user) return;
+        const meta = user.user_metadata || {};
+        const setText = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
+        const setValue = (id, value) => { const el=document.getElementById(id); if(el && document.activeElement!==el) el.value=value || ''; };
+        setValue('settings-full-name', meta.zono_full_name || '');
+        setValue('settings-phone', meta.zono_phone || '');
+        setText('settings-primary-email', user.email || '—');
+
+        [['full_name','settings-full-name-status'],['phone','settings-phone-status'],['email','settings-email-status']].forEach(([key,id]) => {
+            const c=this._accountCooldown(key);
+            setText(id, key==='email' && c.allowed ? (user.email_confirmed_at ? 'مؤكد' : 'بانتظار التحقق') : this._formatCooldown(c.remainingMs));
+        });
+
+        const facebookLinked = Array.isArray(user.identities) && user.identities.some(i => i.provider === 'facebook');
+        setText('settings-facebook-status', facebookLinked ? 'مربوط ✓' : 'غير مربوط');
+    }
+
+    async saveAccountField(field) {
+        const client = window.zonoAuth?.client;
+        const user = window.zonoAuth?.user;
+        if (!client || !user) return this.showToast('يجب تسجيل الدخول', 'error');
+        const allowedFields = { full_name:'settings-full-name', phone:'settings-phone' };
+        const inputId = allowedFields[field];
+        if (!inputId) return;
+        const c=this._accountCooldown(field);
+        if (!c.allowed) return this.showToast(`يمكن التغيير بعد ${this._formatCooldown(c.remainingMs).replace('متبقي ','')}`, 'error');
+        let value=String(document.getElementById(inputId)?.value || '').trim();
+        if (field==='full_name' && value && value.length < 2) return this.showToast('الاسم الكامل قصير جدًا', 'error');
+        if (field==='phone' && value && value.replace(/\D/g,'').length < 10) return this.showToast('رقم الهاتف غير صحيح', 'error');
+        const now=new Date().toISOString();
+        const data={ ...(user.user_metadata || {}) };
+        data[field==='full_name' ? 'zono_full_name' : 'zono_phone']=value;
+        data[this._accountChangeMetaKey(field)]=now;
+        const { data:res, error }=await client.auth.updateUser({ data });
+        if (error) return this.showToast(error.message || 'تعذر حفظ التغيير', 'error');
+        if (res?.user) { window.zonoAuth.user=res.user; await window.zonoAuth.loadProfile(res.user); }
+        await this.syncUserFromSupabase();
+        this.refreshAccountSettingsUI();
+        this.showToast('تم حفظ التغيير. التغيير التالي بعد 7 أيام', 'success');
+    }
+
+    async deleteAccountField(field) {
+        const map={full_name:'settings-full-name',phone:'settings-phone'};
+        if (!map[field]) return;
+        const c=this._accountCooldown(field);
+        if (!c.allowed) return this.showToast(`الحذف أو التغيير متاح بعد ${this._formatCooldown(c.remainingMs).replace('متبقي ','')}`, 'error');
+        const el=document.getElementById(map[field]); if (el) el.value='';
+        await this.saveAccountField(field);
+    }
+
+    async requestEmailChange() {
+        const client=window.zonoAuth?.client;
+        const user=window.zonoAuth?.user;
+        if (!client || !user) return this.showToast('يجب تسجيل الدخول', 'error');
+        const c=this._accountCooldown('email');
+        if (!c.allowed) return this.showToast(`تغيير البريد متاح بعد ${this._formatCooldown(c.remainingMs).replace('متبقي ','')}`, 'error');
+        const email=String(document.getElementById('settings-new-email')?.value || '').trim().toLowerCase();
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return this.showToast('أدخل بريدًا إلكترونيًا صحيحًا', 'error');
+        if (email === String(user.email || '').toLowerCase()) return this.showToast('هذا هو بريدك الأساسي الحالي', 'error');
+        const now=new Date().toISOString();
+        const metadata={ ...(user.user_metadata || {}), [this._accountChangeMetaKey('email')]: now };
+        const { data, error }=await client.auth.updateUser({ email, data:metadata });
+        if (error) return this.showToast(error.message || 'تعذر إرسال تحقق البريد', 'error');
+        if (data?.user) window.zonoAuth.user=data.user;
+        this.refreshAccountSettingsUI();
+        this.showToast('تم إرسال رسالة تحقق إلى البريد الجديد. افتحها لاعتماد التغيير', 'success');
+    }
+
+    async loginWithFacebook() {
+        try {
+            await window.zonoAuth.signInWithFacebook();
+        } catch (e) {
+            this.setAuthMessage(e.message || 'تعذر تسجيل الدخول عبر Facebook', 'error');
+            this.showToast(e.message || 'تعذر فتح Facebook', 'error');
+        }
+    }
+
+    async linkFacebookAccount() {
+        try {
+            await window.zonoAuth.linkFacebook();
+        } catch (e) {
+            this.showToast(e.message || 'تعذر ربط Facebook', 'error');
+        }
+    }
+
     toggleSound() {
         this.soundEnabled = !this.soundEnabled;
         localStorage.setItem('zono_sound', this.soundEnabled.toString());
@@ -818,6 +930,7 @@ class ZonoApp {
         this.applyAvatarFrame(this.activeAvatarFrame);
         this.renderAvatarFrames();
         this.refreshVerificationBadge();
+        this.refreshAccountSettingsUI();
 
         // العداد هو الواجهة الرئيسية بعد تسجيل الدخول أو استعادة الجلسة المحفوظة.
         this.switchTab('counter');
@@ -1052,6 +1165,12 @@ class ZonoApp {
         if (tabId === 'birds') {
             this.renderStore();
         }
+        if (tabId === 'settings') {
+            this.refreshAccountSettingsUI();
+        }
+        if (tabId === 'wallet') {
+            this.openWallet(true);
+        }
 
     }
 
@@ -1061,6 +1180,12 @@ class ZonoApp {
         const backdrop = document.getElementById('zono-themes-backdrop');
         if (!panel) return;
         this.backToThemeCategories();
+        const center = document.getElementById('zono-customization-center');
+        if (center) center.classList.remove('hidden');
+        this.renderThemeGallery();
+        this.renderBirdThemes();
+        this.renderNameThemes();
+        this.renderAvatarFrames();
         panel.classList.add('is-open');
         backdrop?.classList.add('is-open');
         panel.setAttribute('aria-hidden', 'false');
@@ -1430,15 +1555,17 @@ class ZonoApp {
         return !!status.verified;
     }
 
-    async openWallet() {
+    async openWallet(fromTabSwitch = false) {
         if (!this.currentUser) return this.showAuthModal();
 
         const panel = document.getElementById('zono-wallet-panel');
         if (!panel) return;
 
-        this.switchTab('profile');
+        if (!fromTabSwitch && this.currentTab !== 'wallet') {
+            this.switchTab('wallet');
+            return;
+        }
         this.updateProfileUI();
-
         panel.classList.remove('hidden');
 
         const admin = document.getElementById('zono-withdrawal-admin');
@@ -1466,6 +1593,7 @@ class ZonoApp {
         if (options) options.classList.add('hidden');
         if (fib) fib.classList.add('hidden');
         if (qi) qi.classList.add('hidden');
+        if (this.currentTab === 'wallet') this.switchTab('counter');
     }
 
     toggleWalletWithdraw() {

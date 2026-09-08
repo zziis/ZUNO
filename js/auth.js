@@ -120,6 +120,30 @@ class ZonoAuth {
     return data;
   }
 
+  async signInWithFacebook() {
+    if (!this.client) throw new Error('Supabase غير مربوط بعد');
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { data, error } = await this.client.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: { redirectTo, skipBrowserRedirect: false }
+    });
+    if (error) throw new Error(error.message || 'تعذر تسجيل الدخول عبر Facebook');
+    return data;
+  }
+
+  async linkFacebook() {
+    if (!this.client || !this.user) throw new Error('يجب تسجيل الدخول أولاً');
+    const already = Array.isArray(this.user.identities) && this.user.identities.some(i => i.provider === 'facebook');
+    if (already) throw new Error('حساب Facebook مربوط بالفعل');
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { data, error } = await this.client.auth.linkIdentity({
+      provider: 'facebook',
+      options: { redirectTo }
+    });
+    if (error) throw new Error(error.message || 'تعذر ربط Facebook');
+    return data;
+  }
+
   async logout() {
     if (this.client) await this.client.auth.signOut();
   }
