@@ -4070,3 +4070,63 @@ body>main{position:fixed;left:0;right:0;top:var(--zono-header-h,7rem);bottom:var
   .zono-feather-center-btn .w-12{width:2.55rem!important;height:2.55rem!important}
   .zono-canary-nav-label{font-size:.61rem!important}
 }
+
+
+/* ZUNO drawer polish 2026-09-08: compact, contained icons + logout */
+.zono-main-drawer-menu{
+  padding:.62rem .7rem .85rem!important;
+  gap:.32rem!important;
+}
+.zono-main-drawer-menu button{
+  min-height:3.15rem!important;
+  padding:.48rem .62rem!important;
+  gap:.58rem!important;
+  border-radius:.92rem!important;
+  overflow:hidden!important;
+}
+.zono-main-drawer-menu button>span{
+  width:2.05rem!important;
+  height:2.05rem!important;
+  min-width:2.05rem!important;
+  max-width:2.05rem!important;
+  min-height:2.05rem!important;
+  max-height:2.05rem!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:1!important;
+  font-size:1rem!important;
+  border-radius:.62rem!important;
+  overflow:hidden!important;
+  background:linear-gradient(180deg,rgba(38,35,32,.94),rgba(22,20,18,.94))!important;
+  border:1px solid rgba(168,162,158,.22)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.018)!important;
+  filter:none!important;
+  flex:0 0 2.05rem!important;
+}
+.zono-main-drawer-menu button>strong{
+  font-size:.73rem!important;
+  line-height:1.25!important;
+  font-weight:900!important;
+  flex:1!important;
+  min-width:0!important;
+}
+.zono-main-drawer-menu .zono-drawer-logout{
+  margin-top:.16rem!important;
+  color:#fecaca!important;
+  border-color:rgba(239,68,68,.16)!important;
+  background:rgba(127,29,29,.10)!important;
+}
+.zono-main-drawer-menu .zono-drawer-logout>span{
+  color:#fb7185!important;
+  font-size:1.12rem!important;
+  font-weight:950!important;
+  background:rgba(127,29,29,.18)!important;
+  border-color:rgba(239,68,68,.24)!important;
+}
+@media(max-width:420px){
+  .zono-main-drawer-menu button{min-height:2.95rem!important;padding:.42rem .55rem!important}
+  .zono-main-drawer-menu button>span{width:1.9rem!important;height:1.9rem!important;min-width:1.9rem!important;max-width:1.9rem!important;min-height:1.9rem!important;max-height:1.9rem!important;flex-basis:1.9rem!important;font-size:.92rem!important}
+  .zono-main-drawer-menu button>strong{font-size:.69rem!important}
+}
