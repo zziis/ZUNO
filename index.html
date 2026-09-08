@@ -388,13 +388,80 @@
         </section>
 
         <!-- ==================== TAB 4: المتجر (Store & Bazaar) ==================== -->
-        <section id="tab-store" class="tab-content space-y-6">
-            <div class="glass-panel p-6 rounded-3xl border border-amber-500/30 text-center">
-                <div class="text-4xl mb-3">🛍️</div>
-                <h2 class="text-2xl font-black text-stone-100 mb-2">متجر زونو</h2>
-                <p class="text-xs text-stone-400 leading-relaxed max-w-md mx-auto">
-                    هذا القسم مخصص للمقتنيات والإضافات القادمة. شراء الطيور أصبح في قسم مستقل من زر «شراء عصفور» داخل العداد.
-                </p>
+        <section id="tab-store" class="tab-content zono-store-tab">
+            <div class="zono-store-screen">
+                <div class="zono-store-topbar">
+                    <div class="zono-store-title-wrap">
+                        <span class="zono-store-cart">🛒</span>
+                        <div>
+                            <h2>المتجر</h2>
+                            <small>كل ما تحتاجه في مكان واحد</small>
+                        </div>
+                    </div>
+                    <button class="zono-store-close" type="button" onclick="window.zonoApp.switchTab('counter')" aria-label="إغلاق">×</button>
+                </div>
+
+                <div class="zono-store-search">
+                    <span>⌕</span>
+                    <input id="zono-store-search-input" type="search" placeholder="ابحث في المتجر ..." oninput="window.zonoApp.filterStore(this.value)">
+                </div>
+
+                <div class="zono-store-tabs">
+                    <button id="zono-store-tab-products" class="active" onclick="window.zonoApp.showStoreSection('products')">المنتجات</button>
+                    <button id="zono-store-tab-cards" onclick="window.zonoApp.showStoreSection('cards')">بطاقات شحن</button>
+                    <button id="zono-store-tab-offers" onclick="window.zonoApp.showStoreSection('offers')">عروض خاصة</button>
+                </div>
+
+                <div id="zono-store-products" class="zono-store-section active">
+                    <div class="zono-store-hero">
+                        <div class="zono-store-hero-icon">🛒</div>
+                        <h3>مرحبًا بك في متجر ZUNO</h3>
+                        <p>اختر القسم الذي يناسبك واستعرض المنتجات بسهولة</p>
+                    </div>
+                    <div class="zono-store-category-list">
+                        <button class="zono-store-category" data-store-search="أرقام هواتف مميزة ارقام هواتف مميزة" onclick="window.zonoApp.storeSoon('أرقام هواتف مميزة')">
+                            <div class="zono-store-category-icon sim">▣</div>
+                            <div><strong>أرقام هواتف مميزة</strong><small>أرقام مختارة ومميزة</small></div>
+                            <span class="zono-store-arrow">‹</span>
+                        </button>
+                        <button class="zono-store-category" data-store-search="الأجهزة اللوحية اجهزة لوحية تابلت" onclick="window.zonoApp.storeSoon('الأجهزة اللوحية')">
+                            <div class="zono-store-category-icon">▯</div>
+                            <div><strong>الأجهزة اللوحية</strong><small>أحدث الأجهزة اللوحية</small></div>
+                            <span class="zono-store-arrow">‹</span>
+                        </button>
+                        <button class="zono-store-category" data-store-search="أجهزة الموبايل اجهزة الموبايل موبايل هواتف" onclick="window.zonoApp.storeSoon('أجهزة الموبايل')">
+                            <div class="zono-store-category-icon">📱</div>
+                            <div><strong>أجهزة الموبايل</strong><small>أحدث أجهزة الموبايل</small></div>
+                            <span class="zono-store-arrow">‹</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="zono-store-cards" class="zono-store-section">
+                    <div class="zono-store-section-head">
+                        <button class="zono-store-back" onclick="window.zonoApp.showStoreSection('products')">‹</button>
+                        <div><h3>بطاقات شحن</h3><p>اختر شركة الاتصالات</p></div>
+                    </div>
+                    <div class="zono-recharge-grid">
+                        <button class="zono-recharge-card" data-store-search="آسيا سيل اسيا سيل asiacell" onclick="window.zonoApp.storeSoon('آسيا سيل')">
+                            <div class="zono-brand-logo asiacell">Asiacell</div><strong>آسيا سيل</strong><small>بطاقات شحن</small>
+                        </button>
+                        <button class="zono-recharge-card" data-store-search="زين العراق zain" onclick="window.zonoApp.storeSoon('زين العراق')">
+                            <div class="zono-brand-logo zain">zain</div><strong>زين العراق</strong><small>بطاقات شحن</small>
+                        </button>
+                        <button class="zono-recharge-card" data-store-search="كورك korek" onclick="window.zonoApp.storeSoon('كورك')">
+                            <div class="zono-brand-logo korek">KOREK</div><strong>كورك</strong><small>بطاقات شحن</small>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="zono-store-offers" class="zono-store-section">
+                    <div class="zono-store-empty">
+                        <div>✦</div>
+                        <h3>عروض خاصة</h3>
+                        <p>قريبًا ستظهر هنا العروض والخصومات المميزة.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -804,18 +871,6 @@
                 </div>
 
                 <div class="zono-account-settings space-y-4">
-                    <div class="zono-settings-card">
-                        <div class="zono-settings-card-head"><div><strong>👤 الاسم الكامل</strong><small>يمكن تغييره أو حذفه مرة واحدة كل 7 أيام</small></div><span id="settings-full-name-status" class="zono-settings-status">جاهز</span></div>
-                        <input id="settings-full-name" class="zono-settings-input" type="text" maxlength="120" placeholder="اكتب الاسم الكامل">
-                        <div class="zono-settings-actions"><button onclick="window.zonoApp.saveAccountField('full_name')" class="zono-settings-save">حفظ</button><button onclick="window.zonoApp.deleteAccountField('full_name')" class="zono-settings-delete">حذف</button></div>
-                    </div>
-
-                    <div class="zono-settings-card">
-                        <div class="zono-settings-card-head"><div><strong>📱 رقم الهاتف</strong><small>إضافة أو تغيير الرقم مرة واحدة كل 7 أيام</small></div><span id="settings-phone-status" class="zono-settings-status">جاهز</span></div>
-                        <input id="settings-phone" class="zono-settings-input" type="tel" inputmode="tel" maxlength="20" placeholder="مثال: 07xxxxxxxxx">
-                        <div class="zono-settings-actions"><button onclick="window.zonoApp.saveAccountField('phone')" class="zono-settings-save">حفظ</button><button onclick="window.zonoApp.deleteAccountField('phone')" class="zono-settings-delete">حذف</button></div>
-                    </div>
-
                     <div class="zono-settings-card">
                         <div class="zono-settings-card-head"><div><strong>✉️ البريد الإلكتروني الأساسي</strong><small id="settings-primary-email">—</small></div><span id="settings-email-status" class="zono-settings-status">مؤكد</span></div>
                         <input id="settings-new-email" class="zono-settings-input" type="email" autocomplete="email" placeholder="البريد الإلكتروني الجديد">

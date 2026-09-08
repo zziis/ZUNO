@@ -810,11 +810,9 @@ class ZonoApp {
         const meta = user.user_metadata || {};
         const setText = (id, value) => { const el=document.getElementById(id); if(el) el.textContent=value; };
         const setValue = (id, value) => { const el=document.getElementById(id); if(el && document.activeElement!==el) el.value=value || ''; };
-        setValue('settings-full-name', meta.zono_full_name || '');
-        setValue('settings-phone', meta.zono_phone || '');
         setText('settings-primary-email', user.email || '—');
 
-        [['full_name','settings-full-name-status'],['phone','settings-phone-status'],['email','settings-email-status']].forEach(([key,id]) => {
+        [['email','settings-email-status']].forEach(([key,id]) => {
             const c=this._accountCooldown(key);
             setText(id, key==='email' && c.allowed ? (user.email_confirmed_at ? 'مؤكد' : 'بانتظار التحقق') : this._formatCooldown(c.remainingMs));
         });
@@ -4108,6 +4106,29 @@ class ZonoApp {
         const modal = document.getElementById('direct-chat-modal');
         if (modal) modal.classList.add('hidden');
         this.activeDirectChat = null;
+    }
+
+    showStoreSection(section = 'products') {
+        const names = ['products', 'cards', 'offers'];
+        names.forEach(name => {
+            document.getElementById(`zono-store-${name}`)?.classList.toggle('active', name === section);
+            document.getElementById(`zono-store-tab-${name}`)?.classList.toggle('active', name === section);
+        });
+        const input = document.getElementById('zono-store-search-input');
+        if (input) input.value = '';
+        this.filterStore('');
+    }
+
+    filterStore(value = '') {
+        const q = String(value || '').trim().toLowerCase();
+        document.querySelectorAll('[data-store-search]').forEach(el => {
+            const hay = String(el.getAttribute('data-store-search') || '').toLowerCase();
+            el.classList.toggle('zono-store-hidden-by-search', !!q && !hay.includes(q));
+        });
+    }
+
+    storeSoon(name = '') {
+        this.showToast(`${name ? name + ' — ' : ''}قريبًا الفتح`);
     }
 
     // --- Store System (المتجر) ---
