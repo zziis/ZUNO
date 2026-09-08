@@ -4312,3 +4312,279 @@ button[class*="bg-gradient-to-r"],button[class*="from-amber"],.zono-store-tab.is
 .border-amber-500\/40,.border-amber-500\/30,.border-amber-500\/20{border-color:rgba(58,173,255,.3)!important}.text-amber-300,.text-amber-400,.text-amber-200{color:#9edcff!important}
 
 @media(max-height:680px){.zono-auth-shell{padding-top:22px}.zono-auth-brand-wrap{margin:auto 0 18px}.zono-auth-brand-latin{font-size:58px}.zono-auth-choice{min-height:88px}.zono-auth-benefits{padding-top:18px}}
+
+/* =========================================================
+   ZUNO GLOBAL NEON PALETTE HARD OVERRIDE — 2026-09-09
+   Makes cyan / blue / violet / pink the default visual system
+   across auth, counters, cards, rooms, settings, drawers & store.
+   ========================================================= */
+:root{
+  --bg-primary:#030b24!important;
+  --bg-secondary:#07163f!important;
+  --glass-bg:rgba(5,18,52,.88)!important;
+  --glass-border:rgba(52,179,255,.24)!important;
+  --accent-gold:#24d8ff!important;
+  --accent-gold-light:#94c8ff!important;
+  --accent-gold-glow:rgba(54,156,255,.28)!important;
+  --zono-bg:#02091f!important;
+  --zono-bg-2:#07184e!important;
+  --zono-cyan:#1fe3ff!important;
+  --zono-blue:#2475ff!important;
+  --zono-violet:#7757ff!important;
+  --zono-pink:#ef4cff!important;
+  --zt-bg:#02091f!important;
+  --zt-surface:rgba(6,20,57,.92)!important;
+  --zt-surface2:rgba(20,8,51,.90)!important;
+  --zt-accent:#1fe3ff!important;
+  --zt-accent2:#ef4cff!important;
+  --zt-text:#f8fbff!important;
+  --zt-muted:#9eb2e6!important;
+}
+
+/* Remove legacy brown / burgundy surfaces from main app */
+body,
+#app,
+main,
+.zono-page-shell,
+.zono-tab-content{
+  background-color:transparent!important;
+}
+.glass-panel,
+[class*="bg-stone-9"],
+[class*="bg-stone-8"],
+[class*="bg-amber-9"],
+[class*="bg-yellow-9"]{
+  border-color:rgba(58,161,255,.20)!important;
+}
+
+/* Auth: prevent legacy burgundy/red input fill, including Chrome autofill */
+.zono-auth-input,
+.zono-auth-input:hover,
+.zono-auth-input:active{
+  background:linear-gradient(135deg,rgba(4,20,61,.94),rgba(18,12,65,.92))!important;
+  border-color:rgba(72,167,255,.38)!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+.zono-auth-input:focus{
+  background:linear-gradient(135deg,rgba(4,24,73,.98),rgba(28,13,78,.96))!important;
+  border-color:#31d9ff!important;
+  box-shadow:0 0 0 3px rgba(49,217,255,.11),0 0 22px rgba(106,78,255,.22)!important;
+}
+.zono-auth-input:-webkit-autofill,
+.zono-auth-input:-webkit-autofill:hover,
+.zono-auth-input:-webkit-autofill:focus,
+.zono-auth-input:-webkit-autofill:active{
+  -webkit-text-fill-color:#fff!important;
+  caret-color:#fff!important;
+  -webkit-box-shadow:0 0 0 1000px #07163f inset!important;
+  box-shadow:0 0 0 1000px #07163f inset!important;
+  border-color:rgba(72,167,255,.42)!important;
+  transition:background-color 9999s ease-out 0s!important;
+}
+.zono-auth-tabs{
+  background:linear-gradient(90deg,rgba(3,17,52,.88),rgba(23,8,58,.86))!important;
+  border-color:rgba(66,164,255,.26)!important;
+}
+.auth-tab.active,
+.zono-auth-submit{
+  background:linear-gradient(100deg,#087dff 0%,#625cff 50%,#ed45ee 100%)!important;
+  border-color:rgba(74,199,255,.5)!important;
+  color:#fff!important;
+}
+
+/* Legacy amber/gold/yellow text becomes neon cyan/lavender */
+.text-amber-100,.text-amber-200,.text-amber-300,.text-amber-400,.text-amber-500,
+.text-yellow-100,.text-yellow-200,.text-yellow-300,.text-yellow-400,.text-yellow-500,
+[class*="text-amber-"],[class*="text-yellow-"]{
+  color:#93dfff!important;
+}
+.gold-gradient-text,
+[class*="gold-gradient"]{
+  background:linear-gradient(90deg,#22e4ff 0%,#78a5ff 48%,#f05cff 100%)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+}
+
+/* Borders previously gold/amber */
+[class*="border-amber-"],[class*="border-yellow-"],
+.gold-border-glow{
+  border-color:rgba(54,183,255,.32)!important;
+}
+.gold-border-glow{
+  box-shadow:0 0 20px rgba(52,151,255,.18),inset 0 0 14px rgba(160,70,255,.06)!important;
+}
+
+/* Primary amber/yellow buttons -> blue/violet/pink */
+[class*="bg-amber-500"],[class*="bg-amber-600"],[class*="bg-amber-700"],
+[class*="bg-yellow-500"],[class*="bg-yellow-600"],[class*="bg-yellow-700"],
+button[class*="from-amber"],button[class*="from-yellow"],
+.zono-admin-action.amber,
+#bird-trigger-btn,
+#account-center-tab-notifications,
+#developer-admin-tab-transfers.is-active{
+  background:linear-gradient(100deg,#087cff,#625cff 52%,#e746ef)!important;
+  color:#fff!important;
+  border-color:rgba(76,200,255,.42)!important;
+  box-shadow:0 8px 25px rgba(64,87,255,.20)!important;
+}
+
+/* Counter / Canary screen */
+#tab-counter>.glass-panel,
+#tab-counter .glass-panel,
+#zono-bird-theme-clock,
+#tab-counter [class*="bg-stone-900"],
+#tab-counter [class*="bg-stone-950"]{
+  background:linear-gradient(145deg,rgba(4,18,53,.92),rgba(19,9,48,.92))!important;
+  border-color:rgba(55,170,255,.25)!important;
+}
+#bird-canvas{
+  border-color:rgba(39,206,255,.55)!important;
+  box-shadow:0 0 0 5px rgba(101,83,255,.11),0 0 34px rgba(37,142,255,.20)!important;
+  background:#030b24!important;
+}
+#bird-status-badge{
+  background:linear-gradient(90deg,rgba(5,73,116,.74),rgba(54,25,106,.68))!important;
+  border-color:rgba(45,216,255,.38)!important;
+  color:#9cecff!important;
+}
+#bird-status-badge>span{
+  background:#28e5ff!important;
+  box-shadow:0 0 12px rgba(40,229,255,.7)!important;
+}
+#bird-timer-display{
+  background:linear-gradient(90deg,#28ddff,#6b90ff 52%,#e459ff)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;color:transparent!important;
+}
+#tab-counter .grid.grid-cols-3>div{
+  background:linear-gradient(145deg,rgba(6,23,61,.90),rgba(23,10,51,.90))!important;
+  border-color:rgba(78,142,255,.22)!important;
+}
+
+/* Balance / currency capsules */
+#zono-currency-pill,
+.counter-only-balance,
+.zono-balance-pill,
+[class*="balance-pill"],
+[class*="currency-pill"]{
+  background:linear-gradient(90deg,rgba(4,22,64,.92),rgba(25,10,57,.91))!important;
+  border-color:rgba(53,183,255,.30)!important;
+  color:#9fe7ff!important;
+  box-shadow:inset 0 0 20px rgba(57,93,255,.06)!important;
+}
+
+/* Profile / Settings / account center */
+#tab-profile .glass-panel,
+#tab-settings .glass-panel,
+#zono-account-center,
+.zono-settings-card,
+.zono-profile-card{
+  background:linear-gradient(145deg,rgba(4,18,51,.94),rgba(18,9,46,.93))!important;
+  border-color:rgba(59,161,255,.23)!important;
+}
+#account-center-tab-notifications,
+#account-center-tab-log.is-active,
+.zono-settings-tabs .is-active{
+  background:linear-gradient(100deg,rgba(8,124,255,.78),rgba(105,74,255,.72),rgba(221,62,239,.68))!important;
+  color:#fff!important;
+}
+
+/* Rooms directory and room cards */
+#tab-rooms .glass-panel,
+.zono-room-card,
+.zono-room-shell,
+.zono-room-main-card,
+.zono-room-filter-strip button,
+.zono-room-member-capsule{
+  border-color:rgba(66,159,255,.24)!important;
+}
+.zono-room-filter-strip button.is-active,
+.zono-room-filter-strip .active,
+.zono-room-directory-filter.is-active{
+  background:linear-gradient(100deg,#087cff,#6558ff,#dc46ef)!important;
+  color:#fff!important;
+  border-color:rgba(66,213,255,.45)!important;
+}
+.zono-room-search,
+#room-search-input,
+[class*="room-search"]{
+  background:linear-gradient(135deg,rgba(4,19,57,.92),rgba(25,10,65,.90))!important;
+  border-color:rgba(87,97,255,.50)!important;
+}
+
+/* Bottom navigation */
+.zono-feather-only-nav,
+.zono-bottom-nav-grid{
+  background:linear-gradient(90deg,rgba(3,14,44,.98),rgba(22,7,50,.98))!important;
+}
+.zono-bottom-nav-grid .nav-btn.is-active,
+.zono-bottom-nav-grid .nav-btn.active{
+  color:#80dfff!important;
+}
+.active-dot{
+  background:linear-gradient(90deg,#22ddff,#f44dff)!important;
+  box-shadow:0 0 10px rgba(91,136,255,.65)!important;
+}
+
+/* Store */
+.zono-store-modal,
+.zono-store-shell,
+.zono-store-panel{
+  background:radial-gradient(circle at 14% 12%,rgba(20,183,255,.20),transparent 33%),radial-gradient(circle at 88% 74%,rgba(236,70,255,.20),transparent 36%),linear-gradient(150deg,#031238,#0a276e 48%,#41125c 100%)!important;
+}
+.zono-store-tab.is-active,
+.zono-store-primary-action{
+  background:linear-gradient(100deg,#087cff,#625cff,#e946ef)!important;
+  color:#fff!important;
+}
+
+/* Drawer + Themes: remove default gold */
+.zono-main-drawer-menu .zono-drawer-themes,
+.zono-main-drawer-menu .zono-drawer-wallet{
+  border-color:rgba(60,177,255,.28)!important;
+  background:linear-gradient(90deg,rgba(7,70,132,.20),rgba(111,28,139,.17))!important;
+}
+.zono-main-drawer-menu .zono-drawer-themes>span,
+.zono-theme-category>b,
+.zono-themes-head h2,
+.zono-theme-market-head h3{
+  color:#7fe7ff!important;
+}
+.zono-themes-panel{
+  background:radial-gradient(circle at 16% 0%,rgba(25,217,255,.16),transparent 38%),radial-gradient(circle at 90% 74%,rgba(242,76,255,.13),transparent 38%),linear-gradient(180deg,#041432 0%,#0b0b2c 100%)!important;
+  border-right-color:rgba(57,180,255,.34)!important;
+}
+.zono-theme-category,
+.zono-theme-card{
+  border-color:rgba(76,151,255,.25)!important;
+  background:linear-gradient(135deg,rgba(8,28,70,.90),rgba(31,12,62,.88))!important;
+}
+.zono-theme-price{
+  background:linear-gradient(90deg,rgba(9,83,150,.42),rgba(100,34,146,.34))!important;
+  border-color:rgba(73,171,255,.32)!important;
+  color:#b7e7ff!important;
+}
+.zono-theme-buy-btn{
+  background:linear-gradient(100deg,#087cff,#655cff,#e648ef)!important;
+  color:#fff!important;
+}
+
+/* Generic old gold shadows / rings */
+.shadow-amber-500\/20,.shadow-amber-500\/30,.shadow-amber-600\/30,
+[class*="shadow-amber-"]{
+  --tw-shadow-color:rgba(63,111,255,.22)!important;
+}
+.ring-amber-500,.ring-yellow-500,[class*="ring-amber-"],[class*="ring-yellow-"]{
+  --tw-ring-color:rgba(47,206,255,.42)!important;
+}
+
+/* Keep semantic destructive warnings red only where they are actually destructive. */
+.zono-logout-card{border-color:rgba(118,96,255,.56)!important;background:linear-gradient(155deg,rgba(6,18,53,.98),rgba(26,8,48,.98))!important;box-shadow:0 24px 70px rgba(0,0,0,.58),0 0 30px rgba(92,90,255,.13)!important}
+.zono-logout-warning-icon{background:linear-gradient(145deg,rgba(77,36,122,.72),rgba(117,26,79,.52))!important;border-color:#e75bff!important;box-shadow:0 0 30px rgba(209,75,255,.24)!important}
+.zono-logout-card h3{color:#f08cff!important}
+.zono-logout-continue{background:linear-gradient(100deg,#4855ff,#9e46ee,#e13e9e)!important;border-color:#dd5fff!important}
+
+/* Mobile consistency */
+@media(max-width:520px){
+  .glass-panel{border-color:rgba(64,156,255,.19)!important}
+  #tab-counter>.glass-panel{box-shadow:0 12px 34px rgba(0,0,0,.26),0 0 24px rgba(58,102,255,.05)!important}
+}
