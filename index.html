@@ -28,7 +28,7 @@
         }
     </script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/style.css?v=25-menu-corrected">
+    <link rel="stylesheet" href="css/style.css?v=26-header-nav-rewards">
 
 <style id="zono-canary-menu-update">
 .zono-feather-center-btn{flex-direction:column!important;gap:2px!important;height:auto!important;padding-bottom:1px!important}
@@ -48,7 +48,7 @@
     <header class="sticky top-0 z-40 glass-panel border-b border-amber-500/20 px-4 py-3 sm:px-8">
         <div class="zono-header-inner max-w-6xl mx-auto">
             <!-- Brand Logo -->
-            <div class="zono-brand cursor-pointer" onclick="window.zonoApp.toggleMainDrawer()">
+            <div class="zono-brand cursor-pointer" onclick="window.zonoApp.switchTab('settings')">
                 <div class="zono-logo-box w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 flex items-center justify-center">
                     <div class="w-full h-full bg-stone-950 rounded-[14px] flex items-center justify-center text-xl">
                         🕊️
@@ -87,16 +87,13 @@
                 </span>
             </div>
 
-            <!-- Controls -->
-            <div class="zono-header-controls">
-                <!-- Account avatar only. Theme, sound and notifications moved inside Account. -->
-                <div onclick="window.zonoApp.openAccountCenter('notifications')" class="zono-profile-quick relative flex items-center space-x-2 space-x-reverse cursor-pointer pl-1 pr-2 py-1 rounded-full bg-stone-900/60 border border-stone-800 hover:border-amber-500/50 transition-all">
-                    <div class="relative">
-                        <img id="header-user-avatar" src="https://api.dicebear.com/7.x/micah/svg?seed=zono_guest" alt="User" class="w-9 h-9 rounded-full bg-stone-800 border border-amber-500/40 object-cover">
-                        <span id="header-profile-notification-count" class="hidden absolute -top-2 -left-2 min-w-[20px] h-5 px-1 rounded-full bg-red-600 text-white text-[10px] font-black items-center justify-center border-2 border-stone-950 shadow-lg">0</span>
-                    </div>
-                    <span id="header-user-name" class="text-xs font-bold text-stone-200 hidden sm:inline-block max-w-[90px] truncate">ضيف_زونو</span>
-                </div>
+            <!-- Header controls: transparent menu + notifications, both follow the active theme -->
+            <div class="zono-header-controls zono-left-header-actions">
+                <button type="button" class="zono-header-icon-btn" onclick="window.zonoApp.toggleMainDrawer()" aria-label="الأقسام">☰</button>
+                <button type="button" class="zono-header-icon-btn zono-header-bell" onclick="window.zonoApp.openAccountCenter('notifications')" aria-label="الشعارات">
+                    <span aria-hidden="true">🔔</span>
+                    <span id="header-profile-notification-count" class="hidden zono-header-notification-badge">0</span>
+                </button>
             </div>
         </div>
     </header>
@@ -117,13 +114,19 @@
             </div>
         </div>
         <div class="zono-main-drawer-menu">
-            <button type="button" onclick="window.zonoApp.switchTab('profile')"><span>🧑🏻</span><strong>معلوماتي</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('profile')"><span>👤</span><strong>معلوماتي</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('news')"><span>✉️</span><strong>مراسيل</strong></button>
-            <button type="button" onclick="window.zonoApp.switchTab('counter')"><span>🪶</span><strong>العداد</strong></button>
-            <button type="button" onclick="window.zonoApp.switchTab('birds')"><span>🕊️</span><strong>شراء عصفور</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('counter')"><span>⏱️</span><strong>العداد</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('birds')"><span>🐦</span><strong>شراء عصفور</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('store')"><span>🛍️</span><strong>المتجر</strong></button>
-            <button type="button" onclick="window.zonoApp.switchTab('rooms')"><span>👥</span><strong>كوفي</strong></button>
+            <button type="button" onclick="window.zonoApp.switchTab('rooms')"><span>☕</span><strong>كوفي</strong></button>
             <button type="button" onclick="window.zonoApp.switchTab('settings')"><span>⚙️</span><strong>الإعدادات</strong></button>
+            <button type="button" onclick="window.zonoApp.showComingSoon('الألعاب')"><span>🎮</span><strong>الألعاب</strong></button>
+            <button type="button" onclick="window.zonoApp.showComingSoon('الأفلام')"><span>🎬</span><strong>الأفلام</strong></button>
+            <button type="button" onclick="window.zonoApp.showComingSoon('المسلسلات')"><span>📺</span><strong>المسلسلات</strong></button>
+            <button type="button" onclick="window.zonoApp.showComingSoon('الوكلاء')"><span>🤝</span><strong>الوكلاء</strong></button>
+            <button type="button" onclick="window.zonoApp.showComingSoon('الدعم')"><span>🎧</span><strong>الدعم</strong></button>
+            <button type="button" onclick="window.zonoApp.showComingSoon('الشكاوى')"><span>📣</span><strong>الشكاوى</strong></button>
         </div>
     </aside>
 
@@ -809,7 +812,9 @@
                 <span id="zono-announcement-text">مرحباً بكم في Zono — تابعوا آخر التحديثات والإعلانات هنا</span>
             </div>
         </div>
-        <div class="max-w-md mx-auto flex items-center justify-center">
+        <div class="max-w-md mx-auto zono-bottom-nav-grid">
+            <button data-tab="profile" onclick="window.zonoApp.switchTab('profile')" class="nav-btn zono-bottom-side-btn"><span>👤</span><small>معلوماتي</small><i class="active-dot hidden"></i></button>
+            <button data-tab="private" onclick="window.zonoApp.switchTab('private')" class="nav-btn zono-bottom-side-btn"><span>💬</span><small>خاص</small><i class="active-dot hidden"></i></button>
             <button data-tab="counter" onclick="window.zonoApp.switchTab('counter')" class="nav-btn zono-feather-center-btn flex items-center justify-center rounded-full text-stone-400 hover:text-stone-200 transition-all relative group">
                 <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-600 via-yellow-500 to-amber-700 p-0.5 shadow-xl shadow-amber-500/30 group-hover:scale-110 transition-transform flex items-center justify-center">
                     <div class="w-full h-full bg-stone-950 rounded-full flex items-center justify-center text-xl">🪶</div>
@@ -817,6 +822,8 @@
                 <span class="active-dot hidden absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-amber-400"></span>
             
                 <span class="zono-canary-nav-label">ڪـنـاري</span></button>
+            <button data-tab="rooms" onclick="window.zonoApp.switchTab('rooms')" class="nav-btn zono-bottom-side-btn"><span>👥</span><small>الرومات</small><i class="active-dot hidden"></i></button>
+            <button data-tab="store" onclick="window.zonoApp.switchTab('store')" class="nav-btn zono-bottom-side-btn"><span>🛍️</span><small>المتجر</small><i class="active-dot hidden"></i></button>
         </div>
     </nav>
 
@@ -1520,7 +1527,7 @@
     <script src="js/supabase.js?v=20260901-1"></script>
     <script src="js/auth.js?v=20260905-persist1"></script>
     <script src="js/voice_webrtc.js?v=20260902-ui7"></script>
-    <script src="js/app.js?v=24.0-refreshfix1"></script>
+    <script src="js/app.js?v=26-header-nav-rewards"></script>
 
     <!-- Notification Detail Modal -->
     <div id="zono-notification-detail-modal" class="fixed inset-0 hidden items-center justify-center bg-black/70 backdrop-blur-sm px-4">
