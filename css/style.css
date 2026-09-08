@@ -3918,3 +3918,155 @@ body>main{position:fixed;left:0;right:0;top:var(--zono-header-h,7rem);bottom:var
 .zono-bottom-side-btn .active-dot{position:absolute;bottom:.08rem;width:.25rem;height:.25rem;border-radius:50%;background:currentColor}
 @media(min-width:641px){:root{--zono-header-h:4.6rem;--zono-bottom-h:5.7rem}}
 @media(max-width:640px){:root{--zono-header-h:7rem;--zono-bottom-h:5.7rem}.zono-header-controls{justify-self:start!important}.zono-brand{justify-self:end!important}}
+
+/* ===== ZONO compact mobile shell refinement 2026-09-08 ===== */
+@media (max-width: 640px) {
+  :root{
+    --zono-header-h:3.2rem;
+    --zono-counter-header-h:6.8rem;
+    --zono-bottom-h:5.25rem;
+  }
+
+  body>header{
+    height:var(--zono-header-h)!important;
+    min-height:var(--zono-header-h)!important;
+    max-height:var(--zono-header-h)!important;
+    padding:.26rem .48rem!important;
+    overflow:hidden!important;
+  }
+  body.zono-counter-mode>header{
+    height:var(--zono-counter-header-h)!important;
+    min-height:var(--zono-counter-header-h)!important;
+    max-height:var(--zono-counter-header-h)!important;
+  }
+
+  .zono-header-inner,
+  body:not(.zono-counter-mode) .zono-header-inner{
+    height:100%!important;
+    width:100%!important;
+    direction:ltr!important;
+    display:grid!important;
+    grid-template-columns:auto minmax(0,1fr) auto!important;
+    grid-template-areas:"controls spacer brand"!important;
+    grid-template-rows:1fr!important;
+    align-items:center!important;
+    align-content:center!important;
+    gap:.22rem!important;
+  }
+  body.zono-counter-mode .zono-header-inner{
+    grid-template-areas:
+      "controls spacer brand"
+      "currency currency currency"
+      "seedvalue seedvalue seedvalue"!important;
+    grid-template-rows:1.75rem 1.72rem 1.72rem!important;
+    row-gap:.22rem!important;
+  }
+
+  .zono-brand{
+    grid-area:brand!important;
+    justify-self:end!important;
+    direction:rtl!important;
+    max-width:none!important;
+    gap:.3rem!important;
+    overflow:visible!important;
+  }
+  .zono-logo-box{
+    width:1.78rem!important;height:1.78rem!important;min-width:1.78rem!important;flex-basis:1.78rem!important;
+    border-radius:.72rem!important;
+  }
+  .zono-brand-copy .text-xl{font-size:.96rem!important;line-height:1!important}
+  .zono-brand-copy .text-\[10px\].font-mono,
+  .zono-brand-copy p{display:none!important}
+
+  .zono-header-controls{
+    grid-area:controls!important;
+    justify-self:start!important;
+    direction:ltr!important;
+    gap:.12rem!important;
+  }
+  .zono-header-icon-btn{width:1.8rem!important;height:1.8rem!important;font-size:1.08rem!important}
+  .zono-header-bell{font-size:.86rem!important}
+
+  #zono-currency-pill{
+    grid-area:currency!important;
+    width:calc(100% - .65rem)!important;
+    max-width:none!important;
+    height:1.72rem!important;
+    min-height:1.72rem!important;
+    padding:.14rem .42rem!important;
+    margin:0 auto!important;
+    font-size:.62rem!important;
+  }
+  #zono-seed-value-pill{
+    grid-area:seedvalue!important;
+    width:calc(100% - .65rem)!important;
+    max-width:none!important;
+    height:1.72rem!important;
+    min-height:1.72rem!important;
+    padding:.14rem .42rem!important;
+    margin:0 auto!important;
+    font-size:.62rem!important;
+  }
+  .zono-resource-label,.zono-value-label{font-size:.46rem!important}
+  #header-feathers-count,#header-seeds-count,#zono-value-iqd-count{font-size:.63rem!important;max-width:none!important}
+
+  body>main{
+    top:var(--zono-header-h)!important;
+    bottom:var(--zono-bottom-h)!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    scroll-behavior:smooth;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+    padding:.42rem .48rem .7rem!important;
+  }
+  body.zono-counter-mode>main{top:var(--zono-counter-header-h)!important}
+  .tab-content{min-height:0!important;overflow:visible!important}
+
+  /* Counter: smaller, but all copy stays visible. */
+  #tab-counter{gap:.38rem!important}
+  #tab-counter>.glass-panel{padding:.48rem .42rem!important;border-radius:1.15rem!important;overflow:visible!important}
+  #tab-counter .max-w-xl.mx-auto.mb-6{margin-bottom:.25rem!important}
+  #tab-counter .max-w-xl.mx-auto.mb-6>.inline-flex{margin-bottom:.2rem!important}
+  #bird-status-badge{font-size:.54rem!important;padding:.22rem .48rem!important}
+  #tab-counter h2{font-size:1.28rem!important;line-height:1.18!important;margin-bottom:.18rem!important}
+  #tab-counter .max-w-xl p{font-size:.62rem!important;line-height:1.55!important;margin:0 auto!important;max-width:21rem!important}
+  #tab-counter div.relative.w-full.max-w-\[440px\]{
+    width:12.6rem!important;height:12.6rem!important;
+    max-width:min(58vw,12.6rem)!important;max-height:min(58vw,12.6rem)!important;
+    margin:.22rem auto .28rem!important;
+  }
+  #tab-counter .max-w-md.mx-auto.my-6{
+    width:min(94vw,22rem)!important;
+    height:auto!important;min-height:0!important;max-height:none!important;
+    margin:.26rem auto!important;padding:.48rem .55rem!important;
+  }
+  #tab-counter .max-w-md.mx-auto.my-6>span{font-size:.57rem!important;margin-bottom:.08rem!important}
+  #bird-timer-display{font-size:1.92rem!important;line-height:1.05!important}
+  #tab-counter .max-w-md.mx-auto.my-6 .mt-2{margin-top:.3rem!important;gap:.28rem!important;font-size:.58rem!important}
+  #tab-counter .max-w-md.mx-auto.my-6 .mt-2 span{padding:.2rem .38rem!important}
+  #bird-quote-text{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;font-size:.58rem!important;line-height:1.4!important;margin-top:.34rem!important}
+  #tab-counter .max-w-md.mx-auto.space-y-3{margin-top:.18rem!important}
+  #bird-trigger-btn{padding:.52rem .7rem!important;font-size:.68rem!important;border-radius:.8rem!important}
+  #tab-counter .grid.grid-cols-2.gap-3{gap:.38rem!important}
+  #tab-counter .grid.grid-cols-2.gap-3 button{padding:.5rem .45rem!important;font-size:.62rem!important}
+  #tab-counter .grid.grid-cols-3.gap-3.max-w-lg{margin-top:.45rem!important;padding-top:.45rem!important;gap:.32rem!important}
+  #tab-counter .grid.grid-cols-3.gap-3.max-w-lg>div{padding:.42rem .2rem!important;border-radius:.7rem!important}
+  #tab-counter .grid.grid-cols-3.gap-3.max-w-lg .text-xl{font-size:.9rem!important}
+  #tab-counter .grid.grid-cols-3.gap-3.max-w-lg .text-sm{font-size:.56rem!important}
+  #tab-counter .grid.grid-cols-3.gap-3.max-w-lg .text-\[10px\]{font-size:.46rem!important}
+
+  /* Bottom bar order is physical left -> right, independent of RTL page direction. */
+  .zono-feather-only-nav{
+    height:var(--zono-bottom-h)!important;
+    min-height:var(--zono-bottom-h)!important;
+    padding:.26rem .34rem max(.24rem,env(safe-area-inset-bottom))!important;
+  }
+  .zono-bottom-nav-grid{direction:ltr!important;grid-template-columns:1fr 1fr 1.12fr 1fr 1fr!important;gap:.05rem!important}
+  .zono-bottom-nav-grid>.nav-btn{direction:rtl!important}
+  .zono-bottom-side-btn{height:2.85rem!important;font-size:.82rem!important}
+  .zono-bottom-side-btn small{font-size:.52rem!important}
+  .zono-feather-center-btn{width:50px!important;height:44px!important;transform:translateY(-5px)!important}
+  .zono-feather-center-btn .w-12{width:2.55rem!important;height:2.55rem!important}
+  .zono-canary-nav-label{font-size:.61rem!important}
+}
