@@ -901,6 +901,19 @@ class ZonoApp {
     showAuthModal() {
         const authModal = document.getElementById('auth-modal');
         if (authModal) authModal.classList.remove('hidden');
+        this.showAuthWelcome();
+    }
+
+    showAuthWelcome() {
+        document.getElementById('zono-auth-welcome')?.classList.remove('hidden');
+        document.getElementById('zono-auth-forms')?.classList.add('hidden');
+        this.setAuthMessage('');
+    }
+
+    openAuthForm(mode = 'login') {
+        document.getElementById('zono-auth-welcome')?.classList.add('hidden');
+        document.getElementById('zono-auth-forms')?.classList.remove('hidden');
+        this.authTab(mode === 'register' ? 'register' : 'login');
     }
 
     hideAuthModal() {
