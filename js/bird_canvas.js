@@ -12,6 +12,10 @@ class ZonoBirdEngine {
         this.centerY = this.height / 2;
         this.radius = 180;
 
+        // Night-sky artwork used only inside the bird dial.
+        this.dialBackground = new Image();
+        this.dialBackground.src = 'assets/bird-night-sky.png';
+
         // State
         this.isFlying = false;
         this.skin = 'classic_gold'; // progressive bird tiers; old tiers are locked after upgrade
@@ -287,73 +291,97 @@ class ZonoBirdEngine {
 
     drawDial() {
         const ctx = this.ctx;
-
-        // Background Disc
         ctx.save();
-        const bgGradient = ctx.createRadialGradient(this.centerX, this.centerY, 40, this.centerX, this.centerY, this.radius);
-        bgGradient.addColorStop(0, '#16222F');
-        bgGradient.addColorStop(0.7, '#0C131A');
-        bgGradient.addColorStop(1, '#080C10');
 
+        // Deep navy base keeps the dial readable while the image is loading.
+        const bgGradient = ctx.createRadialGradient(this.centerX, this.centerY, 30, this.centerX, this.centerY, this.radius);
+        bgGradient.addColorStop(0, '#08245f');
+        bgGradient.addColorStop(0.62, '#061943');
+        bgGradient.addColorStop(1, '#030817');
         ctx.fillStyle = bgGradient;
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        // Inner Ambient Glow
-        const colors = this.getSkinColors();
-        const innerGlow = ctx.createRadialGradient(this.centerX, this.centerY, 10, this.centerX, this.centerY, this.radius - 20);
-        innerGlow.addColorStop(0, this.isFlying ? colors.glow : 'rgba(212, 175, 55, 0.08)');
-        innerGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-        ctx.fillStyle = innerGlow;
+        // Stars, clouds, moon and distant birds are clipped strictly inside the dial.
+        if (this.dialBackground && this.dialBackground.complete && this.dialBackground.naturalWidth) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, this.radius - 10, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.globalAlpha = 0.78;
+            ctx.drawImage(this.dialBackground,
+                this.centerX - (this.radius - 10),
+                this.centerY - (this.radius - 10),
+                (this.radius - 10) * 2,
+                (this.radius - 10) * 2);
+            // Gentle dark glass overlay so the moving bird and clock marks stay clear.
+            const shade = ctx.createRadialGradient(this.centerX, this.centerY, 25, this.centerX, this.centerY, this.radius - 8);
+            shade.addColorStop(0, 'rgba(1,9,35,0.03)');
+            shade.addColorStop(0.72, 'rgba(1,8,32,0.12)');
+            shade.addColorStop(1, 'rgba(1,5,20,0.40)');
+            ctx.fillStyle = shade;
+            ctx.fillRect(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2);
+            ctx.restore();
+        }
+
+        // Blue / violet / pink ambient glow that matches the global ZUNO theme.
+        const neonGlow = ctx.createRadialGradient(this.centerX, this.centerY, 55, this.centerX, this.centerY, this.radius - 4);
+        neonGlow.addColorStop(0, this.isFlying ? 'rgba(56,189,248,0.13)' : 'rgba(99,102,241,0.08)');
+        neonGlow.addColorStop(0.65, 'rgba(139,92,246,0.06)');
+        neonGlow.addColorStop(1, 'rgba(236,72,153,0.02)');
+        ctx.fillStyle = neonGlow;
         ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, this.radius - 10, 0, Math.PI * 2);
+        ctx.arc(this.centerX, this.centerY, this.radius - 8, 0, Math.PI * 2);
         ctx.fill();
 
-        // Outer Brass Frame Rings
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#D4AF37';
+        // Neon frame replaces the old brass/gold ring.
+        const ring = ctx.createLinearGradient(this.centerX - this.radius, this.centerY - this.radius, this.centerX + this.radius, this.centerY + this.radius);
+        ring.addColorStop(0, '#22d3ee');
+        ring.addColorStop(0.35, '#3b82f6');
+        ring.addColorStop(0.68, '#8b5cf6');
+        ring.addColorStop(1, '#ec4899');
+        ctx.shadowColor = this.isFlying ? '#38bdf8' : '#7c3aed';
+        ctx.shadowBlur = this.isFlying ? 18 : 12;
+        ctx.lineWidth = 6;
+        ctx.strokeStyle = ring;
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.shadowBlur = 0;
 
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgba(246, 224, 94, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(224,231,255,0.70)';
         ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, this.radius - 8, 0, Math.PI * 2);
+        ctx.arc(this.centerX, this.centerY, this.radius - 9, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Classic Hour Marks & Roman/24h Graduations
+        // 24-hour marks in the same neon palette.
         for (let i = 0; i < 24; i++) {
             const angle = (i / 24) * Math.PI * 2 - Math.PI / 2;
             const isMajor = i % 3 === 0;
-            const innerR = isMajor ? this.radius - 22 : this.radius - 14;
-            const outerR = this.radius - 10;
-
+            const innerR = isMajor ? this.radius - 24 : this.radius - 15;
+            const outerR = this.radius - 11;
             const x1 = this.centerX + Math.cos(angle) * innerR;
             const y1 = this.centerY + Math.sin(angle) * innerR;
             const x2 = this.centerX + Math.cos(angle) * outerR;
             const y2 = this.centerY + Math.sin(angle) * outerR;
-
-            ctx.lineWidth = isMajor ? 2.5 : 1;
-            ctx.strokeStyle = isMajor ? '#ECC94B' : 'rgba(212, 175, 55, 0.4)';
+            ctx.lineWidth = isMajor ? 2.6 : 1;
+            ctx.strokeStyle = isMajor ? '#e0f2fe' : 'rgba(125,211,252,0.52)';
             ctx.beginPath();
             ctx.moveTo(x1, y1);
             ctx.lineTo(x2, y2);
             ctx.stroke();
 
-            // Hour numbers on quarters
             if (isMajor) {
-                const textR = this.radius - 34;
+                const textR = this.radius - 38;
                 const tx = this.centerX + Math.cos(angle) * textR;
                 const ty = this.centerY + Math.sin(angle) * textR;
-
-                ctx.font = 'bold 10px "Cairo", serif';
-                ctx.fillStyle = '#D69E2E';
+                ctx.font = 'bold 10px "Cairo", sans-serif';
+                ctx.fillStyle = i % 6 === 0 ? '#f0abfc' : '#7dd3fc';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                const label = i === 0 ? '24' : String(i);
-                ctx.fillText(label, tx, ty);
+                ctx.fillText(i === 0 ? '24' : String(i), tx, ty);
             }
         }
 
