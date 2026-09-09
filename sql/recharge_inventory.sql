@@ -41,19 +41,32 @@ begin
 end $$;
 grant execute on function public.zono_developer_add_recharge_code(text,integer,text) to authenticated;
 
-create or replace function public.zono_developer_recharge_codes(p_provider text,p_amount_iqd integer)
-returns table(id uuid,code_value text,status text,buyer_public_id bigint,sold_at timestamptz,created_at timestamptz)
+drop function if exists public.zono_developer_recharge_codes(text,integer);
+create function public.zono_developer_recharge_codes(p_provider text,p_amount_iqd integer)
+returns jsonb
 language plpgsql security definer set search_path=public as $$
-declare v_uid uuid:=auth.uid(); v_public_id bigint;
+declare
+  v_uid uuid:=auth.uid();
+  v_public_id_text text;
+  v_items jsonb;
 begin
-  select public_id into v_public_id from public.profiles where id=v_uid;
-  if coalesce(v_public_id,0)<>1 then raise exception 'DEVELOPER_ONLY'; end if;
-  return query
-  select c.id,c.code_value,c.status,p.public_id::bigint,c.sold_at,c.created_at
+  select public_id::text into v_public_id_text from public.profiles where id=v_uid;
+  if coalesce(v_public_id_text,'') <> '1' then raise exception 'DEVELOPER_ONLY'; end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'id', c.id,
+    'code_value', c.code_value,
+    'status', c.status,
+    'buyer_public_id', p.public_id,
+    'sold_at', c.sold_at,
+    'created_at', c.created_at
+  ) order by (c.status='available') desc, c.created_at desc), '[]'::jsonb)
+  into v_items
   from public.zono_recharge_codes c
   left join public.profiles p on p.id=c.buyer_id
-  where c.provider=p_provider and c.amount_iqd=p_amount_iqd
-  order by (c.status='available') desc,c.created_at desc;
+  where c.provider=p_provider and c.amount_iqd=p_amount_iqd;
+
+  return jsonb_build_object('items', v_items);
 end $$;
 grant execute on function public.zono_developer_recharge_codes(text,integer) to authenticated;
 

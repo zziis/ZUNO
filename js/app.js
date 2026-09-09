@@ -1081,6 +1081,8 @@ class ZonoApp {
         if (!modal) return;
         this.closeMainDrawer();
         modal.classList.remove('hidden');
+        modal.style.setProperty('display','block','important');
+        modal.style.pointerEvents='auto';
         modal.setAttribute('aria-hidden', 'false');
         requestAnimationFrame(() => modal.classList.add('is-open'));
     }
@@ -1135,6 +1137,11 @@ class ZonoApp {
             if (el) {
                 el.classList.add('hidden');
                 el.setAttribute('aria-hidden', 'true');
+                // Hard-hide overlays as an inline fallback. This prevents an old/cached
+                // stylesheet or a high-specificity rule from leaving a full-screen layer
+                // above the currently selected bottom tab.
+                el.style.setProperty('display', 'none', 'important');
+                el.style.pointerEvents = 'none';
             }
         });
         document.documentElement.classList.remove('zono-modal-open');
@@ -1165,6 +1172,8 @@ class ZonoApp {
         // Hide all tabs
         document.querySelectorAll('.tab-content').forEach(tab => {
             tab.classList.remove('active');
+            tab.setAttribute('aria-hidden', 'true');
+            tab.style.setProperty('display', 'none', 'important');
         });
 
         // Show active tab. The bottom navigation uses "private" while the
@@ -1173,6 +1182,8 @@ class ZonoApp {
         const targetTab = document.getElementById(`tab-${targetId}`);
         if (targetTab) {
             targetTab.classList.add('active');
+            targetTab.setAttribute('aria-hidden', 'false');
+            targetTab.style.setProperty('display', 'block', 'important');
         }
 
         // Reset the real app scroller, not window.scrollY (the app uses a fixed main).
@@ -4192,6 +4203,8 @@ class ZonoApp {
         const modal = document.getElementById('zono-asiacell-modal');
         if (!modal) return;
         modal.classList.add('hidden');
+        modal.style.setProperty('display','none','important');
+        modal.style.pointerEvents='none';
         modal.setAttribute('aria-hidden', 'true');
         document.documentElement.classList.remove('zono-modal-open');
         document.body.classList.remove('zono-modal-open');
@@ -4257,26 +4270,26 @@ class ZonoApp {
 
     openZainCards() {
         const modal = document.getElementById('zono-zain-modal'); if (!modal) return;
-        modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false');
+        modal.classList.remove('hidden'); modal.style.setProperty('display','block','important'); modal.style.pointerEvents='auto'; modal.setAttribute('aria-hidden','false');
         document.documentElement.classList.add('zono-modal-open'); document.body.classList.add('zono-modal-open');
         this.renderRechargeCards('zain');
     }
     closeZainCards() {
         const modal=document.getElementById('zono-zain-modal'); if (!modal) return;
-        modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true');
+        modal.classList.add('hidden'); modal.style.setProperty('display','none','important'); modal.style.pointerEvents='none'; modal.setAttribute('aria-hidden','true');
         document.documentElement.classList.remove('zono-modal-open'); document.body.classList.remove('zono-modal-open');
     }
 
     openRechargeAdmin() {
         if (!this.isDeveloperAccount()) return this.showToast('هذا القسم متاح للمطور فقط', 'error');
         const modal=document.getElementById('zono-recharge-admin-modal'); if(!modal)return;
-        modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false');
+        modal.classList.remove('hidden'); modal.style.setProperty('display','block','important'); modal.style.pointerEvents='auto'; modal.setAttribute('aria-hidden','false');
         document.documentElement.classList.add('zono-modal-open'); document.body.classList.add('zono-modal-open');
         this.renderRechargeAdminProviders();
     }
     closeRechargeAdmin() {
         const modal=document.getElementById('zono-recharge-admin-modal'); if(!modal)return;
-        modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true');
+        modal.classList.add('hidden'); modal.style.setProperty('display','none','important'); modal.style.pointerEvents='none'; modal.setAttribute('aria-hidden','true');
         document.documentElement.classList.remove('zono-modal-open'); document.body.classList.remove('zono-modal-open');
     }
     setRechargeAdminRoot(root, btn) {
@@ -4300,7 +4313,8 @@ class ZonoApp {
     async loadRechargeAdminAmount(provider, amount) {
         const client=window.zunoBackend?.client||window.zonoAuth?.client, list=document.getElementById('zono-admin-stock-list'); if(!client||!list)return;
         try { const {data,error}=await client.rpc('zono_developer_recharge_codes',{p_provider:provider,p_amount_iqd:amount}); if(error)throw error;
-            const available=(data||[]).filter(x=>x.status==='available'), used=(data||[]).filter(x=>x.status==='used');
+            const rows = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
+            const available=rows.filter(x=>x.status==='available'), used=rows.filter(x=>x.status==='used');
             const render=(rows,status)=>rows.length?rows.map(r=>`<div class="zono-code-row ${status}"><code>${this.escapeHtml(r.code_value||'')}</code><div><span>${status==='available'?'مفعّل':'مستخدم'}</span>${status==='used'?`<small>ID ${r.buyer_public_id||'—'} • ${r.sold_at?new Date(r.sold_at).toLocaleString('ar-IQ'):'—'}</small>`:''}</div></div>`).join(''):'<div class="zono-admin-empty">لا توجد أكواد</div>';
             list.innerHTML=`<h4>الأرصدة غير المستخدمة <b>${available.length}</b></h4>${render(available,'available')}<h4 class="used-title">الأرصدة التي تم شراؤها <b>${used.length}</b></h4>${render(used,'used')}`;
         } catch(e){
