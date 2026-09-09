@@ -4661,3 +4661,36 @@ html:not(.zono-modal-open) .zono-zain-modal.hidden{visibility:hidden!important}
   .zono-store-shell *,.zono-asiacell-modal *,.zono-zain-modal *{animation-duration:.18s!important;transition-duration:.12s!important}
   .nav-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 }
+
+/* ZUNO entertainment store categories */
+.zono-entertainment-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  margin:16px 0 20px;
+}
+.zono-entertainment-card{
+  appearance:none;border:1px solid rgba(72,127,255,.48);border-radius:22px;
+  background:linear-gradient(155deg,rgba(20,42,105,.94),rgba(24,13,74,.96));
+  padding:10px;min-width:0;color:#fff;text-align:center;overflow:hidden;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);cursor:pointer;
+}
+.zono-entertainment-card:active{transform:scale(.985)}
+.zono-entertainment-image{
+  width:100%;aspect-ratio:1.55/1;border-radius:16px;background-position:center;background-size:cover;background-repeat:no-repeat;
+  margin-bottom:9px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.zono-entertainment-card strong{display:block;font-size:17px;line-height:1.35;margin-top:2px}
+.zono-entertainment-card small{display:block;color:#b7c7e8;margin:3px 0 9px;font-size:12px}
+.zono-entertainment-card .zono-provider-action{display:block;margin-top:auto}
+.zono-pubg-image{
+  display:grid;place-items:center;
+  background:
+    radial-gradient(circle at 72% 24%,rgba(245,177,46,.38),transparent 27%),
+    linear-gradient(145deg,#2c2a22 0%,#80642c 48%,#171a20 100%);
+}
+.zono-pubg-image span{
+  border:3px solid rgba(255,255,255,.92);padding:5px 12px;font-weight:900;font-size:28px;letter-spacing:1px;color:#fff;
+  text-shadow:0 2px 10px rgba(0,0,0,.7);
+}
+@media (min-width:700px){.zono-entertainment-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
