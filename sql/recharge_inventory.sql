@@ -49,7 +49,7 @@ begin
   select public_id into v_public_id from public.profiles where id=v_uid;
   if coalesce(v_public_id,0)<>1 then raise exception 'DEVELOPER_ONLY'; end if;
   return query
-  select c.id,c.code_value,c.status,p.public_id,c.sold_at,c.created_at
+  select c.id,c.code_value,c.status,p.public_id::bigint,c.sold_at,c.created_at
   from public.zono_recharge_codes c
   left join public.profiles p on p.id=c.buyer_id
   where c.provider=p_provider and c.amount_iqd=p_amount_iqd
@@ -76,10 +76,14 @@ begin
   update public.profiles set seeds=seeds-v_price where id=v_uid;
   update public.zono_recharge_codes set status='used',buyer_id=v_uid,sold_at=now() where id=v_code.id;
   insert into public.zono_notifications(user_id,kind,title,body,amount,is_read)
-  values(v_uid,'recharge_purchase','تم شراء رصيد',
+  values(v_uid,'company_message','تم شراء رصيد',
     format('تم شراء رصيد %s دينار من %s. كود الرصيد: %s',p_amount_iqd,case when p_provider='asiacell' then 'آسيا سيل' else 'زين العراق' end,v_code.code_value),
     p_amount_iqd,false);
 
   return query select true,'تم شراء الرصيد وإرسال الكود إلى الشعارات',v_code.code_value,(v_seeds-v_price)::bigint;
 end $$;
 grant execute on function public.zono_purchase_recharge_code(text,integer) to authenticated;
+
+-- FIX 2026-09-09:
+-- 1) Cast buyer public_id to bigint so the developer inventory RPC always matches its declared return type.
+-- 2) Recharge delivery uses the existing company_message notification kind for compatibility with current ZUNO notification schemas.

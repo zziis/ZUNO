@@ -4272,7 +4272,10 @@ class ZonoApp {
             const available=(data||[]).filter(x=>x.status==='available'), used=(data||[]).filter(x=>x.status==='used');
             const render=(rows,status)=>rows.length?rows.map(r=>`<div class="zono-code-row ${status}"><code>${this.escapeHtml(r.code_value||'')}</code><div><span>${status==='available'?'مفعّل':'مستخدم'}</span>${status==='used'?`<small>ID ${r.buyer_public_id||'—'} • ${r.sold_at?new Date(r.sold_at).toLocaleString('ar-IQ'):'—'}</small>`:''}</div></div>`).join(''):'<div class="zono-admin-empty">لا توجد أكواد</div>';
             list.innerHTML=`<h4>الأرصدة غير المستخدمة <b>${available.length}</b></h4>${render(available,'available')}<h4 class="used-title">الأرصدة التي تم شراؤها <b>${used.length}</b></h4>${render(used,'used')}`;
-        } catch(e){ list.innerHTML='<div class="zono-admin-empty">تعذر تحميل الأكواد</div>'; }
+        } catch(e){
+            console.error('ZONO recharge inventory:', e);
+            list.innerHTML='<div class="zono-admin-empty">تعذر تحميل الأكواد — أعد تشغيل ملف SQL الخاص بالأرصدة في Supabase</div>';
+        }
     }
     async saveRechargeCode(provider, amount) {
         const input=document.getElementById('zono-recharge-new-code'), code=String(input?.value||'').trim(); if(!code)return this.showToast('أدخل كود الرصيد','error');
@@ -4631,7 +4634,8 @@ class ZonoApp {
                 'company_message',
                 'withdrawal_status',
                 'agency_status',
-                'counter_reward'
+                'counter_reward',
+                'recharge_purchase'
             ]);
 
             const rows = (Array.isArray(data) ? data : []).filter(n => {
@@ -4671,7 +4675,8 @@ class ZonoApp {
                         n.kind === 'developer_message' ? '👑' :
                         n.kind === 'withdrawal_status' ? '💸' :
                         n.kind === 'agency_status' ? '🛡️' :
-                        n.kind === 'counter_reward' ? '🐦' : '🏢';
+                        n.kind === 'counter_reward' ? '🐦' :
+                        n.kind === 'recharge_purchase' ? '📲' : '🏢';
 
                     const title = n.title ||
                         (looksLikeSeedTransfer ? 'استلام بذور' : 'إشعار');
