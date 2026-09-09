@@ -4694,3 +4694,13 @@ html:not(.zono-modal-open) .zono-zain-modal.hidden{visibility:hidden!important}
   text-shadow:0 2px 10px rgba(0,0,0,.7);
 }
 @media (min-width:700px){.zono-entertainment-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* Developer account: dedicated administration interface */
+.zono-admin-dashboard{padding:14px 12px 110px;min-height:calc(100dvh - 130px);background:radial-gradient(circle at 85% 0,rgba(245,158,11,.12),transparent 34%),linear-gradient(180deg,#07111b 0%,#050912 100%)}
+.zono-admin-hero{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px;border:1px solid rgba(251,191,36,.48);border-radius:22px;background:linear-gradient(135deg,rgba(13,24,36,.98),rgba(25,18,8,.92));box-shadow:0 0 24px rgba(245,158,11,.08)}
+.zono-admin-kicker{font-weight:900;color:#fbbf24;font-size:13px}.zono-admin-hero h2{font-size:24px;font-weight:950;color:#fff;margin:5px 0}.zono-admin-hero p{font-size:12px;color:#cbd5e1}.zono-admin-hero p span{color:#fbbf24;font-weight:800}.zono-admin-shield{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;font-size:30px;border:1px solid rgba(251,191,36,.45);background:#020617}
+.zono-admin-status{margin:12px 0;display:flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid rgba(16,185,129,.32);border-radius:15px;background:rgba(6,78,59,.18);font-size:11px;color:#d1fae5}.zono-admin-status i{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 10px #34d399}.zono-admin-status b{margin-right:auto;color:#34d399}
+.zono-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.zono-admin-grid button{min-height:105px;padding:14px 9px;border-radius:18px;border:1px solid rgba(71,85,105,.55);background:linear-gradient(145deg,rgba(15,30,44,.96),rgba(7,15,25,.98));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:#fff;transition:transform .12s ease,border-color .12s ease}.zono-admin-grid button:active{transform:scale(.97);border-color:#fbbf24}.zono-admin-grid button span{font-size:27px}.zono-admin-grid button strong{font-size:12px;font-weight:900}.zono-admin-grid button small{font-size:9px;color:#94a3b8}
+.zono-admin-logout{width:100%;margin-top:14px;padding:13px;border-radius:16px;border:1px solid rgba(239,68,68,.55);background:rgba(127,29,29,.28);color:#fecaca;font-weight:900}
+body.zono-developer-account #zono-user-profile-content{display:none!important}body.zono-developer-account #zono-developer-dashboard{display:block!important}
+@media(max-width:420px){.zono-admin-grid{gap:8px}.zono-admin-grid button{min-height:96px}.zono-admin-dashboard{padding-inline:9px}}

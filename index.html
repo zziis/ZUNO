@@ -602,6 +602,32 @@
 
         <!-- ==================== TAB 6: حسابي (Profile) ==================== -->
         <section id="tab-profile" class="tab-content space-y-6">
+            <!-- Developer-only administration dashboard. Normal users never see this panel. -->
+            <div id="zono-developer-dashboard" class="hidden zono-admin-dashboard" dir="rtl">
+                <div class="zono-admin-hero">
+                    <div>
+                        <div class="zono-admin-kicker">👑 لوحة الإدارة</div>
+                        <h2>حساب المطور</h2>
+                        <p>ID : 1 <span>• مدير النظام</span></p>
+                    </div>
+                    <div class="zono-admin-shield">🕊️</div>
+                </div>
+                <div class="zono-admin-status"><i></i><span>لوحة التحكم الإدارية</span><b>متصل</b></div>
+                <div class="zono-admin-grid">
+                    <button onclick="window.zonoApp.openDeveloperQueryModal()"><span>👥</span><strong>إدارة المستخدمين</strong><small>الحسابات والأرصدة</small></button>
+                    <button onclick="window.zonoApp.switchTab('rooms')"><span>🏛️</span><strong>إدارة الرومات</strong><small>الغرف والمشرفون</small></button>
+                    <button onclick="window.zonoApp.openRechargeAdmin()"><span>🎟️</span><strong>إدارة الأكواد</strong><small>بطاقات الشحن</small></button>
+                    <button onclick="window.zonoApp.openDeveloperAdminModal('transfers')"><span>🔁</span><strong>الحوالات والسحوبات</strong><small>طلبات المستخدمين</small></button>
+                    <button onclick="window.zonoApp.openDeveloperAdminModal('agents')"><span>🛡️</span><strong>الوكلاء والمشرفون</strong><small>الصلاحيات</small></button>
+                    <button onclick="window.zonoApp.switchTab('store')"><span>💳</span><strong>متجر بطاقات الشحن</strong><small>المخزون والمتجر</small></button>
+                    <button onclick="window.zonoApp.openDeveloperBanModal()"><span>⛔</span><strong>الحظر</strong><small>حظر الحسابات</small></button>
+                    <button onclick="window.zonoApp.openDeveloperUnbanModal()"><span>🔓</span><strong>إلغاء الحظر</strong><small>رفع الحظر</small></button>
+                    <button onclick="window.zonoApp.openAccountCenter('notifications')"><span>📣</span><strong>الإشعارات</strong><small>مركز التنبيهات</small></button>
+                    <button onclick="window.zonoApp.switchTab('settings')"><span>⚙️</span><strong>إعدادات النظام</strong><small>الحساب والتطبيق</small></button>
+                </div>
+                <button class="zono-admin-logout" onclick="window.zonoApp.requestLogout ? window.zonoApp.requestLogout() : window.zonoApp.logout()">تسجيل خروج</button>
+            </div>
+            <div id="zono-user-profile-content">
             <!-- Profile Identity Card -->
             <div class="glass-panel p-6 sm:p-8 rounded-3xl border border-amber-500/40 relative overflow-hidden shadow-2xl">
                 <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 sm:space-x-reverse">
@@ -818,6 +844,7 @@
 
 
         <!-- ==================== TAB: المحفظة ==================== -->
+                    </div>
         <section id="tab-wallet" class="tab-content space-y-4">
             <div class="zono-wallet-page max-w-2xl mx-auto">
                 <!-- Wallet -->

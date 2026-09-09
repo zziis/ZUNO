@@ -1517,6 +1517,14 @@ class ZonoApp {
         const developerRechargeBtn = document.getElementById('developer-recharge-balance-btn');
         if (developerRechargeBtn) developerRechargeBtn.classList.toggle('hidden', !this.isDeveloperAccount());
 
+        // ID 1 gets a dedicated administration interface; normal users keep the original UI.
+        const isDeveloperDashboard = this.isDeveloperAccount();
+        document.body.classList.toggle('zono-developer-account', isDeveloperDashboard);
+        const developerDashboard = document.getElementById('zono-developer-dashboard');
+        const normalProfile = document.getElementById('zono-user-profile-content');
+        if (developerDashboard) developerDashboard.classList.toggle('hidden', !isDeveloperDashboard);
+        if (normalProfile) normalProfile.classList.toggle('hidden', isDeveloperDashboard);
+
         const agentBadge = document.getElementById('profile-agent-badge');
         if (agentBadge) {
             const isAgent = this.currentUser.role === 'agent';
