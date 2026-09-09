@@ -443,8 +443,10 @@
                         <div><h3>بطاقات شحن</h3><p>اختر شركة الاتصالات</p></div>
                     </div>
                     <div class="zono-recharge-grid">
-                        <button class="zono-recharge-card" data-store-search="آسيا سيل اسيا سيل asiacell" onclick="window.zonoApp.storeSoon('آسيا سيل')">
-                            <div class="zono-brand-logo asiacell">Asiacell</div><strong>آسيا سيل</strong><small>بطاقات شحن</small>
+                        <button class="zono-recharge-card zono-asiacell-provider" data-store-search="آسيا سيل اسيا سيل asiacell" onclick="window.zonoApp.openAsiacellCards()">
+                            <div class="zono-provider-image asiacell-image" aria-hidden="true"></div>
+                            <strong>آسيا سيل</strong><small>بطاقات شحن</small>
+                            <span class="zono-provider-action">عرض البطاقات</span>
                         </button>
                         <button class="zono-recharge-card" data-store-search="زين العراق zain" onclick="window.zonoApp.storeSoon('زين العراق')">
                             <div class="zono-brand-logo zain">zain</div><strong>زين العراق</strong><small>بطاقات شحن</small>
@@ -465,7 +467,56 @@
             </div>
         </section>
 
-        <!-- ==================== Bird Shop ==================== -->
+
+
+    <!-- ==================== Asiacell Recharge Cards Full Screen ==================== -->
+    <div id="zono-asiacell-modal" class="zono-asiacell-modal hidden" dir="rtl" aria-hidden="true">
+        <div class="zono-asiacell-screen">
+            <div class="zono-asiacell-hero">
+                <button type="button" class="zono-asiacell-back" onclick="window.zonoApp.closeAsiacellCards()" aria-label="رجوع">‹</button>
+                <div class="zono-asiacell-hero-logo" aria-label="Asiacell"></div>
+                <div class="zono-asiacell-copy">
+                    <h2>بطاقات شحن آسيا سيل</h2>
+                    <p>اختر فئة الرصيد المطلوبة</p>
+                </div>
+            </div>
+
+            <div class="zono-asiacell-grid">
+                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('2000')">
+                    <div class="zono-voucher-art"><span>2,000</span><small>IQD</small></div>
+                    <strong>2000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
+                    <em>غير متوفر حالياً</em>
+                </button>
+                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('5000')">
+                    <div class="zono-voucher-art"><span>5,000</span><small>IQD</small></div>
+                    <strong>5000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
+                    <em>غير متوفر حالياً</em>
+                </button>
+                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('10000')">
+                    <div class="zono-voucher-art"><span>10,000</span><small>IQD</small></div>
+                    <strong>10000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
+                    <em>غير متوفر حالياً</em>
+                </button>
+                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('15000')">
+                    <div class="zono-voucher-art"><span>15,000</span><small>IQD</small></div>
+                    <strong>15000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
+                    <em>غير متوفر حالياً</em>
+                </button>
+                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('25000')">
+                    <div class="zono-voucher-art"><span>25,000</span><small>IQD</small></div>
+                    <strong>25000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
+                    <em>غير متوفر حالياً</em>
+                </button>
+            </div>
+
+            <div class="zono-asiacell-note">
+                <span>ⓘ</span>
+                <div><strong>الخدمة غير متوفرة الآن</strong><small>سيتم تفعيل بطاقات الشحن قريباً.</small></div>
+            </div>
+        </div>
+    </div>
+
+                <!-- ==================== Bird Shop ==================== -->
         <section id="tab-birds" class="tab-content space-y-6">
             <div class="glass-panel p-5 rounded-3xl border border-amber-500/30 flex items-center justify-between gap-3">
                 <div>

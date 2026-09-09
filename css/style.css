@@ -4588,3 +4588,29 @@ button[class*="from-amber"],button[class*="from-yellow"],
   .glass-panel{border-color:rgba(64,156,255,.19)!important}
   #tab-counter>.glass-panel{box-shadow:0 12px 34px rgba(0,0,0,.26),0 0 24px rgba(58,102,255,.05)!important}
 }
+
+/* ===== Asiacell recharge cards update 2026-09-09 ===== */
+.zono-recharge-card.zono-asiacell-provider{position:relative;overflow:hidden;padding:.55rem;background:linear-gradient(180deg,#ed1c24 0%,#9c0710 58%,rgba(14,18,42,.98) 100%);border-color:rgba(255,60,74,.75);color:#fff;box-shadow:0 0 0 1px rgba(0,191,255,.45),0 12px 28px rgba(190,0,22,.28)}
+.zono-provider-image{width:100%;height:5.2rem;border-radius:.8rem;background-position:center;background-size:cover;background-repeat:no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.zono-provider-image.asiacell-image{background-image:url('../assets/asiacell.png');background-color:#ed1c24}
+.zono-asiacell-provider strong{font-size:.9rem!important;color:#fff}.zono-asiacell-provider small{color:rgba(255,255,255,.72)!important}
+.zono-provider-action{margin-top:.45rem;width:100%;min-height:2rem;border-radius:.75rem;display:grid;place-items:center;background:linear-gradient(90deg,#00a8ff,#6a55ff,#ec34dc);font-size:.68rem;font-weight:900;color:#fff;box-shadow:0 6px 16px rgba(58,65,255,.3)}
+
+.zono-modal-open{overflow:hidden!important}
+.zono-asiacell-modal{position:fixed;inset:0;z-index:100000;background:#03040a;overflow-y:auto;overscroll-behavior:contain;color:#fff}
+.zono-asiacell-modal.hidden{display:none!important}
+.zono-asiacell-screen{min-height:100dvh;padding:calc(env(safe-area-inset-top,0px) + .75rem) .75rem calc(env(safe-area-inset-bottom,0px) + 1rem);background:radial-gradient(circle at 50% -5%,rgba(239,28,36,.42),transparent 28%),linear-gradient(180deg,#240006 0%,#09060e 35%,#02040a 100%)}
+.zono-asiacell-hero{position:relative;min-height:12.5rem;border-radius:1.35rem;overflow:hidden;padding:1rem;background:linear-gradient(180deg,rgba(165,0,15,.4),rgba(15,2,8,.84)),url('../assets/asiacell.png') center 20%/cover no-repeat;border:1px solid rgba(255,48,65,.46);box-shadow:0 12px 40px rgba(181,0,22,.24),inset 0 0 70px rgba(239,28,36,.16)}
+.zono-asiacell-hero:after{content:'';position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(transparent,rgba(2,4,10,.96));pointer-events:none}
+.zono-asiacell-back{position:absolute;z-index:3;left:.75rem;top:.75rem;width:2.65rem;height:2.65rem;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(5,7,12,.72);color:#fff;font-size:2rem;display:grid;place-items:center;line-height:1}
+.zono-asiacell-hero-logo{height:5.9rem;width:min(17rem,76vw);margin:.4rem auto 0;background:url('../assets/asiacell.png') center/contain no-repeat;filter:drop-shadow(0 5px 18px rgba(255,0,31,.34))}
+.zono-asiacell-copy{position:absolute;z-index:2;bottom:.85rem;right:1rem;left:1rem;text-align:center}.zono-asiacell-copy h2{font-size:1.12rem;font-weight:950;margin:0}.zono-asiacell-copy p{font-size:.68rem;color:rgba(255,255,255,.72);margin:.2rem 0 0}
+.zono-asiacell-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.72rem;margin-top:.9rem}
+.zono-voucher-card{min-width:0;border-radius:1rem;padding:.55rem;background:linear-gradient(180deg,rgba(28,7,12,.96),rgba(5,7,13,.98));border:1px solid rgba(255,65,73,.72);color:#fff;text-align:center;box-shadow:0 10px 24px rgba(0,0,0,.28),inset 0 0 24px rgba(255,0,43,.06)}
+.zono-voucher-art{position:relative;height:6.2rem;border-radius:.8rem;display:flex;align-items:center;justify-content:center;gap:.28rem;overflow:hidden;background:linear-gradient(145deg,rgba(241,27,36,.95),rgba(136,0,14,.9)),url('../assets/asiacell.png') center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),0 7px 16px rgba(184,0,20,.2)}
+.zono-voucher-art:before{content:'Asiacell';position:absolute;top:.45rem;right:.55rem;font-size:.62rem;font-weight:1000;font-style:italic;color:#fff}.zono-voucher-art:after{content:'4G';position:absolute;top:.4rem;left:.5rem;font-size:.55rem;font-weight:900;color:#fff}
+.zono-voucher-art span{font-size:1.65rem;font-weight:1000;text-shadow:0 2px 10px rgba(0,0,0,.4)}.zono-voucher-art small{align-self:flex-end;margin-bottom:1.3rem;font-size:.55rem;font-weight:900}
+.zono-voucher-card>strong{display:block;font-size:.8rem;font-weight:950;margin-top:.48rem}.zono-voucher-price{display:block;width:max-content;max-width:100%;margin:.42rem auto 0;padding:.33rem .65rem;border-radius:999px;border:1px solid rgba(255,183,57,.35);background:rgba(96,35,10,.25);color:#ffc84b;font-size:.65rem;font-weight:900}
+.zono-voucher-card em{display:block;margin-top:.45rem;padding:.42rem .35rem;border-radius:.75rem;background:linear-gradient(180deg,#30343d,#171a20);border:1px solid rgba(255,255,255,.2);color:#c9ccd4;font-size:.62rem;font-weight:800;font-style:normal}
+.zono-asiacell-note{margin-top:.85rem;min-height:4rem;border-radius:1rem;border:1px solid rgba(255,50,68,.45);background:rgba(78,0,12,.42);display:flex;align-items:center;gap:.7rem;padding:.7rem .85rem}.zono-asiacell-note>span{font-size:1.4rem;color:#ff4659}.zono-asiacell-note strong,.zono-asiacell-note small{display:block}.zono-asiacell-note strong{font-size:.72rem}.zono-asiacell-note small{font-size:.6rem;color:rgba(255,255,255,.62);margin-top:.12rem}
+@media(max-width:360px){.zono-voucher-art{height:5.45rem}.zono-voucher-art span{font-size:1.35rem}.zono-asiacell-hero{min-height:11.5rem}}

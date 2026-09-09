@@ -4144,6 +4144,28 @@ class ZonoApp {
         this.showToast(`${name ? name + ' — ' : ''}قريبًا الفتح`);
     }
 
+    openAsiacellCards() {
+        const modal = document.getElementById('zono-asiacell-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        document.documentElement.classList.add('zono-modal-open');
+        document.body.classList.add('zono-modal-open');
+    }
+
+    closeAsiacellCards() {
+        const modal = document.getElementById('zono-asiacell-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        document.documentElement.classList.remove('zono-modal-open');
+        document.body.classList.remove('zono-modal-open');
+    }
+
+    showRechargeUnavailable(amount = '') {
+        this.showToast(`${amount ? amount + ' دينار — ' : ''}غير متوفر الآن`);
+    }
+
     // --- Store System (المتجر) ---
     getStoreItems() {
         return [
