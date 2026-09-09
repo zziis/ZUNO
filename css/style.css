@@ -4631,3 +4631,20 @@ button[class*="from-amber"],button[class*="from-yellow"],
 .zono-admin-amount-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}.zono-admin-amount-grid button{padding:28px 10px;border-radius:20px;background:linear-gradient(145deg,#12265a,#2b1761);border:1px solid #4758ff;color:#fff;font-size:24px;font-weight:900}.zono-admin-amount-grid small{display:block;font-size:11px;color:#93c5fd;margin-top:5px}.zono-recharge-admin-content h3,#zono-recharge-admin-content h3{margin:18px 0;font-size:21px;font-weight:900}
 .zono-admin-add-code{display:grid;grid-template-columns:1fr 90px;gap:10px;background:#0b1530;border:1px solid #334155;padding:12px;border-radius:18px}.zono-admin-add-code input{background:#050b1e;border:1px solid #334155;border-radius:12px;padding:14px;color:#fff}.zono-admin-add-code button{border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);font-weight:900}.zono-admin-stock-list{margin-top:18px}.zono-admin-stock-list h4{display:flex;justify-content:space-between;color:#86efac;margin:15px 0 8px}.zono-admin-stock-list .used-title{color:#fca5a5}.zono-code-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;margin:7px 0;border-radius:14px;background:#071127;border:1px solid #334155}.zono-code-row code{direction:ltr;color:#e2e8f0}.zono-code-row div{text-align:left}.zono-code-row span{display:block;font-size:11px;font-weight:900}.zono-code-row small{display:block;font-size:9px;color:#94a3b8;margin-top:4px}.zono-code-row.available{border-color:#22c55e66}.zono-code-row.available span{color:#4ade80}.zono-code-row.used{border-color:#ef444466;background:#260b15}.zono-code-row.used span{color:#fb7185}.zono-admin-empty{text-align:center;padding:28px;color:#64748b}
 @media(max-width:520px){.zono-admin-provider-grid{grid-template-columns:1fr}.zono-admin-provider-grid button{min-height:135px}.zono-admin-amount-grid{grid-template-columns:repeat(2,1fr)}}
+
+
+/* ZUNO navigation stability + mobile performance fix 2026-09-09 */
+.tab-content{display:none!important}
+.tab-content.active{display:block!important}
+body>main{scroll-behavior:auto!important;will-change:scroll-position;contain:layout paint style}
+.zono-asiacell-modal.hidden,.zono-zain-modal.hidden,.zono-recharge-admin-modal.hidden{display:none!important;pointer-events:none!important}
+html:not(.zono-modal-open) .zono-asiacell-modal.hidden,
+html:not(.zono-modal-open) .zono-zain-modal.hidden{visibility:hidden!important}
+
+@media (max-width: 768px){
+  .tab-content{content-visibility:auto;contain-intrinsic-size:800px 1200px}
+  .tab-content.active{content-visibility:visible}
+  .nav-btn,.zono-store-tab-btn,.zono-recharge-card,.zono-voucher-buy{touch-action:manipulation}
+  .nav-btn{transition:transform .12s ease,color .12s ease!important}
+  .glass-panel,.zono-recharge-card,.zono-voucher-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+}

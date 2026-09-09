@@ -1125,8 +1125,28 @@ class ZonoApp {
         }
     }
 
+    closeNavigationOverlays() {
+        // Any full-screen layer left open will sit above the main tabs and make
+        // navigation look frozen. Close navigation-owned overlays every time
+        // the user changes a bottom tab.
+        const ids = ['zono-asiacell-modal', 'zono-zain-modal', 'zono-recharge-admin-modal'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('hidden');
+                el.setAttribute('aria-hidden', 'true');
+            }
+        });
+        document.documentElement.classList.remove('zono-modal-open');
+        document.body.classList.remove('zono-modal-open', 'zono-drawer-open', 'zono-themes-open');
+
+        // Close other optional navigation layers without throwing if they do not exist.
+        document.querySelectorAll('[data-zono-nav-overlay].is-open').forEach(el => el.classList.remove('is-open'));
+    }
+
     switchTab(tabId) {
         this.closeMainDrawer();
+        this.closeNavigationOverlays();
         if (window.zonoAudio) window.zonoAudio.playTap();
         this.currentTab = tabId;
         document.body.classList.toggle('zono-counter-mode', tabId === 'counter');
@@ -1147,11 +1167,18 @@ class ZonoApp {
             tab.classList.remove('active');
         });
 
-        // Show active tab
-        const targetTab = document.getElementById(`tab-${tabId}`);
+        // Show active tab. The bottom navigation uses "private" while the
+        // existing private-message section is named "tab-direct".
+        const targetId = tabId === 'private' ? 'direct' : tabId;
+        const targetTab = document.getElementById(`tab-${targetId}`);
         if (targetTab) {
             targetTab.classList.add('active');
         }
+
+        // Reset the real app scroller, not window.scrollY (the app uses a fixed main).
+        const mainScroller = document.querySelector('body > main');
+        if (mainScroller) mainScroller.scrollTop = 0;
+        if (targetTab) targetTab.scrollTop = 0;
 
         // Update nav bar active states
         document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -1169,9 +1196,13 @@ class ZonoApp {
             }
         });
 
-        // Trigger resize/redraw on bird canvas if navigating to counter
+        // Trigger one redraw on the next frame. This avoids doing canvas work
+        // in the same click frame as the tab layout switch on slower phones.
         if (tabId === 'counter' && this.birdEngine) {
-            this.birdEngine.updateUI();
+            cancelAnimationFrame(this._counterNavFrame || 0);
+            this._counterNavFrame = requestAnimationFrame(() => {
+                try { this.birdEngine.updateUI(); } catch (_) {}
+            });
         }
         if (tabId === 'birds') {
             this.renderStore();
