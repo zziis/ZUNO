@@ -1465,6 +1465,9 @@ class ZonoApp {
         if (developerAdminCard) developerAdminCard.classList.toggle('hidden', this.currentUser.role !== 'developer');
         const agencyRequestCard = document.getElementById('agency-request-card');
         if (agencyRequestCard) agencyRequestCard.classList.toggle('hidden', ['agent','developer'].includes(this.currentUser.role));
+        const developerRechargeBtn = document.getElementById('developer-recharge-balance-btn');
+        if (developerRechargeBtn) developerRechargeBtn.classList.toggle('hidden', !this.isDeveloperAccount());
+
         const agentBadge = document.getElementById('profile-agent-badge');
         if (agentBadge) {
             const isAgent = this.currentUser.role === 'agent';
@@ -4151,6 +4154,7 @@ class ZonoApp {
         modal.setAttribute('aria-hidden', 'false');
         document.documentElement.classList.add('zono-modal-open');
         document.body.classList.add('zono-modal-open');
+        this.renderRechargeCards('asiacell');
     }
 
     closeAsiacellCards() {
@@ -4164,6 +4168,117 @@ class ZonoApp {
 
     showRechargeUnavailable(amount = '') {
         this.showToast(`${amount ? amount + ' دينار — ' : ''}غير متوفر الآن`);
+    }
+
+
+    rechargeAmounts() { return [2000, 5000, 10000, 15000, 25000]; }
+    rechargePriceSeeds() { return 5000; }
+    isDeveloperAccount() { return Number(this.currentUser?.publicId || this.currentUser?.username || 0) === 1 || this.currentUser?.role === 'developer'; }
+
+    async getRechargeAvailability(provider) {
+        const client = window.zunoBackend?.client || window.zonoAuth?.client;
+        const result = Object.fromEntries(this.rechargeAmounts().map(a => [a, 0]));
+        if (!client) return result;
+        try {
+            const { data, error } = await client.rpc('zono_recharge_availability', { p_provider: provider });
+            if (error) throw error;
+            (data || []).forEach(r => { result[Number(r.amount_iqd)] = Number(r.available_count || 0); });
+        } catch (_) {}
+        return result;
+    }
+
+    async renderRechargeCards(provider) {
+        const grid = document.getElementById(provider === 'asiacell' ? 'zono-asiacell-grid' : 'zono-zain-grid');
+        if (!grid) return;
+        grid.innerHTML = '<div class="zono-recharge-loading">جاري فحص الرصيد المتوفر...</div>';
+        const stock = await this.getRechargeAvailability(provider);
+        grid.innerHTML = this.rechargeAmounts().map(amount => {
+            const count = Number(stock[amount] || 0), available = count > 0;
+            return `<button class="zono-voucher-card ${provider === 'zain' ? 'zono-zain-voucher' : ''} ${available ? 'is-available' : 'is-soldout'}" onclick="window.zonoApp.buyRechargeCard('${provider}', ${amount})">
+                <div class="zono-voucher-art"><span>${amount.toLocaleString('en-US')}</span><small>IQD</small></div>
+                <strong>${amount} دينار</strong><span class="zono-voucher-price">🌾 ${this.rechargePriceSeeds()} بذرة</span>
+                <em>${available ? `شراء • متوفر ${count}` : 'غير متوفر حالياً'}</em>
+            </button>`;
+        }).join('');
+    }
+
+    async buyRechargeCard(provider, amount) {
+        if (!this.currentUser) return this.showAuthModal();
+        const price = this.rechargePriceSeeds();
+        if (Number(this.currentUser.seeds || 0) < price) return this.showToast(`تحتاج ${price} بذرة لشراء الرصيد`, 'error');
+        const client = window.zunoBackend?.client || window.zonoAuth?.client;
+        if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+        try {
+            const { data, error } = await client.rpc('zono_purchase_recharge_code', { p_provider: provider, p_amount_iqd: amount });
+            if (error) throw error;
+            const row = Array.isArray(data) ? data[0] : data;
+            if (!row?.ok) return this.showToast(row?.message || 'نفد الرصيد حالياً، يرجى المحاولة لاحقاً', 'error');
+            await window.zonoAuth.loadProfile(window.zonoAuth.user); await this.syncUserFromSupabase();
+            await this.loadNotifications(false);
+            this.showToast(`تم شراء رصيد ${amount} دينار، تم إرسال الكود إلى الشعارات`, 'success');
+            await this.renderRechargeCards(provider);
+        } catch (e) {
+            const msg = String(e?.message || '');
+            this.showToast(msg.includes('OUT_OF_STOCK') ? 'نفد الرصيد حالياً، يرجى المحاولة لاحقاً' : (msg || 'تعذر شراء الرصيد'), 'error');
+            await this.renderRechargeCards(provider);
+        }
+    }
+
+    openZainCards() {
+        const modal = document.getElementById('zono-zain-modal'); if (!modal) return;
+        modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false');
+        document.documentElement.classList.add('zono-modal-open'); document.body.classList.add('zono-modal-open');
+        this.renderRechargeCards('zain');
+    }
+    closeZainCards() {
+        const modal=document.getElementById('zono-zain-modal'); if (!modal) return;
+        modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true');
+        document.documentElement.classList.remove('zono-modal-open'); document.body.classList.remove('zono-modal-open');
+    }
+
+    openRechargeAdmin() {
+        if (!this.isDeveloperAccount()) return this.showToast('هذا القسم متاح للمطور فقط', 'error');
+        const modal=document.getElementById('zono-recharge-admin-modal'); if(!modal)return;
+        modal.classList.remove('hidden'); modal.setAttribute('aria-hidden','false');
+        document.documentElement.classList.add('zono-modal-open'); document.body.classList.add('zono-modal-open');
+        this.renderRechargeAdminProviders();
+    }
+    closeRechargeAdmin() {
+        const modal=document.getElementById('zono-recharge-admin-modal'); if(!modal)return;
+        modal.classList.add('hidden'); modal.setAttribute('aria-hidden','true');
+        document.documentElement.classList.remove('zono-modal-open'); document.body.classList.remove('zono-modal-open');
+    }
+    setRechargeAdminRoot(root, btn) {
+        document.querySelectorAll('.zono-recharge-admin-tabs button').forEach(b=>b.classList.remove('active')); btn?.classList.add('active');
+        if(root==='store') document.getElementById('zono-recharge-admin-content').innerHTML='<div class="zono-admin-empty">قسم المتجر — جاهز للإضافات القادمة</div>';
+        else this.renderRechargeAdminProviders();
+    }
+    renderRechargeAdminProviders() {
+        const c=document.getElementById('zono-recharge-admin-content'); if(!c)return;
+        c.innerHTML=`<div class="zono-admin-provider-grid"><button class="asiacell" onclick="window.zonoApp.renderRechargeAdminAmounts('asiacell')"><strong>Asiacell</strong><small>آسيا سيل</small></button><button class="zain" onclick="window.zonoApp.renderRechargeAdminAmounts('zain')"><strong>zain</strong><small>زين العراق</small></button></div>`;
+    }
+    renderRechargeAdminAmounts(provider) {
+        const c=document.getElementById('zono-recharge-admin-content'); if(!c)return;
+        c.innerHTML=`<button class="zono-admin-inline-back" onclick="window.zonoApp.renderRechargeAdminProviders()">‹ الشركات</button><h3>${provider==='asiacell'?'آسيا سيل':'زين العراق'}</h3><div class="zono-admin-amount-grid">${this.rechargeAmounts().map(a=>`<button onclick="window.zonoApp.openRechargeAdminAmount('${provider}',${a})">${a.toLocaleString('en-US')}<small>دينار</small></button>`).join('')}</div>`;
+    }
+    async openRechargeAdminAmount(provider, amount) {
+        const c=document.getElementById('zono-recharge-admin-content'); if(!c)return;
+        c.innerHTML=`<button class="zono-admin-inline-back" onclick="window.zonoApp.renderRechargeAdminAmounts('${provider}')">‹ الفئات</button><h3>${provider==='asiacell'?'آسيا سيل':'زين العراق'} — ${amount} دينار</h3><div class="zono-admin-add-code"><input id="zono-recharge-new-code" autocomplete="off" placeholder="أدخل كود الرصيد هنا"><button onclick="window.zonoApp.saveRechargeCode('${provider}',${amount})">حفظ</button></div><div id="zono-admin-stock-list" class="zono-admin-stock-list">جاري التحميل...</div>`;
+        await this.loadRechargeAdminAmount(provider, amount);
+    }
+    async loadRechargeAdminAmount(provider, amount) {
+        const client=window.zunoBackend?.client||window.zonoAuth?.client, list=document.getElementById('zono-admin-stock-list'); if(!client||!list)return;
+        try { const {data,error}=await client.rpc('zono_developer_recharge_codes',{p_provider:provider,p_amount_iqd:amount}); if(error)throw error;
+            const available=(data||[]).filter(x=>x.status==='available'), used=(data||[]).filter(x=>x.status==='used');
+            const render=(rows,status)=>rows.length?rows.map(r=>`<div class="zono-code-row ${status}"><code>${this.escapeHtml(r.code_value||'')}</code><div><span>${status==='available'?'مفعّل':'مستخدم'}</span>${status==='used'?`<small>ID ${r.buyer_public_id||'—'} • ${r.sold_at?new Date(r.sold_at).toLocaleString('ar-IQ'):'—'}</small>`:''}</div></div>`).join(''):'<div class="zono-admin-empty">لا توجد أكواد</div>';
+            list.innerHTML=`<h4>الأرصدة غير المستخدمة <b>${available.length}</b></h4>${render(available,'available')}<h4 class="used-title">الأرصدة التي تم شراؤها <b>${used.length}</b></h4>${render(used,'used')}`;
+        } catch(e){ list.innerHTML='<div class="zono-admin-empty">تعذر تحميل الأكواد</div>'; }
+    }
+    async saveRechargeCode(provider, amount) {
+        const input=document.getElementById('zono-recharge-new-code'), code=String(input?.value||'').trim(); if(!code)return this.showToast('أدخل كود الرصيد','error');
+        const client=window.zunoBackend?.client||window.zunoAuth?.client; if(!client)return;
+        try { const {error}=await client.rpc('zono_developer_add_recharge_code',{p_provider:provider,p_amount_iqd:amount,p_code_value:code}); if(error)throw error; if(input)input.value=''; this.showToast('تم حفظ الكود وتفعيل الرصيد في المتجر','success'); await this.loadRechargeAdminAmount(provider,amount); }
+        catch(e){ this.showToast(e.message||'تعذر حفظ الكود','error'); }
     }
 
     // --- Store System (المتجر) ---

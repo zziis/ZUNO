@@ -448,8 +448,10 @@
                             <strong>آسيا سيل</strong><small>بطاقات شحن</small>
                             <span class="zono-provider-action">عرض البطاقات</span>
                         </button>
-                        <button class="zono-recharge-card" data-store-search="زين العراق zain" onclick="window.zonoApp.storeSoon('زين العراق')">
-                            <div class="zono-brand-logo zain">zain</div><strong>زين العراق</strong><small>بطاقات شحن</small>
+                        <button class="zono-recharge-card zono-zain-provider" data-store-search="زين العراق zain" onclick="window.zonoApp.openZainCards()">
+                            <div class="zono-provider-image zain-image" aria-hidden="true"></div>
+                            <strong>زين العراق</strong><small>بطاقات شحن</small>
+                            <span class="zono-provider-action">عرض البطاقات</span>
                         </button>
                         <button class="zono-recharge-card" data-store-search="كورك korek" onclick="window.zonoApp.storeSoon('كورك')">
                             <div class="zono-brand-logo korek">KOREK</div><strong>كورك</strong><small>بطاقات شحن</small>
@@ -481,39 +483,35 @@
                 </div>
             </div>
 
-            <div class="zono-asiacell-grid">
-                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('2000')">
-                    <div class="zono-voucher-art"><span>2,000</span><small>IQD</small></div>
-                    <strong>2000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
-                    <em>غير متوفر حالياً</em>
-                </button>
-                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('5000')">
-                    <div class="zono-voucher-art"><span>5,000</span><small>IQD</small></div>
-                    <strong>5000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
-                    <em>غير متوفر حالياً</em>
-                </button>
-                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('10000')">
-                    <div class="zono-voucher-art"><span>10,000</span><small>IQD</small></div>
-                    <strong>10000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
-                    <em>غير متوفر حالياً</em>
-                </button>
-                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('15000')">
-                    <div class="zono-voucher-art"><span>15,000</span><small>IQD</small></div>
-                    <strong>15000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
-                    <em>غير متوفر حالياً</em>
-                </button>
-                <button class="zono-voucher-card" onclick="window.zonoApp.showRechargeUnavailable('25000')">
-                    <div class="zono-voucher-art"><span>25,000</span><small>IQD</small></div>
-                    <strong>25000 دينار</strong><span class="zono-voucher-price">🌾 5000 بذرة</span>
-                    <em>غير متوفر حالياً</em>
-                </button>
-            </div>
+            <div id="zono-asiacell-grid" class="zono-asiacell-grid"></div>
 
             <div class="zono-asiacell-note">
                 <span>ⓘ</span>
                 <div><strong>الخدمة غير متوفرة الآن</strong><small>سيتم تفعيل بطاقات الشحن قريباً.</small></div>
             </div>
         </div>
+    </div>
+
+    <!-- ==================== Zain Recharge Cards Full Screen ==================== -->
+    <div id="zono-zain-modal" class="zono-asiacell-modal zono-zain-modal hidden" dir="rtl" aria-hidden="true">
+        <div class="zono-asiacell-screen zono-zain-screen">
+            <div class="zono-asiacell-hero zono-zain-hero">
+                <button type="button" class="zono-asiacell-back" onclick="window.zonoApp.closeZainCards()" aria-label="رجوع">‹</button>
+                <div class="zono-zain-hero-logo" aria-label="Zain"></div>
+                <div class="zono-asiacell-copy"><h2>بطاقات شحن زين العراق</h2><p>اختر فئة الرصيد المطلوبة</p></div>
+            </div>
+            <div id="zono-zain-grid" class="zono-asiacell-grid zono-zain-grid"></div>
+            <div class="zono-asiacell-note zono-zain-note"><span>ⓘ</span><div><strong>المتوفر مرتبط بمخزون المطور</strong><small>عند نفاد الأكواد تظهر الفئة غير متوفرة تلقائياً.</small></div></div>
+        </div>
+    </div>
+
+    <!-- ==================== Developer Recharge Inventory ==================== -->
+    <div id="zono-recharge-admin-modal" class="zono-recharge-admin-modal hidden" dir="rtl" aria-hidden="true">
+      <div class="zono-recharge-admin-screen">
+        <div class="zono-recharge-admin-top"><button onclick="window.zonoApp.closeRechargeAdmin()">‹</button><h2>رصيد</h2><span>إدارة المطور</span></div>
+        <div class="zono-recharge-admin-tabs"><button class="active" onclick="window.zonoApp.setRechargeAdminRoot('cards', this)">البطاقات</button><button onclick="window.zonoApp.setRechargeAdminRoot('store', this)">المتجر</button></div>
+        <div id="zono-recharge-admin-content"></div>
+      </div>
     </div>
 
                 <!-- ==================== Bird Shop ==================== -->
@@ -623,6 +621,9 @@
                             <button onclick="window.zonoApp.switchTab('settings')" class="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-xs font-bold text-stone-300 border border-stone-700 transition-all flex items-center space-x-1.5 space-x-reverse">
                                 <span>⚙️</span>
                                 <span>الإعدادات</span>
+                            </button>
+                            <button id="developer-recharge-balance-btn" onclick="window.zonoApp.openRechargeAdmin()" class="hidden px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500/15 to-fuchsia-500/15 text-xs font-bold text-cyan-200 border border-cyan-400/30 transition-all flex items-center gap-1.5">
+                                <span>💳</span><span>رصيد</span>
                             </button>
                         </div>
                     </div>
