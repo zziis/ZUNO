@@ -1169,8 +1169,12 @@ class ZonoApp {
             seedValuePill.classList.toggle('counter-only-hidden', tabId !== 'counter');
         }
 
+        // Cache navigation nodes once. Avoid scanning the whole DOM on every tap.
+        this._tabNodes ||= Array.from(document.querySelectorAll('.tab-content'));
+        this._navNodes ||= Array.from(document.querySelectorAll('.nav-btn'));
+
         // Hide all tabs
-        document.querySelectorAll('.tab-content').forEach(tab => {
+        this._tabNodes.forEach(tab => {
             tab.classList.remove('active');
             tab.setAttribute('aria-hidden', 'true');
             tab.style.setProperty('display', 'none', 'important');
@@ -1192,7 +1196,7 @@ class ZonoApp {
         if (targetTab) targetTab.scrollTop = 0;
 
         // Update nav bar active states
-        document.querySelectorAll('.nav-btn').forEach(btn => {
+        this._navNodes.forEach(btn => {
             const btnTab = btn.getAttribute('data-tab');
             if (btnTab === tabId) {
                 btn.classList.add('text-amber-400', 'scale-105');
@@ -1216,7 +1220,10 @@ class ZonoApp {
             });
         }
         if (tabId === 'birds') {
-            this.renderStore();
+            // Let the tab become visible first; build the heavier bird store after the click frame.
+            const run = () => { try { this.renderStore(); } catch (_) {} };
+            if ('requestIdleCallback' in window) requestIdleCallback(run, { timeout: 250 });
+            else setTimeout(run, 0);
         }
         if (tabId === 'settings') {
             this.refreshAccountSettingsUI();
@@ -4192,7 +4199,10 @@ class ZonoApp {
     openAsiacellCards() {
         const modal = document.getElementById('zono-asiacell-modal');
         if (!modal) return;
+        // closeAsiacellCards uses inline display:none!important, so explicitly restore it.
         modal.classList.remove('hidden');
+        modal.style.setProperty('display', 'block', 'important');
+        modal.style.pointerEvents = 'auto';
         modal.setAttribute('aria-hidden', 'false');
         document.documentElement.classList.add('zono-modal-open');
         document.body.classList.add('zono-modal-open');
@@ -4217,6 +4227,14 @@ class ZonoApp {
 
     rechargeAmounts() { return [2000, 5000, 10000, 15000, 25000]; }
     rechargePriceSeeds() { return 5000; }
+    getRechargeCache(provider) {
+        this._rechargeAvailabilityCache ||= {};
+        return this._rechargeAvailabilityCache[provider] || null;
+    }
+    setRechargeCache(provider, stock) {
+        this._rechargeAvailabilityCache ||= {};
+        this._rechargeAvailabilityCache[provider] = { ...stock };
+    }
     isDeveloperAccount() { return Number(this.currentUser?.publicId || this.currentUser?.username || 0) === 1 || this.currentUser?.role === 'developer'; }
 
     async getRechargeAvailability(provider) {
@@ -4227,6 +4245,7 @@ class ZonoApp {
             const { data, error } = await client.rpc('zono_recharge_availability', { p_provider: provider });
             if (error) throw error;
             (data || []).forEach(r => { result[Number(r.amount_iqd)] = Number(r.available_count || 0); });
+            this.setRechargeCache(provider, result);
         } catch (_) {}
         return result;
     }
@@ -4234,37 +4253,76 @@ class ZonoApp {
     async renderRechargeCards(provider) {
         const grid = document.getElementById(provider === 'asiacell' ? 'zono-asiacell-grid' : 'zono-zain-grid');
         if (!grid) return;
-        grid.innerHTML = '<div class="zono-recharge-loading">جاري فحص الرصيد المتوفر...</div>';
+        const paint = (stock) => {
+            if (!grid.isConnected) return;
+            grid.innerHTML = this.rechargeAmounts().map(amount => {
+                const count = Number(stock?.[amount] || 0), available = count > 0;
+                return `<button class="zono-voucher-card ${provider === 'zain' ? 'zono-zain-voucher' : ''} ${available ? 'is-available' : 'is-soldout'}" data-recharge-provider="${provider}" data-recharge-amount="${amount}" onclick="window.zonoApp.buyRechargeCard('${provider}', ${amount}, this)">
+                    <div class="zono-voucher-art"><span>${amount.toLocaleString('en-US')}</span><small>IQD</small></div>
+                    <strong>${amount} دينار</strong><span class="zono-voucher-price">🌾 ${this.rechargePriceSeeds()} بذرة</span>
+                    <em>${available ? `شراء • متوفر ${count}` : 'غير متوفر حالياً'}</em>
+                </button>`;
+            }).join('');
+        };
+
+        // Paint cached stock immediately so opening the cards never feels frozen.
+        const cached = this.getRechargeCache(provider);
+        if (cached) paint(cached);
+        else grid.innerHTML = '<div class="zono-recharge-loading">جاري فحص الرصيد المتوفر...</div>';
+
         const stock = await this.getRechargeAvailability(provider);
-        grid.innerHTML = this.rechargeAmounts().map(amount => {
-            const count = Number(stock[amount] || 0), available = count > 0;
-            return `<button class="zono-voucher-card ${provider === 'zain' ? 'zono-zain-voucher' : ''} ${available ? 'is-available' : 'is-soldout'}" onclick="window.zonoApp.buyRechargeCard('${provider}', ${amount})">
-                <div class="zono-voucher-art"><span>${amount.toLocaleString('en-US')}</span><small>IQD</small></div>
-                <strong>${amount} دينار</strong><span class="zono-voucher-price">🌾 ${this.rechargePriceSeeds()} بذرة</span>
-                <em>${available ? `شراء • متوفر ${count}` : 'غير متوفر حالياً'}</em>
-            </button>`;
-        }).join('');
+        paint(stock);
     }
 
-    async buyRechargeCard(provider, amount) {
+    async buyRechargeCard(provider, amount, buttonEl = null) {
         if (!this.currentUser) return this.showAuthModal();
         const price = this.rechargePriceSeeds();
         if (Number(this.currentUser.seeds || 0) < price) return this.showToast(`تحتاج ${price} بذرة لشراء الرصيد`, 'error');
         const client = window.zunoBackend?.client || window.zonoAuth?.client;
         if (!client) return this.showToast('تعذر الاتصال بالخادم', 'error');
+
+        // Instant touch response. The actual success message is shown only after Supabase confirms.
+        const btn = buttonEl || document.querySelector(`[data-recharge-provider="${provider}"][data-recharge-amount="${amount}"]`);
+        if (btn?.dataset.buying === '1') return;
+        if (btn) {
+            btn.dataset.buying = '1';
+            btn.classList.add('is-buying');
+            const em = btn.querySelector('em');
+            if (em) { em.dataset.oldText = em.textContent || ''; em.textContent = 'جاري الشراء...'; }
+        }
+        this.showToast('جاري تنفيذ الشراء...', 'info');
+
         try {
             const { data, error } = await client.rpc('zono_purchase_recharge_code', { p_provider: provider, p_amount_iqd: amount });
             if (error) throw error;
             const row = Array.isArray(data) ? data[0] : data;
-            if (!row?.ok) return this.showToast(row?.message || 'نفد الرصيد حالياً، يرجى المحاولة لاحقاً', 'error');
-            await window.zonoAuth.loadProfile(window.zonoAuth.user); await this.syncUserFromSupabase();
-            await this.loadNotifications(false);
+            if (!row?.ok) throw new Error(row?.message || 'OUT_OF_STOCK');
+
+            // Optimistically update visible balance/stock immediately after server confirmation.
+            if (this.currentUser) this.currentUser.seeds = Math.max(0, Number(this.currentUser.seeds || 0) - price);
+            const cached = this.getRechargeCache(provider);
+            if (cached) {
+                cached[amount] = Math.max(0, Number(cached[amount] || 0) - 1);
+                this.setRechargeCache(provider, cached);
+            }
             this.showToast(`تم شراء رصيد ${amount} دينار، تم إرسال الكود إلى الشعارات`, 'success');
-            await this.renderRechargeCards(provider);
+            this.renderRechargeCards(provider);
+
+            // Non-blocking sync: do not make the user wait on profile/notification refresh.
+            Promise.resolve().then(async () => {
+                try { await window.zonoAuth.loadProfile(window.zonoAuth.user); } catch (_) {}
+                try { await this.syncUserFromSupabase(); } catch (_) {}
+                try { await this.loadNotifications(false); } catch (_) {}
+            });
         } catch (e) {
             const msg = String(e?.message || '');
             this.showToast(msg.includes('OUT_OF_STOCK') ? 'نفد الرصيد حالياً، يرجى المحاولة لاحقاً' : (msg || 'تعذر شراء الرصيد'), 'error');
-            await this.renderRechargeCards(provider);
+            this.renderRechargeCards(provider);
+        } finally {
+            if (btn) {
+                btn.dataset.buying = '0';
+                btn.classList.remove('is-buying');
+            }
         }
     }
 

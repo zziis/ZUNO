@@ -4648,3 +4648,16 @@ html:not(.zono-modal-open) .zono-zain-modal.hidden{visibility:hidden!important}
   .nav-btn{transition:transform .12s ease,color .12s ease!important}
   .glass-panel,.zono-recharge-card,.zono-voucher-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 }
+
+
+/* ZUNO fast navigation + instant recharge interaction 2026-09-09 */
+.zono-voucher-card.is-buying{pointer-events:none;transform:scale(.985);opacity:.86}
+.zono-voucher-card.is-buying em{font-weight:900;color:#7dd3fc!important}
+@media (max-width:768px){
+  html,body{scroll-behavior:auto!important}
+  body>main{contain:none!important;will-change:auto!important}
+  .tab-content{content-visibility:visible!important;contain:none!important}
+  .zono-store-shell,.zono-asiacell-modal,.zono-zain-modal,.zono-recharge-admin-modal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  .zono-store-shell *,.zono-asiacell-modal *,.zono-zain-modal *{animation-duration:.18s!important;transition-duration:.12s!important}
+  .nav-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+}
